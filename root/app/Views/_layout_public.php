@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= lang('System.page.login') ?> - <?= SITE_TITLE ?></title>
+    <title><?= lang('System.page.' . $slug) ?> - <?= SITE_TITLE ?></title>
     <meta name="description" content="<?= META_DESCRIPTION ?>">
     <meta name="keywords" content="<?= META_KEYWORDS ?>">
     <!-- Favicons -->
@@ -58,6 +58,7 @@
                 <li><i class="ph ph-check-circle"></i> <?= lang('Login.auth-panel.item-3') ?></li>
             </ul>
         </div>
+        <div class="auth-panel-footer">&nbsp;</div>
     </aside>
     <!-- Content Side -->
     <div class="auth-content">

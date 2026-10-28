@@ -43,7 +43,7 @@
             <a href="<?= base_url('create-account') ?>"><?= lang('Login.main.create-new') ?></a>
             <br/>
             <?= lang('Login.main.or') ?>
-            <a href="<?= base_url('forget-password') ?>"><?= lang('Login.forget-password.title') ?></a>
+            <a href="<?= base_url('forgot-password') ?>"><?= lang('Login.forget-password.title') ?></a>
         </p>
     </div>
 <?php $this->endSection() ?>
