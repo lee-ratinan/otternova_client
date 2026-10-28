@@ -77,3 +77,10 @@ defined('EXIT_USER_INPUT')     || define('EXIT_USER_INPUT', 7);     // invalid u
 defined('EXIT_DATABASE')       || define('EXIT_DATABASE', 8);       // database error
 defined('EXIT__AUTO_MIN')      || define('EXIT__AUTO_MIN', 9);      // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      || define('EXIT__AUTO_MAX', 125);    // highest automatically-assigned error code
+
+/**
+| Default values
+ */
+define('SITE_TITLE', 'OtterNova');
+define('META_DESCRIPTION', 'Admin portal for OtterNova clients');
+define('META_KEYWORDS', 'admin portal, backoffice, OtterNova clients');

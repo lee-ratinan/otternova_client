@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /**
  * =======================================================
  * Template Name: TrendyAdmin - Bootstrap Admin Template
@@ -7,7 +8,6 @@
  * License: https://bootstrapmade.com/license/
  * =======================================================
  */
-@charset "UTF-8";
 
 /*--------------------------------------------------------------
 # Starter Template - Main Stylesheet
@@ -24,6 +24,9 @@
   --heading-font: "Oswald", sans-serif;
   --nav-font: "Oswald", sans-serif;
   --mono-font: "Ubuntu Mono", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+  --default-th-font: "Noto Serif Thai",  system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --heading-th-font: "Prompt",  sans-serif;
+  --nav-th-font: "Prompt",  sans-serif;
 }
 
 /* Spacing Scale */
@@ -135,11 +138,11 @@
 --------------------------------------------------------------*/
 [data-theme=dark] {
   /* Core palette */
-  --background-color: #0e0a1f;
+  --background-color: #2e0a0f;
   --default-color: #e4e0f5;
   --heading-color: #f4f1ff;
-  --accent-color: #a78bfa;
-  --surface-color: #191330;
+  --accent-color: #c97232;
+  --surface-color: #3e1a0f;
   --contrast-color: #ffffff;
   /* Extended text colors */
   --muted-color: #9d94bd;
@@ -377,7 +380,7 @@ html {
 --------------------------------------------------------------*/
 body {
   margin: 0;
-  font-family: var(--default-font);
+  font-family: var(--default-font), sans-serif;
   font-size: 0.9375rem;
   font-weight: 400;
   line-height: 1.6;
@@ -386,6 +389,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+body.lang-th {
+  font-family: var(--default-th-font), sans-serif;
 }
 
 /*--------------------------------------------------------------
@@ -403,12 +410,27 @@ h6,
 .h4,
 .h5,
 .h6 {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-weight: 600;
   line-height: 1.3;
   color: var(--heading-color);
   margin-top: 0;
   margin-bottom: 0.5rem;
+}
+
+.lang-th h1,
+.lang-th h2,
+.lang-th h3,
+.lang-th h4,
+.lang-th h5,
+.lang-th h6,
+.lang-th .h1,
+.lang-th .h2,
+.lang-th .h3,
+.lang-th .h4,
+.lang-th .h5,
+.lang-th .h6 {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 h1,
@@ -1564,11 +1586,15 @@ button {
 
 .header-logo-text {
   display: none;
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--heading-color);
+}
+
+.lang-th .header-logo-text {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 @media (min-width: 576px) {
@@ -2832,13 +2858,17 @@ a.header-action:hover {
 }
 
 .sidebar-logo-text {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--contrast-color);
   white-space: nowrap;
   transition: opacity var(--transition-fast), width var(--transition-fast);
+}
+
+.lang-th .sidebar-logo-text {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .sidebar-collapsed .sidebar-logo {
@@ -3817,7 +3847,7 @@ a.header-action:hover {
   width: 44%;
   max-width: 620px;
   padding: var(--spacing-2xl);
-  background: linear-gradient(160deg, color-mix(in srgb, #171032, var(--accent-color) 14%), #171032 60%);
+  background: linear-gradient(160deg, color-mix(in srgb, #443300, var(--accent-color) 14%), #3a1400 60%);
   overflow: hidden;
 }
 
@@ -3861,11 +3891,15 @@ a.header-action:hover {
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--contrast-color);
+}
+
+.lang-th .auth-panel-logo {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .auth-panel-body {
@@ -3949,11 +3983,15 @@ a.header-action:hover {
   gap: 10px;
   margin-top: var(--spacing-md);
   text-decoration: none;
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--heading-color);
+}
+
+.lang-th .auth-logo {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 @media (min-width: 992px) {
@@ -4306,7 +4344,7 @@ a.header-action:hover {
   width: 48px;
   height: 54px;
   text-align: center;
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.375rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -4314,6 +4352,10 @@ a.header-action:hover {
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.lang-th .auth-otp input {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .auth-otp input:focus {
@@ -9358,11 +9400,15 @@ textarea.form-control {
 }
 
 .page-dashboard .dash-hero-stat-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--contrast-color);
   line-height: 1.2;
+}
+
+.lang-th .page-dashboard .dash-hero-stat-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard .dash-hero-stat-label {
@@ -9450,12 +9496,16 @@ textarea.form-control {
 }
 
 .page-dashboard .dash-kpi-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.625rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--heading-color);
   line-height: 1.2;
+}
+
+.lang-th .page-dashboard .dash-kpi-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard .dash-kpi-label {
@@ -9629,10 +9679,14 @@ textarea.form-control {
 }
 
 .page-dashboard .dash-goal-stat-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--heading-color);
+}
+
+.lang-th .page-dashboard .dash-goal-stat-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard .dash-goal-hint {
@@ -10099,12 +10153,15 @@ textarea.form-control {
 }
 
 .page-dashboard .dash-txn-amount {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 0.8437rem;
   font-weight: 700;
   white-space: nowrap;
 }
 
+.lang-th .page-dashboard .dash-txn-amount {
+  font-family: var(--heading-th-font), sans-serif;
+}
 .page-dashboard .dash-txn-amount.plus {
   color: var(--success-color);
 }
@@ -10337,12 +10394,16 @@ textarea.form-control {
 }
 
 .page-dashboard-sales .sales-kpi-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.65rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
   color: var(--heading-color);
+}
+
+.lang-th .page-dashboard-sales .sales-kpi-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-sales .sales-kpi-label {
@@ -10655,10 +10716,14 @@ textarea.form-control {
 }
 
 .page-dashboard-sales .sales-target-stat-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--heading-color);
+}
+
+.lang-th .page-dashboard-sales .sales-target-stat-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-sales .sales-target-divider {
@@ -10821,12 +10886,16 @@ textarea.form-control {
 }
 
 .page-dashboard-analytics .ana-kpi-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.65rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
   color: var(--heading-color);
+}
+
+.lang-th .page-dashboard-analytics .ana-kpi-value {
+  font-family: var(--heading-th-font);
 }
 
 .page-dashboard-analytics .ana-kpi-label {
@@ -10988,10 +11057,14 @@ textarea.form-control {
 }
 
 .page-dashboard-analytics .ana-realtime-title {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--contrast-color);
+}
+
+.lang-th .page-dashboard-analytics .ana-realtime-title {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-analytics .ana-realtime-meta {
@@ -11001,12 +11074,16 @@ textarea.form-control {
 }
 
 .page-dashboard-analytics .ana-realtime-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 3rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
   color: var(--contrast-color);
+}
+
+.lang-th .page-dashboard-analytics .ana-realtime-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-analytics .ana-realtime-label {
@@ -11497,12 +11574,16 @@ textarea.form-control {
 }
 
 .page-dashboard-crm .crm-kpi-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
   color: var(--heading-color);
+}
+
+.lang-th .page-dashboard-crm .crm-kpi-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-crm .crm-kpi-label {
@@ -11645,12 +11726,16 @@ textarea.form-control {
 }
 
 .page-dashboard-crm .crm-stage-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--heading-color);
   margin-bottom: var(--spacing-sm);
+}
+
+.lang-th .page-dashboard-crm .crm-stage-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-crm .crm-stage-bar {
@@ -11798,9 +11883,13 @@ textarea.form-control {
 }
 
 .page-dashboard-crm .crm-deal-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-weight: 700;
   color: var(--heading-color);
+}
+
+.lang-th .page-dashboard-crm .crm-deal-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-crm .crm-deal-date {
@@ -12345,12 +12434,16 @@ textarea.form-control {
 }
 
 .page-dashboard-marketing .mkt-kpi-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
   color: var(--heading-color);
+}
+
+.lang-th .page-dashboard-marketing .mkt-kpi-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-marketing .mkt-kpi-label {
@@ -12469,12 +12562,16 @@ textarea.form-control {
 }
 
 .page-dashboard-marketing .mkt-budget-total {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
   color: var(--contrast-color);
+}
+
+.lang-th .page-dashboard-marketing .mkt-budget-total {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-marketing .mkt-budget-note {
@@ -12524,10 +12621,14 @@ textarea.form-control {
 }
 
 .page-dashboard-marketing .mkt-budget-cell-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.0625rem;
   font-weight: 700;
   color: #cfc7e8;
+}
+
+.lang-th .page-dashboard-marketing .mkt-budget-cell-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-marketing .mkt-budget-rows {
@@ -12657,10 +12758,14 @@ textarea.form-control {
 }
 
 .page-dashboard-marketing .mkt-funnel-count {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--stage-color);
+}
+
+.lang-th .page-dashboard-marketing .mkt-funnel-count {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-marketing .mkt-funnel-stage.stage-first .mkt-funnel-label,
@@ -12758,9 +12863,13 @@ textarea.form-control {
 }
 
 .page-dashboard-marketing .mkt-cell-strong {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-weight: 700;
   color: var(--heading-color);
+}
+
+.lang-th .page-dashboard-marketing .mkt-cell-strong {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-marketing .mkt-channel {
@@ -13127,10 +13236,14 @@ textarea.form-control {
 }
 
 .page-dashboard-finance .fin-balance-label {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
   color: #cfc7e8;
+}
+
+.lang-th .page-dashboard-finance .fin-balance-label {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-finance .fin-balance-account {
@@ -13154,12 +13267,16 @@ textarea.form-control {
 .page-dashboard-finance .fin-balance-amount {
   position: relative;
   z-index: 1;
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 2.75rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1;
   color: var(--contrast-color);
+}
+
+.lang-th .page-dashboard-finance .fin-balance-amount {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-finance .fin-balance-amount span {
@@ -13220,10 +13337,14 @@ textarea.form-control {
 }
 
 .page-dashboard-finance .fin-balance-stat-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1rem;
   font-weight: 700;
   color: #cfc7e8;
+}
+
+.lang-th .page-dashboard-finance .fin-balance-stat-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-finance {
@@ -13288,11 +13409,15 @@ textarea.form-control {
 }
 
 .page-dashboard-finance .fin-kpi-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--heading-color);
+}
+
+.lang-th .page-dashboard-finance .fin-kpi-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-finance .fin-kpi-trend {
@@ -13433,10 +13558,14 @@ textarea.form-control {
 }
 
 .page-dashboard-finance .fin-budget-pct {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--accent-color);
+}
+
+.lang-th .page-dashboard-finance .fin-budget-pct {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-finance .fin-budget-amounts {
@@ -13576,10 +13705,14 @@ textarea.form-control {
 }
 
 .page-dashboard-finance .fin-txn-amount {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 0.9375rem;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.lang-th .page-dashboard-finance .fin-txn-amount {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-finance .fin-txn-amount.income {
@@ -13663,11 +13796,15 @@ textarea.form-control {
 }
 
 .page-dashboard-finance .fin-date-day {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.1;
   color: var(--accent-color);
+}
+
+.lang-th .page-dashboard-finance .fin-date-day {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-finance .fin-date-month {
@@ -13701,7 +13838,7 @@ textarea.form-control {
 }
 
 .page-dashboard-finance .fin-upcoming-amount {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -13907,7 +14044,7 @@ textarea.form-control {
 }
 
 .page-dashboard-projects .proj-kpi-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -14044,7 +14181,7 @@ textarea.form-control {
 }
 
 .page-dashboard-projects .proj-card-name {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -14126,7 +14263,7 @@ textarea.form-control {
 }
 
 .page-dashboard-projects .proj-card-progress-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--accent-color);
@@ -14250,7 +14387,7 @@ textarea.form-control {
 }
 
 .page-dashboard-projects .proj-card-new-title {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -14357,7 +14494,7 @@ textarea.form-control {
 }
 
 .page-dashboard-projects .proj-workload-pct {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--accent-color);
@@ -14445,7 +14582,7 @@ textarea.form-control {
 }
 
 .page-dashboard-projects .proj-date-day {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.1;
@@ -14994,7 +15131,7 @@ textarea.form-control {
 
 .error-page .error-code {
   margin-bottom: var(--spacing-lg);
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: clamp(4.5rem, 18vw, 7rem);
   font-weight: 800;
   line-height: 1;
@@ -15234,7 +15371,7 @@ textarea.form-control {
 
 .error-page .countdown-value {
   display: block;
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.875rem;
   font-weight: 800;
   line-height: 1.2;
@@ -15513,7 +15650,7 @@ textarea.form-control {
 }
 
 .page-profile .pf-hero-stat-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--contrast-color);
@@ -15921,7 +16058,7 @@ textarea.form-control {
 
 .page-activity .ac-summary-value {
   display: block;
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -16722,7 +16859,7 @@ textarea.form-control {
 .page-notifications .users-stat-value,
 .page-activity .users-stat-value,
 .page-roles .users-stat-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -18051,7 +18188,7 @@ textarea.form-control {
 }
 
 .page-users-view .uv-statbar-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -18811,7 +18948,7 @@ textarea.form-control {
 .page-notifications .ue-identity-name,
 .page-activity .ue-identity-name,
 .page-roles .ue-identity-name {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -19319,7 +19456,7 @@ textarea.form-control {
 }
 
 .page-roles .rl-name {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -19788,7 +19925,7 @@ textarea.form-control {
 }
 
 .page-invoice-list .inv-stat-value {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -20285,7 +20422,7 @@ textarea.form-control {
 }
 
 .page-invoice .inv-brand-name {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.0625rem;
   font-weight: 700;
   color: var(--contrast-color);
@@ -20468,7 +20605,7 @@ textarea.form-control {
   margin-top: 6px;
   padding-top: 14px;
   border-top: 2px solid var(--border-color);
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -20546,7 +20683,7 @@ textarea.form-control {
 }
 
 .page-invoice .inv-pay-amount {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 2rem;
   font-weight: 700;
   color: var(--contrast-color);
@@ -20857,7 +20994,7 @@ textarea.form-control {
 }
 
 .page-pricing .plan-currency {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--heading-color);
@@ -20866,7 +21003,7 @@ textarea.form-control {
 }
 
 .page-pricing .plan-amount {
-  font-family: var(--heading-font);
+  font-family: var(--heading-font), sans-serif;
   font-size: 2.25rem;
   font-weight: 700;
   line-height: 1;
