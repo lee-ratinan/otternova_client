@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $locale ?>">
 
 <head>
     <meta charset="utf-8">
@@ -286,17 +286,17 @@
                 <!-- User Dropdown -->
                 <div class="header-action dropdown user-dropdown">
                     <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="<?= base_url('assets/img/profile-img.webp') ?>" alt="User" class="avatar">
-                        <span class="user-name">John Doe</span>
+                        <img src="<?= esc(userAvatarUrl($user['avatar_path'] ?? null), 'attr') ?>" alt="<?= esc(userDisplayName($user), 'attr') ?>" class="avatar">
+                        <span class="user-name"><?= esc(userDisplayName($user)) ?></span>
                         <i class="ph ph-caret-down user-caret"></i>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end">
                         <div class="user-menu-card">
                 <span class="user-menu-avatar">
-                  <img src="<?= base_url('assets/img/profile-img.webp') ?>" alt="User">
+                  <img src="<?= esc(userAvatarUrl($user['avatar_path'] ?? null), 'attr') ?>" alt="<?= esc(userDisplayName($user), 'attr') ?>">
                 </span>
-                            <span class="user-menu-name">John Doe</span>
-                            <span class="user-menu-mail">john@trendyadmin.com</span>
+                            <span class="user-menu-name"><?= esc(userDisplayName($user)) ?></span>
+                            <span class="user-menu-mail"><?= esc($user['email_address'] ?? '') ?></span>
                             <span class="user-menu-role">Administrator</span>
                         </div>
                         <div class="user-menu-body">
@@ -737,11 +737,11 @@
         <div class="sidebar-user">
             <a href="profile.html" class="sidebar-user-link">
           <span class="sidebar-user-avatar">
-            <img src="<?= base_url('assets/img/profile-img.webp') ?>" alt="User" />
+            <img src="<?= esc(userAvatarUrl($user['avatar_path'] ?? null), 'attr') ?>" alt="<?= esc(userDisplayName($user), 'attr') ?>" />
             <span class="sidebar-user-status"></span>
           </span>
                 <span class="sidebar-user-info">
-            <span class="sidebar-user-name">John Doe</span>
+            <span class="sidebar-user-name"><?= esc(userDisplayName($user)) ?></span>
             <span class="sidebar-user-role">Administrator</span>
           </span>
             </a>
@@ -896,6 +896,7 @@
 <!-- Template Main JS Files -->
 <script src="<?= base_url('assets/js/theme.js') ?>"></script>
 <script src="<?= base_url('assets/js/main.js') ?>"></script>
+<script src="<?= base_url('assets/js/local-time.js') ?>"></script>
 
 <!-- App Sidebar Toggle (for app pages with sidebars) -->
 <script src="<?= base_url('assets/js/apps-sidebar-toggle.js') ?>"></script>

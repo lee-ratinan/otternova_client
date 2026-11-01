@@ -97,6 +97,7 @@
 <script src="<?= base_url('assets/vendor/php-email-form/validate.js') ?>"></script>
 <script src="<?= base_url('assets/js/theme.js') ?>"></script>
 <script src="<?= base_url('assets/js/main.js') ?>"></script>
+<script src="<?= base_url('assets/js/local-time.js') ?>"></script>
 <script src="<?= base_url('assets/js/apps-sidebar-toggle.js') ?>"></script>
 <?= $this->renderSection('script') ?>
 </body>
