@@ -7,8 +7,8 @@
     <meta name="description" content="<?= META_DESCRIPTION ?>">
     <meta name="keywords" content="<?= META_KEYWORDS ?>">
     <!-- Favicons -->
-    <link href="<?= base_url('assets/img/favicon.png') ?>" rel="icon">
-    <link href="<?= base_url('assets/img/apple-touch-icon.png') ?>" rel="apple-touch-icon">
+    <link href="<?= base_url('assets/img/logo.webp') ?>" rel="icon">
+    <link href="<?= base_url('assets/img/logo.webp') ?>" rel="apple-touch-icon">
     <!-- Google Fonts - Plus Jakarta Sans (body) + Outfit (headings) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
