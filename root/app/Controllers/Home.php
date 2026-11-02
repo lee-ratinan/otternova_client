@@ -158,8 +158,11 @@ class Home extends BaseController
         return redirect()->to(base_url());
     }
 
-    public function createAccount(): string
+    public function createAccount(): string|RedirectResponse
     {
+        if (hasActiveSession()) {
+            return redirect()->to(base_url('admin/dashboard'));
+        }
         $locale = $this->request->getLocale();
         $data   = [
             'locale' => $locale,
@@ -167,6 +170,74 @@ class Home extends BaseController
         ];
         return view('public_createAccount', $data);
     }
+
+    /**
+     * POST create-account: forward the sign-up to LINK_INTERNAL_API, which creates a pending account
+     * and emails the activation link. Responds with {status: 'success', message} or {status: 'error', message, errors}.
+     */
+    public function submitCreateAccount(): ResponseInterface
+    {
+        $fullName = trim((string) $this->request->getPost('full_name'));
+        $email    = trim((string) $this->request->getPost('email'));
+        $password = (string) $this->request->getPost('password');
+
+        $errors = [];
+        if ($fullName === '') {
+            $errors['full_name'] = lang('Login.create-account.full-name-invalid-feedback');
+        }
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = lang('Login.main.email-invalid-feedback');
+        }
+        if (mb_strlen($password) < self::MIN_PASSWORD_LENGTH) {
+            $errors['password'] = lang('Login.error.password-too-short', [self::MIN_PASSWORD_LENGTH]);
+        }
+        if ($this->request->getPost('terms') === null) {
+            $errors['terms'] = lang('Login.create-account.terms-invalid-feedback');
+        }
+        if ($errors !== []) {
+            return $this->fail(lang('Login.create-account.invalid-input'), 422, $errors);
+        }
+
+        [$code, $body] = $this->callApi('v1/create-client-account', [
+            'full_name'     => $fullName,
+            'email_address' => $email,
+            'password'      => $password,
+        ]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            // the API names its fields after the columns; the form names email_address just email
+            $apiErrors = (array) ($body['errors'] ?? []);
+            if (isset($apiErrors['email_address'])) {
+                $apiErrors['email'] = $apiErrors['email_address'];
+                unset($apiErrors['email_address']);
+            }
+            return $this->fail($body['message'] ?? lang('Login.create-account.failed'), $code === 200 ? 422 : $code, $apiErrors);
+        }
+
+        return $this->response->setJSON([
+            'status'  => 'success',
+            'message' => $body['message'] ?? lang('Login.create-account.received', [$email]),
+        ]);
+    }
+
+    /**
+     * GET activate-account?token=: the link from the activation email. Activates the account at LINK_INTERNAL_API,
+     * then sends the user to the login page with the outcome.
+     */
+    public function activateAccount(): RedirectResponse
+    {
+        $token = trim((string) $this->request->getGet('token'));
+        if ($token === '') {
+            return redirect()->to(base_url())->with('auth_alert', ['danger', lang('Login.activate.invalid')]);
+        }
+
+        [$code, $body] = $this->callApi('v1/activate-client-account', ['token' => $token]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            return redirect()->to(base_url())->with('auth_alert', ['danger', $body['message'] ?? lang('Login.activate.invalid')]);
+        }
+
+        return redirect()->to(base_url())->with('auth_alert', ['success', $body['message'] ?? lang('Login.activate.success')]);
+    }
+
     public function forgotPassword(): string
     {
         $locale = $this->request->getLocale();
@@ -262,12 +333,19 @@ class Home extends BaseController
         }
     }
 
-    private function fail(string $message, int $code): ResponseInterface
+    /**
+     * @param array $errors Field => message, for the form to highlight; left out when empty
+     */
+    private function fail(string $message, int $code, array $errors = []): ResponseInterface
     {
         $code = ($code >= 400 && $code < 600) ? $code : 500;
-        return $this->response->setStatusCode($code)->setJSON([
+        $body = [
             'status'  => 'error',
             'message' => $message,
-        ]);
+        ];
+        if ($errors !== []) {
+            $body['errors'] = $errors;
+        }
+        return $this->response->setStatusCode($code)->setJSON($body);
     }
 }

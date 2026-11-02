@@ -9,6 +9,8 @@ $routes->post('/verify-otp', 'Home::verifyOtp');
 $routes->post('/change-password', 'Home::changePassword');
 $routes->get('/logout', 'Home::logout');
 $routes->get('/create-account', 'Home::createAccount');
+$routes->post('/create-account', 'Home::submitCreateAccount');
+$routes->get('/activate-account', 'Home::activateAccount');
 $routes->get('/forgot-password', 'Home::forgotPassword');
 $routes->get('/reset-password', 'Home::resetPassword');
 

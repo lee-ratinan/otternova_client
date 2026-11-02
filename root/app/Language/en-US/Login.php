@@ -59,5 +59,28 @@ return [
     ],
     'forget-password' => [
         'title' => 'Forget Password'
-    ]
+    ],
+    'create-account'  => [
+        'title'                      => 'Create an account',
+        'subtitle'                   => 'Start your 30-day free trial — no credit card needed',
+        'full-name'                  => 'Full name',
+        'full-name-placeholder'      => 'Your name',
+        'full-name-invalid-feedback' => 'Please enter your name.',
+        'password-placeholder'       => 'Create a password',
+        'password-hint'              => 'Use 8+ characters with a mix of letters, numbers & symbols.',
+        'terms'                      => 'I agree to the {0} and {1}',
+        'terms-of-service'           => 'Terms of Service',
+        'privacy-policy'             => 'Privacy Policy',
+        'terms-invalid-feedback'     => 'Please agree to the Terms of Service and Privacy Policy.',
+        'submit-btn'                 => 'Create Account',
+        'have-account'               => 'Already have an account?',
+        'sign-in'                    => 'Sign in',
+        'invalid-input'              => 'Please check the highlighted fields.',
+        'failed'                     => 'Unable to create your account. Please try again.',
+        'received'                   => 'We have sent an activation link to {0}. Please open it to activate your account.',
+    ],
+    'activate'        => [
+        'success' => 'Your account is active. You can now sign in.',
+        'invalid' => 'This activation link is invalid or has expired. Please sign up again to get a new link.',
+    ],
 ];

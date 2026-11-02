@@ -5,7 +5,12 @@
             <h1 class="auth-title"><?= lang('Login.main.welcome') ?></h1>
             <p class="auth-subtitle"><?= lang('Login.main.signin-to-continue') ?></p>
         </div>
-        <div id="login-alert" class="alert d-none" role="alert"></div>
+        <?php $authAlert = session()->getFlashdata('auth_alert'); // [type, message], e.g. from activate-account ?>
+        <?php if (is_array($authAlert) && count($authAlert) === 2): ?>
+            <div id="login-alert" class="alert alert-<?= esc($authAlert[0], 'attr') ?>" role="alert"><?= esc($authAlert[1]) ?></div>
+        <?php else: ?>
+            <div id="login-alert" class="alert d-none" role="alert"></div>
+        <?php endif; ?>
         <form id="login-form" class="auth-form" action="<?= base_url('login') ?>" method="post" novalidate>
             <div class="auth-field-group">
                 <label for="email" class="form-label"><?= lang('Login.main.email') ?></label>
