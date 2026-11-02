@@ -12,6 +12,8 @@ class Home extends BaseController
     private const USER_TYPE = 'C';
     // Hard cap on the session lifetime, whatever the API returns
     private const MAX_SESSION_SECONDS = 8 * 3600;
+    // Quick check before the API applies its full password policy
+    private const MIN_PASSWORD_LENGTH = 8;
 
     /**
      * Show the login form, or go straight to the dashboard when already signed in.
@@ -31,7 +33,7 @@ class Home extends BaseController
 
     /**
      * POST login: forward the credentials to LINK_INTERNAL_API.
-     * Responds with either {status: 'otp_required'} or {status: 'success', redirect}.
+     * Responds with {status: 'otp_required'}, {status: 'password_change_required'} or {status: 'success', redirect}.
      */
     public function login(): ResponseInterface
     {
@@ -52,7 +54,7 @@ class Home extends BaseController
 
         $data    = $body['data'] ?? [];
         $session = session();
-        $session->remove(['otp_token', 'otp_email']);
+        $session->remove(['otp_token', 'otp_email', 'password_change_token']);
 
         if (! empty($data['otp_required'])) {
             // otp_mode = 'E': the API has emailed the code, keep the challenge token server-side only
@@ -69,8 +71,8 @@ class Home extends BaseController
             ]);
         }
 
-        // otp_mode = 'T' or 'X': signed in without OTP
-        return $this->createSession($data);
+        // otp_mode = 'T' or 'X': signed in without OTP, unless the password has expired
+        return $this->completeSignIn($data);
     }
 
     /**
@@ -102,6 +104,43 @@ class Home extends BaseController
         }
 
         $session->remove(['otp_token', 'otp_email']);
+        return $this->completeSignIn($body['data'] ?? []);
+    }
+
+    /**
+     * POST change-password: set a new password when the current one has expired, then create the session.
+     * Only reachable after the password (and the OTP, when the account has one) was accepted.
+     */
+    public function changePassword(): ResponseInterface
+    {
+        $session     = session();
+        $changeToken = $session->get('password_change_token');
+        if (empty($changeToken)) {
+            return $this->fail(lang('Login.error.password-change-expired'), 410);
+        }
+
+        $password = (string) $this->request->getPost('new_password');
+        $confirm  = (string) $this->request->getPost('confirm_password');
+        if (mb_strlen($password) < self::MIN_PASSWORD_LENGTH) {
+            return $this->fail(lang('Login.error.password-too-short', [self::MIN_PASSWORD_LENGTH]), 422);
+        }
+        if ($password !== $confirm) {
+            return $this->fail(lang('Login.error.password-mismatch'), 422);
+        }
+
+        [$code, $body] = $this->callApi('v1/change-expired-password', [
+            'password_change_token' => $changeToken,
+            'new_password'          => $password,
+        ]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            // 410: the change token is gone (expired or already used), start over
+            if ($code === 410) {
+                $session->remove('password_change_token');
+            }
+            return $this->fail($body['message'] ?? lang('Login.error.password-change-failed'), $code === 200 ? 422 : $code);
+        }
+
+        $session->remove('password_change_token');
         return $this->createSession($body['data'] ?? []);
     }
 
@@ -146,6 +185,26 @@ class Home extends BaseController
             'slug'   => 'reset-password'
         ];
         return view('public_resetPassword', $data);
+    }
+
+    /**
+     * Credentials (and OTP) accepted: sign in, or hold the user at the password change when the password has expired.
+     * No session is created until the password is changed.
+     */
+    private function completeSignIn(array $data): ResponseInterface
+    {
+        if (empty($data['password_change_required'])) {
+            return $this->createSession($data);
+        }
+        if (empty($data['password_change_token'])) {
+            return $this->fail(lang('Login.error.password-change-start-failed'), 502);
+        }
+        // keep the change token server-side only, like the OTP token
+        session()->set('password_change_token', $data['password_change_token']);
+        return $this->response->setJSON([
+            'status'  => 'password_change_required',
+            'message' => lang('Login.password-change.required'),
+        ]);
     }
 
     /**

@@ -6,11 +6,13 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::index');
 $routes->post('/login', 'Home::login');
 $routes->post('/verify-otp', 'Home::verifyOtp');
+$routes->post('/change-password', 'Home::changePassword');
 $routes->get('/logout', 'Home::logout');
 $routes->get('/create-account', 'Home::createAccount');
 $routes->get('/forgot-password', 'Home::forgotPassword');
 $routes->get('/reset-password', 'Home::resetPassword');
 
 $routes->group('admin', ['filter' => 'auth'], static function($routes) {
+    $routes->get('/', 'Admin::dashboard');
     $routes->get('dashboard', 'Admin::dashboard');
 });

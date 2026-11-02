@@ -54,6 +54,31 @@
                     class="ph ph-arrow-right"></i></button>
             <a href="#" id="otp-back" class="auth-back"><i class="ph ph-arrow-left"></i> <?= lang('Login.otp.back') ?></a>
         </form>
+        <form id="password-form" class="auth-form d-none" action="<?= base_url('change-password') ?>" method="post" novalidate>
+            <div class="auth-field-group">
+                <label for="new_password" class="form-label"><?= lang('Login.password-change.new-password') ?></label>
+                <div class="auth-field">
+                    <i class="ph ph-lock auth-field-icon"></i>
+                    <input type="password" class="form-control" id="new_password" name="new_password"
+                           placeholder="<?= lang('Login.password-change.new-password-placeholder') ?>" minlength="8"
+                           autocomplete="new-password" required>
+                </div>
+                <div class="invalid-feedback"><?= lang('Login.error.password-too-short', [8]) ?></div>
+            </div>
+            <div class="auth-field-group">
+                <label for="confirm_password" class="form-label"><?= lang('Login.password-change.confirm-password') ?></label>
+                <div class="auth-field">
+                    <i class="ph ph-lock-key auth-field-icon"></i>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                           placeholder="<?= lang('Login.password-change.confirm-password-placeholder') ?>" minlength="8"
+                           autocomplete="new-password" required>
+                </div>
+                <div class="invalid-feedback"><?= lang('Login.error.password-mismatch') ?></div>
+            </div>
+            <button type="submit" class="auth-submit"><?= lang('Login.password-change.submit-btn') ?> <i
+                    class="ph ph-arrow-right"></i></button>
+            <a href="#" id="password-back" class="auth-back"><i class="ph ph-arrow-left"></i> <?= lang('Login.otp.back') ?></a>
+        </form>
         <p class="auth-footer-text">
             <?= lang('Login.main.dont-have-account') ?>
             <a href="<?= base_url('create-account') ?>"><?= lang('Login.main.create-new') ?></a>
@@ -70,11 +95,14 @@
 
   var loginForm = document.getElementById('login-form');
   var otpForm = document.getElementById('otp-form');
+  var passwordForm = document.getElementById('password-form');
   var alertBox = document.getElementById('login-alert');
   var messages = <?= json_encode([
       'network'     => lang('Login.error.network'),
       'signInError' => lang('Login.error.sign-in-failed'),
       'otpError'    => lang('Login.error.otp-incorrect'),
+      'mismatch'    => lang('Login.error.password-mismatch'),
+      'changeError' => lang('Login.error.password-change-failed'),
   ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
 
   function showAlert(type, message) {
@@ -90,7 +118,8 @@
   function showStep(step) {
     loginForm.classList.toggle('d-none', step !== 'login');
     otpForm.classList.toggle('d-none', step !== 'otp');
-    (step === 'otp' ? otpForm.otp : loginForm.email).focus();
+    passwordForm.classList.toggle('d-none', step !== 'password');
+    ({ login: loginForm.email, otp: otpForm.otp, password: passwordForm.new_password })[step].focus();
   }
 
   // Bootstrap validation styling: show .invalid-feedback for fields the browser rejects
@@ -102,6 +131,14 @@
       valid = valid && ok;
     });
     return valid;
+  }
+
+  function resetPasswordForm() {
+    passwordForm.reset();
+    Array.prototype.forEach.call(passwordForm.querySelectorAll('input'), function (input) {
+      input.setCustomValidity('');
+      input.classList.remove('is-invalid');
+    });
   }
 
   function post(form) {
@@ -130,6 +167,15 @@
   function handleSuccess(body) {
     if (body.status === 'success' && body.redirect) {
       window.location.href = body.redirect;
+      return true;
+    }
+    // the password has expired: no session until a new one is set
+    if (body.status === 'password_change_required') {
+      loginForm.password.value = '';
+      otpForm.otp.value = '';
+      resetPasswordForm();
+      showStep('password');
+      showAlert('warning', body.message);
       return true;
     }
     return false;
@@ -174,10 +220,37 @@
     });
   });
 
-  document.getElementById('otp-back').addEventListener('click', function (e) {
+  passwordForm.addEventListener('submit', function (e) {
     e.preventDefault();
-    hideAlert();
-    showStep('login');
+    var confirm = passwordForm.confirm_password;
+    confirm.setCustomValidity(confirm.value === passwordForm.new_password.value ? '' : messages.mismatch);
+    if (!validate(passwordForm)) {
+      return;
+    }
+    post(passwordForm).then(function (res) {
+      if (handleSuccess(res.body)) {
+        return;
+      }
+      // 410: the password change has expired, so sign in again
+      if (res.code === 410) {
+        resetPasswordForm();
+        showStep('login');
+      }
+      showAlert('danger', res.body.message || messages.changeError);
+    });
+  });
+
+  passwordForm.confirm_password.addEventListener('input', function () {
+    this.setCustomValidity('');
+  });
+
+  ['otp-back', 'password-back'].forEach(function (id) {
+    document.getElementById(id).addEventListener('click', function (e) {
+      e.preventDefault();
+      resetPasswordForm();
+      hideAlert();
+      showStep('login');
+    });
   });
 })();
 </script>
