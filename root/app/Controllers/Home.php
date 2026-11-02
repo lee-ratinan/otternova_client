@@ -238,8 +238,11 @@ class Home extends BaseController
         return redirect()->to(base_url())->with('auth_alert', ['success', $body['message'] ?? lang('Login.activate.success')]);
     }
 
-    public function forgotPassword(): string
+    public function forgotPassword(): string|RedirectResponse
     {
+        if (hasActiveSession()) {
+            return redirect()->to(base_url('admin/dashboard'));
+        }
         $locale = $this->request->getLocale();
         $data   = [
             'locale' => $locale,
@@ -248,14 +251,103 @@ class Home extends BaseController
         return view('public_forgotPassword', $data);
     }
 
-    public function resetPassword(): string
+    /**
+     * POST forgot-password: ask LINK_INTERNAL_API to email a reset link.
+     * The answer is the same whether or not the address has an account, so it does not tell anyone which do.
+     */
+    public function submitForgotPassword(): ResponseInterface
     {
+        $email = trim((string) $this->request->getPost('email'));
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->fail(lang('Login.main.email-invalid-feedback'), 422, ['email' => lang('Login.main.email-invalid-feedback')]);
+        }
+
+        [$code, $body] = $this->callApi('v1/request-password-reset', [
+            'email_address' => $email,
+            'account_type'  => self::USER_TYPE,
+        ]);
+        // 429 and 503 are about the request, not the account, so they may be shown as they are
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            return $this->fail($body['message'] ?? lang('Login.forgot-password.failed'), $code === 200 ? 502 : $code);
+        }
+
+        return $this->response->setJSON([
+            'status'  => 'success',
+            'message' => lang('Login.forgot-password.sent', [$email]),
+        ]);
+    }
+
+    /**
+     * GET reset-password?token=: the link from the reset email. A valid token is kept server-side and the token is
+     * dropped from the address bar (so it does not leak through the history or the Referer header);
+     * GET reset-password then shows the new password form, or the error when there is no usable token.
+     */
+    public function resetPassword(): string|RedirectResponse
+    {
+        $session = session();
+        $token   = trim((string) $this->request->getGet('token'));
+        if ($token !== '') {
+            $session->remove('reset_token');
+            [$code, $body] = $this->callApi('v1/check-password-reset', ['token' => $token]);
+            if ($code === 200 && ($body['status'] ?? '') === 'success') {
+                $session->set('reset_token', $token);
+            } else {
+                $session->setFlashdata('reset_error', $body['message'] ?? lang('Login.reset-password.invalid'));
+            }
+            return redirect()->to(base_url('reset-password'));
+        }
+
         $locale = $this->request->getLocale();
         $data   = [
             'locale' => $locale,
-            'slug'   => 'reset-password'
+            'slug'   => 'reset-password',
+            'valid'  => ! empty($session->get('reset_token')),
+            'error'  => $session->getFlashdata('reset_error') ?? lang('Login.reset-password.invalid'),
         ];
         return view('public_resetPassword', $data);
+    }
+
+    /**
+     * POST reset-password: set the new password with the token kept by resetPassword(), then send the user to sign in.
+     * Responds with {status: 'success', redirect} or {status: 'error', message, errors}; 410 when the link is no longer usable.
+     */
+    public function submitResetPassword(): ResponseInterface
+    {
+        $session = session();
+        $token   = $session->get('reset_token');
+        if (empty($token)) {
+            return $this->fail(lang('Login.reset-password.invalid'), 410);
+        }
+
+        $password = (string) $this->request->getPost('new_password');
+        $confirm  = (string) $this->request->getPost('confirm_password');
+        if (mb_strlen($password) < self::MIN_PASSWORD_LENGTH) {
+            $message = lang('Login.error.password-too-short', [self::MIN_PASSWORD_LENGTH]);
+            return $this->fail($message, 422, ['new_password' => $message]);
+        }
+        if ($password !== $confirm) {
+            $message = lang('Login.error.password-mismatch');
+            return $this->fail($message, 422, ['confirm_password' => $message]);
+        }
+
+        [$code, $body] = $this->callApi('v1/reset-password', [
+            'token'        => $token,
+            'new_password' => $password,
+        ]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            // 410: the link is used up or expired, so a new one is needed
+            if ($code === 410) {
+                $session->remove('reset_token');
+            }
+            return $this->fail($body['message'] ?? lang('Login.reset-password.failed'), $code === 200 ? 422 : $code, (array) ($body['errors'] ?? []));
+        }
+
+        $session->remove('reset_token');
+        $session->setFlashdata('auth_alert', ['success', $body['message'] ?? lang('Login.reset-password.success')]);
+        return $this->response->setJSON([
+            'status'   => 'success',
+            'redirect' => base_url(),
+        ]);
     }
 
     /**

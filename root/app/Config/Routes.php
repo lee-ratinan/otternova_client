@@ -12,7 +12,9 @@ $routes->get('/create-account', 'Home::createAccount');
 $routes->post('/create-account', 'Home::submitCreateAccount');
 $routes->get('/activate-account', 'Home::activateAccount');
 $routes->get('/forgot-password', 'Home::forgotPassword');
+$routes->post('/forgot-password', 'Home::submitForgotPassword');
 $routes->get('/reset-password', 'Home::resetPassword');
+$routes->post('/reset-password', 'Home::submitResetPassword');
 
 $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->get('/', 'Admin::dashboard');
