@@ -10,7 +10,7 @@
             <div class="auth-field-group">
                 <label for="full_name" class="form-label"><?= lang('Login.create-account.full-name') ?></label>
                 <div class="auth-field">
-                    <i class="ph ph-user auth-field-icon"></i>
+                    <i class="bi bi-person auth-field-icon"></i>
                     <input type="text" class="form-control" id="full_name" name="full_name"
                            placeholder="<?= lang('Login.create-account.full-name-placeholder') ?>" maxlength="255"
                            autocomplete="name" required>
@@ -21,7 +21,7 @@
             <div class="auth-field-group">
                 <label for="email" class="form-label"><?= lang('Login.main.email') ?></label>
                 <div class="auth-field">
-                    <i class="ph ph-envelope auth-field-icon"></i>
+                    <i class="bi bi-envelope auth-field-icon"></i>
                     <input type="email" class="form-control" id="email" name="email"
                            placeholder="<?= lang('Login.main.email-placeholder') ?>" maxlength="128"
                            autocomplete="email" required>
@@ -32,12 +32,12 @@
             <div class="auth-field-group">
                 <label for="password" class="form-label"><?= lang('Login.main.password') ?></label>
                 <div class="auth-field">
-                    <i class="ph ph-lock auth-field-icon"></i>
+                    <i class="bi bi-lock auth-field-icon"></i>
                     <input type="password" class="form-control" id="password" name="password"
                            placeholder="<?= lang('Login.create-account.password-placeholder') ?>" minlength="8"
                            autocomplete="new-password" required>
                     <button class="auth-field-toggle password-toggle" type="button" tabindex="-1">
-                        <i class="ph ph-eye"></i>
+                        <i class="bi bi-eye"></i>
                     </button>
                 </div>
                 <div class="invalid-feedback" data-feedback="password"><?= lang('Login.error.password-too-short', [8]) ?></div>
@@ -58,7 +58,7 @@
                 <div class="invalid-feedback" data-feedback="terms"><?= lang('Login.create-account.terms-invalid-feedback') ?></div>
             </div>
 
-            <button type="submit" class="auth-submit"><?= lang('Login.create-account.submit-btn') ?> <i class="ph ph-arrow-right"></i></button>
+            <button type="submit" class="auth-submit"><?= lang('Login.create-account.submit-btn') ?> <i class="bi bi-arrow-right"></i></button>
 
         </form>
 
@@ -151,7 +151,7 @@
   form.querySelector('.password-toggle').addEventListener('click', function () {
     var show = form.password.type === 'password';
     form.password.type = show ? 'text' : 'password';
-    this.querySelector('i').className = show ? 'ph ph-eye-slash' : 'ph ph-eye';
+    this.querySelector('i').className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
   });
 
   form.addEventListener('submit', function (e) {

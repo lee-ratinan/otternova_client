@@ -13,7 +13,7 @@
                 <div class="auth-field-group">
                     <label for="new_password" class="form-label"><?= lang('Login.password-change.new-password') ?></label>
                     <div class="auth-field">
-                        <i class="ph ph-lock auth-field-icon"></i>
+                        <i class="bi bi-lock auth-field-icon"></i>
                         <input type="password" class="form-control" id="new_password" name="new_password"
                                placeholder="<?= lang('Login.password-change.new-password-placeholder') ?>" minlength="8"
                                autocomplete="new-password" required>
@@ -24,21 +24,19 @@
                 <div class="auth-field-group">
                     <label for="confirm_password" class="form-label"><?= lang('Login.password-change.confirm-password') ?></label>
                     <div class="auth-field">
-                        <i class="ph ph-lock-key auth-field-icon"></i>
+                        <i class="bi bi-lock-key auth-field-icon"></i>
                         <input type="password" class="form-control" id="confirm_password" name="confirm_password"
                                placeholder="<?= lang('Login.password-change.confirm-password-placeholder') ?>" minlength="8"
                                autocomplete="new-password" required>
                     </div>
                     <div class="invalid-feedback" data-feedback="confirm_password"><?= lang('Login.error.password-mismatch') ?></div>
                 </div>
-                <button type="submit" class="auth-submit"><?= lang('Login.reset-password.submit-btn') ?> <i
-                        class="ph ph-arrow-right"></i></button>
+                <button type="submit" class="auth-submit"><?= lang('Login.reset-password.submit-btn') ?> <i class="bi bi-arrow-right"></i></button>
             </form>
         <?php endif; ?>
-        <p id="reset-request-new" class="auth-footer-text <?= $valid ? 'd-none' : '' ?>">
-            <a href="<?= base_url('forgot-password') ?>" class="auth-link"><?= lang('Login.reset-password.request-new') ?></a>
+        <p class="auth-footer-text">
+            <a href="<?= base_url() ?>" class="auth-back"><i class="bi bi-arrow-left"></i> <?= lang('Login.forgot-password.back') ?></a>
         </p>
-        <a href="<?= base_url() ?>" class="auth-back"><i class="ph ph-arrow-left"></i> <?= lang('Login.forgot-password.back') ?></a>
     </div>
 <?php $this->endSection() ?>
 <?php if ($valid): ?>

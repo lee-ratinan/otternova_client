@@ -15,7 +15,7 @@
             <div class="auth-field-group">
                 <label for="email" class="form-label"><?= lang('Login.main.email') ?></label>
                 <div class="auth-field">
-                    <i class="ph ph-envelope auth-field-icon"></i>
+                    <i class="bi bi-envelope auth-field-icon"></i>
                     <input type="email" class="form-control" id="email" name="email"
                            placeholder="<?= lang('Login.main.email-placeholder') ?>" autocomplete="username" required>
                 </div>
@@ -24,23 +24,22 @@
             <div class="auth-field-group">
                 <label for="password" class="form-label"><?= lang('Login.main.password') ?></label>
                 <div class="auth-field">
-                    <i class="ph ph-lock auth-field-icon"></i>
+                    <i class="bi bi-lock auth-field-icon"></i>
                     <input type="password" class="form-control" id="password" name="password"
                            placeholder="<?= lang('Login.main.password-placeholder') ?>" autocomplete="current-password" required>
                 </div>
                 <div class="invalid-feedback"><?= lang('Login.main.password-invalid-feedback') ?></div>
             </div>
-            <button type="submit" class="auth-submit"><?= lang('Login.main.sign-in-btn') ?> <i
-                    class="ph ph-arrow-right"></i></button>
+            <button type="submit" class="auth-submit"><?= lang('Login.main.sign-in-btn') ?> <i class="bi bi-arrow-right"></i></button>
             <div class="auth-divider d-none">
                 <span>or continue with</span>
             </div>
             <div class="auth-social d-none">
                 <button type="button" class="auth-social-btn">
-                    <i class="ph ph-google-logo"></i> Google
+                    <i class="bi bi-google"></i> Google
                 </button>
                 <button type="button" class="auth-social-btn">
-                    <i class="ph ph-github-logo"></i> GitHub
+                    <i class="bi bi-github"></i> GitHub
                 </button>
             </div>
         </form>
@@ -48,22 +47,21 @@
             <div class="auth-field-group">
                 <label for="otp" class="form-label"><?= lang('Login.otp.label') ?></label>
                 <div class="auth-field">
-                    <i class="ph ph-shield-check auth-field-icon"></i>
+                    <i class="bi bi-shield-check auth-field-icon"></i>
                     <input type="text" class="form-control" id="otp" name="otp"
                            placeholder="<?= lang('Login.otp.placeholder') ?>" inputmode="numeric" pattern="[0-9]{6}"
                            maxlength="6" autocomplete="one-time-code" required>
                 </div>
                 <div class="invalid-feedback"><?= lang('Login.error.otp-format') ?></div>
             </div>
-            <button type="submit" class="auth-submit"><?= lang('Login.otp.verify-btn') ?> <i
-                    class="ph ph-arrow-right"></i></button>
-            <a href="#" id="otp-back" class="auth-back"><i class="ph ph-arrow-left"></i> <?= lang('Login.otp.back') ?></a>
+            <button type="submit" class="auth-submit"><?= lang('Login.otp.verify-btn') ?> <i class="bi bi-arrow-right"></i></button>
+            <a href="#" id="otp-back" class="auth-back"><i class="bi bi-arrow-left"></i> <?= lang('Login.otp.back') ?></a>
         </form>
         <form id="password-form" class="auth-form d-none" action="<?= base_url('change-password') ?>" method="post" novalidate>
             <div class="auth-field-group">
                 <label for="new_password" class="form-label"><?= lang('Login.password-change.new-password') ?></label>
                 <div class="auth-field">
-                    <i class="ph ph-lock auth-field-icon"></i>
+                    <i class="bi bi-lock auth-field-icon"></i>
                     <input type="password" class="form-control" id="new_password" name="new_password"
                            placeholder="<?= lang('Login.password-change.new-password-placeholder') ?>" minlength="8"
                            autocomplete="new-password" required>
@@ -73,16 +71,15 @@
             <div class="auth-field-group">
                 <label for="confirm_password" class="form-label"><?= lang('Login.password-change.confirm-password') ?></label>
                 <div class="auth-field">
-                    <i class="ph ph-lock-key auth-field-icon"></i>
+                    <i class="bi bi-lock-key auth-field-icon"></i>
                     <input type="password" class="form-control" id="confirm_password" name="confirm_password"
                            placeholder="<?= lang('Login.password-change.confirm-password-placeholder') ?>" minlength="8"
                            autocomplete="new-password" required>
                 </div>
                 <div class="invalid-feedback"><?= lang('Login.error.password-mismatch') ?></div>
             </div>
-            <button type="submit" class="auth-submit"><?= lang('Login.password-change.submit-btn') ?> <i
-                    class="ph ph-arrow-right"></i></button>
-            <a href="#" id="password-back" class="auth-back"><i class="ph ph-arrow-left"></i> <?= lang('Login.otp.back') ?></a>
+            <button type="submit" class="auth-submit"><?= lang('Login.password-change.submit-btn') ?> <i class="bi bi-arrow-right"></i></button>
+            <a href="#" id="password-back" class="auth-back"><i class="bi bi-arrow-left"></i> <?= lang('Login.otp.back') ?></a>
         </form>
         <p class="auth-footer-text">
             <?= lang('Login.main.dont-have-account') ?>

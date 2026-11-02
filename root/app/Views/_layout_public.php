@@ -20,9 +20,6 @@
     <!-- Vendor CSS Files -->
     <link href="<?= base_url('assets/vendor/bootstrap/css/bootstrap.min.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/remixicon/remixicon.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/fontawesome-free/css/all.min.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/phosphor-icons/phosphor-icons.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/vendor/lucide-icons/lucide.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/vendor/simple-datatables/style.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/vendor/quill/quill.snow.css') ?>" rel="stylesheet">
@@ -53,9 +50,9 @@
             <h2 class="auth-panel-title"><?= lang('Login.auth-panel.title') ?></h2>
             <p class="auth-panel-text"><?= lang('Login.auth-panel.paragraph') ?></p>
             <ul class="auth-panel-list">
-                <li><i class="ph ph-check-circle"></i> <?= lang('Login.auth-panel.item-1') ?></li>
-                <li><i class="ph ph-check-circle"></i> <?= lang('Login.auth-panel.item-2') ?></li>
-                <li><i class="ph ph-check-circle"></i> <?= lang('Login.auth-panel.item-3') ?></li>
+                <li><i class="bi bi-check-circle"></i> <?= lang('Login.auth-panel.item-1') ?></li>
+                <li><i class="bi bi-check-circle"></i> <?= lang('Login.auth-panel.item-2') ?></li>
+                <li><i class="bi bi-check-circle"></i> <?= lang('Login.auth-panel.item-3') ?></li>
             </ul>
         </div>
         <div class="auth-panel-footer">&nbsp;</div>

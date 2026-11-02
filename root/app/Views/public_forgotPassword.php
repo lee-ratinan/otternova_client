@@ -10,17 +10,18 @@
             <div class="auth-field-group">
                 <label for="email" class="form-label"><?= lang('Login.main.email') ?></label>
                 <div class="auth-field">
-                    <i class="ph ph-envelope auth-field-icon"></i>
+                    <i class="bi bi-envelope auth-field-icon"></i>
                     <input type="email" class="form-control" id="email" name="email"
                            placeholder="<?= lang('Login.main.email-placeholder') ?>" maxlength="128"
                            autocomplete="email" required>
                 </div>
                 <div class="invalid-feedback"><?= lang('Login.main.email-invalid-feedback') ?></div>
             </div>
-            <button type="submit" class="auth-submit"><?= lang('Login.forgot-password.submit-btn') ?> <i
-                    class="ph ph-arrow-right"></i></button>
+            <button type="submit" class="auth-submit"><?= lang('Login.forgot-password.submit-btn') ?> <i class="bi bi-arrow-right"></i></button>
         </form>
-        <a href="<?= base_url() ?>" class="auth-back"><i class="ph ph-arrow-left"></i> <?= lang('Login.forgot-password.back') ?></a>
+        <p class="auth-footer-text">
+            <a href="<?= base_url() ?>" class="auth-back"><i class="bi bi-arrow-left"></i> <?= lang('Login.forgot-password.back') ?></a>
+        </p>
     </div>
 <?php $this->endSection() ?>
 <?= $this->section('script') ?>
