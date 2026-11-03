@@ -12,7 +12,8 @@
     "require": {
         "php": "^8.2",
         "codeigniter4/framework": "^4.7",
-        "giggsey/libphonenumber-for-php": "^9.0"
+        "giggsey/libphonenumber-for-php": "^9.0",
+        "ext-curl": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9",

@@ -45,5 +45,25 @@ abstract class BaseController extends Controller
 
         // Preload any models, libraries, etc, here.
         // $this->session = service('session');
+
+        $this->applyPreferredLanguage();
+    }
+
+    /**
+     * A signed-in client sees the UI in client_master.preferred_language (kept in the session user from sign-in,
+     * and updated when the profile is saved) instead of the browser's language, when the UI has that language
+     */
+    private function applyPreferredLanguage(): void
+    {
+        if (! $this->request instanceof IncomingRequest) {
+            return;
+        }
+        $language = (string) (session('user')['preferred_language'] ?? '');
+        if (! isset(listSupportedLanguages()[$language]) || ! in_array($language, config('App')->supportedLocales, true)) {
+            return;
+        }
+        $this->request->setLocale($language);
+        // lang() keeps the locale its shared service was created with, so it is told too
+        service('language')->setLocale($language);
     }
 }

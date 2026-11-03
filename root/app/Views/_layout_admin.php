@@ -25,6 +25,7 @@
     <link href="<?= base_url('assets/vendor/quill/quill.bubble.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/vendor/choices.js/choices.min.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/vendor/flatpickr/flatpickr.min.css') ?>" rel="stylesheet">
+    <link href="<?= base_url('assets/vendor/toastr/toastr.min.css') ?>" rel="stylesheet">
     <!-- Template Main CSS File -->
     <link href="<?= base_url('assets/css/main.css') ?>" rel="stylesheet">
     <!-- =======================================================
@@ -35,7 +36,7 @@
       * License: https://bootstrapmade.com/license/
       ======================================================== -->
 </head>
-<body>
+<body class="lang-<?= $locale ?>">
 <header class="header">
     <div class="header-inner">
         <div class="header-left">
@@ -292,6 +293,7 @@
     <i class="ph ph-arrow-up"></i>
 </a>
 <!-- Vendor JS Files -->
+<script src="<?= base_url('assets/vendor/jquery/jquery-4.0.0.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/apexcharts/apexcharts.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/chart.js/chart.umd.js') ?>"></script>
@@ -302,6 +304,8 @@
 <script src="<?= base_url('assets/vendor/choices.js/choices.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/flatpickr/flatpickr.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/php-email-form/validate.js') ?>"></script>
+<script src="<?= base_url('assets/vendor/toastr/toastr.min.js') ?>"></script>
+<script src="<?= base_url('assets/vendor/sweetalert/sweetalert2.min.js') ?>"></script>
 <!-- Template Main JS Files -->
 <script src="<?= base_url('assets/js/theme.js') ?>"></script>
 <script src="<?= base_url('assets/js/main.js') ?>"></script>

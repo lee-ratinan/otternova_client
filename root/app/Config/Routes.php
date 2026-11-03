@@ -19,4 +19,12 @@ $routes->post('/reset-password', 'Home::submitResetPassword');
 $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->get('/', 'Admin::dashboard');
     $routes->get('dashboard', 'Admin::dashboard');
+    $routes->get('profile', 'Admin::profile');
+    $routes->post('profile/save', 'Admin::profileEditPost');
+    $routes->post('profile/password', 'Admin::profilePasswordPost');
+    $routes->post('image-upload', 'Admin::imageUpload');
+    $routes->post('image-delete', 'Admin::imageDelete');
+    $routes->get('my-businesses', 'Admin::myBusinesses');
+    $routes->get('notifications', 'Admin::notifications');
+    $routes->get('messages', 'Admin::messages');
 });
