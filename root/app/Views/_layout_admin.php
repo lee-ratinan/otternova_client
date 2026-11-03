@@ -279,7 +279,7 @@
 </main>
 <!-- Back to Top -->
 <a href="#" class="back-to-top">
-    <i class="ph ph-arrow-up"></i>
+    <i class="bi bi-arrow-up"></i>
 </a>
 <!-- Vendor JS Files -->
 <script src="<?= base_url('assets/vendor/jquery/jquery-4.0.0.min.js') ?>"></script>

@@ -111,15 +111,15 @@
   --header-shadow: none;
   --header-border: var(--border-color);
   /* Sidebar - deep plum-ink panel (dark in both modes) */
-  --sidebar-bg: #171032;
-  --sidebar-border: #2a2050;
-  --sidebar-color: #cfc7e8;
-  --sidebar-muted-color: #8c81b3;
+  --sidebar-bg: #371012;
+  --sidebar-border: #5a2020;
+  --sidebar-color: #efc7c8;
+  --sidebar-muted-color: #bc8183;
   --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
   --sidebar-active-bg: #c97232;
   --sidebar-active-color: #ffffff;
   /* Cards */
-  --card-bg: #ffffff;
+  --card-bg: #efefef;
   --card-shadow: 0 1px 2px 0 rgb(30 18 66 / 0.04), 0 6px 20px -4px rgb(30 18 66 / 0.07);
   --card-border: var(--border-color);
   /* Tables */
@@ -172,15 +172,15 @@
   --header-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.35);
   --header-border: var(--border-color);
   /* Sidebar */
-  --sidebar-bg: #120d26;
-  --sidebar-border: #251b4a;
-  --sidebar-color: #cfc7e8;
-  --sidebar-muted-color: #8c81b3;
+  --sidebar-bg: #371012;
+  --sidebar-border: #5a2020;
+  --sidebar-color: #efc7c8;
+  --sidebar-muted-color: #bc8183;
   --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
   --sidebar-active-bg: #c97232;
   --sidebar-active-color: #ffffff;
   /* Cards */
-  --card-bg: #191330;
+  --card-bg: #391310;
   --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.35);
   --card-border: var(--border-color);
   /* Tables */
