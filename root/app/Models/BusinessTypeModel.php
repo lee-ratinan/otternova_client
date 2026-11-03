@@ -14,6 +14,7 @@ use Throwable;
 class BusinessTypeModel extends Model
 {
     use FieldConfigurationTrait;
+    use PublicIdTrait;
     use TransactionTrait;
 
     // type_status
@@ -33,6 +34,10 @@ class BusinessTypeModel extends Model
         'type_code',
         'type_status',
     ];
+
+    /** public_id: CHAR(4), see PublicIdTrait */
+    protected int $publicIdLength = 4;
+    protected $beforeInsert       = ['fillPublicId'];
 
     // created_at and updated_at are maintained by the database
     protected $useTimestamps = false;
@@ -90,14 +95,14 @@ class BusinessTypeModel extends Model
      * The business types with their names in $language, for a Business Type dropdown
      * @param string $language   A key of listSupportedLanguages(); any other falls back to DEFAULT_LANGUAGE
      * @param bool   $activeOnly Leave out the inactive types, as for a new business
-     * @return list<array{id: int, type_code: string, type_status: string, type_name: string}>
+     * @return list<array{id: int, public_id: string, type_code: string, type_status: string, type_name: string}>
      */
     public function listForLookup(string $language, bool $activeOnly = true): array
     {
         helper('list');
         $language = isset(listSupportedLanguages()[$language]) ? $language : self::DEFAULT_LANGUAGE;
         $builder  = $this->db->table($this->table . ' t')
-            ->select('t.id, t.type_code, t.type_status, n.type_name')
+            ->select('t.id, t.public_id, t.type_code, t.type_status, n.type_name')
             ->join('business_type_translation n', 'n.business_type_id = t.id AND n.language_code = ' . $this->db->escape($language), 'left');
         if ($activeOnly) {
             $builder->where('t.type_status', self::STATUS_ACTIVE);
@@ -125,6 +130,23 @@ class BusinessTypeModel extends Model
     }
 
     /**
+     * Whether a type already has this name in $language (the database refuses it; this tells the form first)
+     * @param string   $language
+     * @param string   $name
+     * @param int|null $exceptId The type being edited
+     * @return bool
+     */
+    public function nameTaken(string $language, string $name, ?int $exceptId = null): bool
+    {
+        $builder = $this->db->table('business_type_translation')->where('language_code', $language)->where('type_name', $name);
+        if ($exceptId !== null) {
+            $builder->where('business_type_id !=', $exceptId);
+        }
+
+        return $builder->countAllResults() > 0;
+    }
+
+    /**
      * Create a business type with its names in one transaction, logged to log_activity in it
      * @param array $type    Checked business_type columns
      * @param array $names   language_code => type_name, for every language of listSupportedLanguages()
@@ -138,14 +160,15 @@ class BusinessTypeModel extends Model
         $this->checkNames($names);
         $log = new ActivityLog();
 
-        return $this->inTransaction(function () use ($type, $names, $actorId, $log) {
+        return $this->withPublicId(fn (string $publicId) => $this->inTransaction(function () use ($type, $names, $actorId, $log, $publicId) {
+            $type = ['public_id' => $publicId] + $type;
             $this->db->table($this->table)->insert($type);
             $id = (int) $this->db->insertID();
             $log->inserted($actorId, 'Created business type ' . $type['type_code'], $this->table, $id, $type);
             $this->writeNames($id, $type['type_code'], [], $names, $actorId, $log);
 
             return $id;
-        });
+        }));
     }
 
     /**
