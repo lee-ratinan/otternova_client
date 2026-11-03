@@ -878,7 +878,7 @@ if (! function_exists('fb_file_row')) {
         return '<div class="mb-0' . (! empty($f['row_class']) ? ' ' . fb_esc($f['row_class'], 'attr') : '') . '" data-fb-row="' . fb_esc($f['name'], 'attr') . '">'
             . '<label class="form-label' . (! empty($f['rules_client']['required']) ? ' required' : '') . '" for="' . fb_esc($f['id'], 'attr') . '">' . fb_esc($f['label']) . '</label>'
             . '<div class="d-flex align-items-center gap-3">'
-            . '<div class="rounded-2 bg-light d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;" data-fb-preview="' . fb_esc($f['name'], 'attr') . '">' . $img . '</div>'
+            . '<div class="rounded-2 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;" data-fb-preview="' . fb_esc($f['name'], 'attr') . '">' . $img . '</div>'
             . '<div class="flex-grow-1">' . fb_input($f) . fb_error_slot($f) . fb_help($f) . '</div>'
             . '</div></div>';
     }
