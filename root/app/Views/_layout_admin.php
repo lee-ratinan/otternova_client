@@ -272,18 +272,7 @@
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-brand">
-                <span class="footer-brand-mark"><i class="bi bi-lightning-charge-fill"></i></span>
-                <span class="footer-copyright">
-            &copy; 2026 <a href="#">TrendyAdmin</a>. All Rights Reserved.
-          </span>
-            </div>
-            <div class="footer-links">
-                <a href="#">About</a>
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
-                <a href="#">Contact</a>
-            </div>
-            <div class="footer-credits">
+                <span class="footer-copyright">&copy; 2025-<?= date('Y') ?> <?= lang('System.site-title') ?></span>
             </div>
         </div>
     </footer>

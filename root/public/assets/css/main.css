@@ -42597,3 +42597,10 @@ textarea.form-control {
     display: block;
   }
 }
+
+/* TOASTR */
+#toast-container > .toast-success { background-color: #51a351 !important; }
+#toast-container > .toast-error   { background-color: #bd362f !important; }
+#toast-container > .toast-info    { background-color: #2f96b4 !important; }
+#toast-container > .toast-warning { background-color: #f89406 !important; }
+#toast-container .toast-message, #toast-container .toast-title { color: #fff !important; }
