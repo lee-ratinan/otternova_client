@@ -6755,7 +6755,6 @@ textarea.form-control {
 /* Dropdown Item with Icon */
 .dropdown-item i {
   width: 20px;
-  margin-right: var(--spacing-sm);
   color: var(--muted-color);
   text-align: center;
 }
