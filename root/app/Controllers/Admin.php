@@ -29,7 +29,7 @@ class Admin extends BaseController
      * The fields the client may change, as v1/client/account/update takes them (auth_master / client_master);
      * every other field of the form is shown disabled and never forwarded
      */
-    private const PROFILE_ACCOUNT_EDITABLE = ['full_name', 'otp_mode'];
+    private const PROFILE_ACCOUNT_EDITABLE = ['telephone_number', 'full_name', 'otp_mode'];
     private const PROFILE_CLIENT_EDITABLE  = ['legal_first_name', 'legal_middle_name', 'legal_last_name', 'display_name',
         'status_message', 'status_emoji', 'gender', 'date_of_birth', 'nationality_code', 'preferred_language', 'bio',
         'marketing_opt_in'];
