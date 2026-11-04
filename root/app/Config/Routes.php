@@ -34,4 +34,5 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->post('api/telephone-format-e164', 'ApiList::telephoneFormatE164');
     $routes->match(['GET', 'POST'], 'api/subdivisions', 'ApiList::subdivisions');
     $routes->match(['GET', 'POST'], 'api/currencies', 'ApiList::currencies');
+    $routes->match(['GET', 'POST'], 'api/generate-slug', 'ApiList::generateSlug');
 });

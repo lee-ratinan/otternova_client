@@ -96,6 +96,7 @@ final class CreateBusinessTest extends CIUnitTestCase
         $this->assertMatchesRegularExpression('#<select id="contact_subdivision_code"[^>]*><option value="" selected>[^<]*</option></select>#', $html);
         $result->assertSee('"currencies":"' . base_url('admin/api/currencies') . '"');
         $result->assertSee('form.elements.contact_subdivision_code');
+        $result->assertSee('"slug":"' . base_url('admin/api/generate-slug') . '"');
 
         // the phone: country dropdown and number, neither submitted, and the hidden E.164 input
         $result->assertSee('id="contact_phone_number__country"');

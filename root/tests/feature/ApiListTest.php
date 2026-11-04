@@ -69,6 +69,37 @@ final class ApiListTest extends CIUnitTestCase
         $this->signedIn()->get('admin/api/subdivisions?country-code=XX')->assertStatus(422);
     }
 
+    public function testSlugIsMadeOfPermittedCharacters(): void
+    {
+        $this->assertSame('otter-cafe', $this->json($this->signedIn()->get('admin/api/generate-slug?text=Otter+Cafe'))['data']['slug']);
+
+        $slug = fn (array $post) => $this->json($this->signedIn()->post('admin/api/generate-slug', $post))['data']['slug'];
+
+        $this->assertSame('otter-cafe-bakery', $slug(['text' => '  Otter Café & Bakery!! ']));
+        // the URI characters App::$permittedURIChars allows stay, except spaces and %
+        $this->assertSame('otter-co._ltd-100', $slug(['text' => 'Otter Co._Ltd 100%']));
+        // business_slug takes only a-z, 0-9 and single hyphens
+        $this->assertSame('otter-co-ltd', $slug(['text' => 'Otter Co._Ltd.', 'strict' => '1']));
+        // other scripts become Latin letters
+        $this->assertSame('khafe', $slug(['text' => 'คาเฟ่', 'strict' => '1']));
+        $this->assertSame('otter', $slug(['text' => 'Otter Cafe', 'max-length' => '6']));
+
+        $result = $this->signedIn()->post('admin/api/generate-slug', ['text' => '!!! ---']);
+        $result->assertStatus(422);
+        $this->assertSame(['text'], array_keys($this->json($result)['errors']));
+    }
+
+    public function testSlugCharactersAreAllAcceptedByTheRouter(): void
+    {
+        $permitted = config('App')->permittedURIChars;
+        foreach (['Ünïcödé — test', '東京 カフェ', 'a~b:c.d_e', '%%%x%%%', str_repeat('long name ', 30)] as $text) {
+            $slug = \App\Controllers\ApiList::slugify($text);
+            $this->assertMatchesRegularExpression('/\A[' . $permitted . ']+\z/iu', $slug, $text);
+            $this->assertDoesNotMatchRegularExpression('/[\s%]/', $slug);
+            $this->assertLessThanOrEqual(128, strlen($slug));
+        }
+    }
+
     public function testSignInIsRequired(): void
     {
         $this->post('admin/api/telephone-format-e164', ['country-code' => 'TH', 'telephone-number' => '0812345678'])->assertStatus(401);

@@ -1,10 +1,13 @@
 <?php
 /**
- * customScript of the create-business form (see generic_form.php): the currency and subdivision dropdowns start
- * empty, and are filled from admin/api/currencies and admin/api/subdivisions each time the country is picked.
+ * customScript of the create-business form (see generic_form.php):
+ * - the currency and subdivision dropdowns start empty, and are filled from admin/api/currencies and
+ *   admin/api/subdivisions each time the country is picked;
+ * - the business slug is filled from the business name through admin/api/generate-slug, until the user types a slug
+ *   of their own (emptying it hands it back to the name).
  *
  * @var string $formId
- * @var array  $urls   ['currencies' => ..., 'subdivisions' => ...]
+ * @var array  $urls   ['currencies' => ..., 'subdivisions' => ..., 'slug' => ...]
  * @var string $select the empty option's text
  * @var string $failed the message when the lists cannot be loaded
  */
@@ -70,8 +73,45 @@ $config = ['formId' => $formId, 'urls' => $urls, 'select' => $select, 'failed' =
     }
 
     country.addEventListener('change', load);
+
+    // ---- the slug follows the name until the user writes their own ----
+    var name = form.elements.business_name;
+    var slug = form.elements.business_slug;
+    var slugOwn = !!(slug && slug.value.trim() !== '');
+    var slugSeq = 0;
+
+    async function makeSlug() {
+      if (!name || !slug || slugOwn) { return; }
+      var text = name.value.trim();
+      var mine = ++slugSeq;
+      if (text === '') { return; }
+      var body = new FormData();
+      body.set('text', text);
+      body.set('strict', '1'); // business_slug: a-z, 0-9 and single hyphens only
+      var csrf = form.querySelector('[data-fb-csrf]');
+      if (csrf) { body.set(csrf.name, csrf.value); }
+      var data;
+      try {
+        var res = await fetch(cfg.urls.slug, {
+          method: 'POST', body: body, credentials: 'same-origin',
+          headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        data = await res.json();
+        if (csrf && data.csrf_hash) { csrf.value = data.csrf_hash; }
+        if (!res.ok || data.status !== 'success') { return; } // e.g. no letters to make one from: left as it is
+      } catch (err) { return; }
+      // the user may have typed a slug, or changed the name again, while it was on its way
+      if (mine !== slugSeq || slugOwn) { return; }
+      slug.value = data.data.slug;
+      slug.dispatchEvent(new Event('change', { bubbles: true })); // the form builder checks it
+    }
+
+    if (name && slug) {
+      name.addEventListener('change', makeSlug);
+      slug.addEventListener('input', function () { slugOwn = slug.value.trim() !== ''; });
+    }
     // reset puts the country back; the lists follow it
-    form.addEventListener('reset', function () { setTimeout(load, 0); });
+    form.addEventListener('reset', function () { slugOwn = false; slugSeq++; setTimeout(load, 0); });
     load();
   }
 

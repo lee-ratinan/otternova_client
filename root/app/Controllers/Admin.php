@@ -325,7 +325,8 @@ class Admin extends BaseController
             // fills the currency and subdivision dropdowns for the country picked
             'customScript' => view('scripts/create_business', [
                 'formId' => 'create-business-form',
-                'urls'   => ['currencies' => base_url('admin/api/currencies'), 'subdivisions' => base_url('admin/api/subdivisions')],
+                'urls'   => ['currencies' => base_url('admin/api/currencies'), 'subdivisions' => base_url('admin/api/subdivisions'),
+                             'slug' => base_url('admin/api/generate-slug')],
                 'select' => lang('Form.select'),
                 'failed' => lang('CreateBusiness.form.locale-failed'),
             ]),
