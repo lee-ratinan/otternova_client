@@ -45,7 +45,9 @@
             </button>
             <a href="<?= base_url('admin/dashboard') ?>" class="header-logo">
                 <span class="header-logo-mark"><img src="<?= base_url('assets/img/logo.webp') ?>" alt="<?= lang('System.site-title') ?>" /></span>
-                <span class="header-logo-text"><?= lang('System.site-title') ?></span>
+                <span class="header-logo-text">
+                    <?= esc(currentBusinessName() ?? lang('System.site-title')) ?>
+                </span>
             </a>
         </div>
         <div class="header-search">
@@ -114,7 +116,7 @@
                             </span>
                             <span class="user-menu-name"><?= esc(userDisplayName($user)) ?></span>
                             <span class="user-menu-mail"><?= esc($user['email_address'] ?? '') ?></span>
-                            <span class="user-menu-role">[POSITION]</span>
+                            <span class="user-menu-role"><?= esc(currentBusinessName() ?? '') ?></span>
                         </div>
                         <div class="user-menu-body">
                             <a class="dropdown-item" href="<?= base_url('admin/profile') ?>">
@@ -196,7 +198,9 @@
     <div class="sidebar-header">
         <a href="<?= base_url('admin/dashboard') ?>" class="sidebar-logo">
             <span class="sidebar-logo-mark"><img src="<?= base_url('assets/img/logo.webp') ?>" alt="<?= lang('System.site-title') ?>" /></span>
-            <span class="sidebar-logo-text"><?= lang('System.site-title') ?></span>
+            <span class="sidebar-logo-text">
+                <?= esc(currentBusinessName() ?? lang('System.site-title')) ?>
+            </span>
         </a>
         <button class="sidebar-close">
             <i class="bi bi-x"></i>
@@ -241,7 +245,7 @@
                 </span>
                 <span class="sidebar-user-info">
                     <span class="sidebar-user-name"><?= esc(userDisplayName($user)) ?></span>
-                    <span class="sidebar-user-role">[position]</span>
+                    <span class="sidebar-user-role"><?= esc(currentBusinessName() ?? '') ?></span>
                 </span>
             </a>
             <div class="sidebar-user-actions">

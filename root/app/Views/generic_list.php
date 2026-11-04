@@ -10,7 +10,7 @@
  * Requirements in _layout: jQuery, DataTables js + css, Bootstrap 5, Bootstrap Icons.
  * toastr is optional (used to show data-loading errors).
  */
-$this->extend('_layout');
+$this->extend('_layout_admin');
 ?>
 <?= $this->section('content') ?>
     <section class="section">

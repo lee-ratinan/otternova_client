@@ -385,8 +385,9 @@ class Admin extends BaseController
             'locale' => $locale,
             'slug'   => 'my-businesses',
             'user'   => session()->get('user') ?? [],
+            'listConfig' => []
         ];
-        return view('admin_dashboard', $data);
+        return view('generic_list', $data);
     }
 
     public function notifications(): string
