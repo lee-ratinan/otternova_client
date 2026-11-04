@@ -1,6 +1,6 @@
 <?php
 return [
-    'fields' => [
+    'fields'             => [
         'store_name'             => 'Store Name',
         'store_type'             => 'Store Type',
         'store_phone_number'     => 'Phone Number',
@@ -10,7 +10,8 @@ return [
         'store_subdivision_code' => 'State / Province',
         'store_postal_code'      => 'Postal Code',
     ],
-    'enum'   => [
+    'enum'               => [
         'store_type' => ['P' => 'Physical Store', 'O' => 'Online Store'],
     ],
+    'invalidSubdivision' => 'This state or province is not in the business\'s country.',
 ];
