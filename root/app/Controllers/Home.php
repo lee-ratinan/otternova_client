@@ -371,7 +371,8 @@ class Home extends BaseController
     }
 
     /**
-     * Store the JWT and the user profile returned by LINK_INTERNAL_API in the session.
+     * Store the JWT, the user profile and the sign-in business returned by LINK_INTERNAL_API in the session.
+     * A client active in no business (business: null) goes on to create one; any other to the dashboard.
      */
     private function createSession(array $data): ResponseInterface
     {
@@ -388,11 +389,12 @@ class Home extends BaseController
             'access_token' => $data['access_token'],
             'expires_at'   => min($expiresAt, $maxExpiry),
             'user'         => $data['user'],
+            'business'     => is_array($data['business'] ?? null) ? $data['business'] : null,
         ]);
 
         return $this->response->setJSON([
             'status'   => 'success',
-            'redirect' => base_url('admin/dashboard'),
+            'redirect' => base_url(needsBusiness() ? 'admin/create-business' : 'admin/dashboard'),
         ]);
     }
 

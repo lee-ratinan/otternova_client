@@ -19,6 +19,8 @@ $routes->post('/reset-password', 'Home::submitResetPassword');
 $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->get('/', 'Admin::dashboard');
     $routes->get('dashboard', 'Admin::dashboard');
+    $routes->get('create-business', 'Admin::createBusiness');
+    $routes->post('create-business', 'Admin::createBusinessPost');
     $routes->get('profile', 'Admin::profile');
     $routes->post('profile/save', 'Admin::profileEditPost');
     $routes->post('profile/password', 'Admin::profilePasswordPost');

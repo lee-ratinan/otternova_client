@@ -3,6 +3,9 @@
 namespace App\Controllers;
 
 use App\Models\AuthMasterModel;
+use App\Models\BusinessClientLinkModel;
+use App\Models\BusinessMasterModel;
+use App\Models\BusinessTypeModel;
 use App\Models\ClientMasterModel;
 use CodeIgniter\HTTP\ResponseInterface;
 use CURLFile;
@@ -30,6 +33,22 @@ class Admin extends BaseController
     private const PROFILE_CLIENT_EDITABLE  = ['legal_first_name', 'legal_middle_name', 'legal_last_name', 'display_name',
         'status_message', 'status_emoji', 'gender', 'date_of_birth', 'nationality_code', 'preferred_language', 'bio',
         'marketing_opt_in'];
+
+    /** The create-business form, section => fields; all of them go to v1/client/business/create as "business" */
+    private const BUSINESS_SECTIONS = [
+        'business' => ['business_type_public_id', 'business_name', 'business_slug', 'business_description', 'business_mood_and_tone'],
+        'contact'  => ['contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website'],
+        'address'  => ['contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code',
+            'contact_postal_code', 'country_code'],
+        'billing'  => ['currency_code', 'tax_id'],
+    ];
+    private const BUSINESS_FIELDS = ['business_type_public_id', 'business_name', 'business_slug', 'business_description',
+        'business_mood_and_tone', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
+        'contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code', 'contact_postal_code',
+        'country_code', 'currency_code', 'tax_id'];
+
+    /** Form field name of the business name in a language: translation_<language_code> */
+    private const TRANSLATION_PREFIX = 'translation_';
 
     /** otp_mode values only the system sets (telephone OTP is not available yet) */
     private const OTP_MODE_DISABLED = [AuthMasterModel::OTP_TELEPHONE];
@@ -267,6 +286,88 @@ class Admin extends BaseController
         ]);
     }
 
+    /**
+     * The form to create a business, where a client active in no business lands after sign-in (see AuthFilter).
+     * The type options come from LINK_INTERNAL_API v1/client/business-types (active types only).
+     */
+    public function createBusiness(): string
+    {
+        [$code, $body] = $this->callApi('v1/client/business-types', []);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            throw new RuntimeException($body['message'] ?? lang('CreateBusiness.form.types-failed'));
+        }
+        $locale = $this->request->getLocale();
+        $types  = [];
+        foreach ((array) ($body['data']['rows'] ?? []) as $row) {
+            $names = (array) ($row['translations'] ?? []);
+            $types[(string) $row['public_id']] = $names[$locale] ?? $names[BusinessTypeModel::DEFAULT_LANGUAGE] ?? (string) $row['type_code'];
+        }
+        asort($types, SORT_NATURAL | SORT_FLAG_CASE);
+
+        $user = (array) session('user');
+        $data = [
+            'locale'     => $locale,
+            'slug'       => 'create-business',
+            'user'       => $user,
+            'formConfig' => [
+                'form_id'  => 'create-business-form',
+                'title'    => lang('CreateBusiness.form.title'),
+                'subtitle' => lang('CreateBusiness.form.subtitle'),
+                'mode'     => 'create',
+                'locale'   => $locale,
+                'urls'     => ['submit' => base_url('admin/create-business')],
+                'labels'   => ['save' => lang('CreateBusiness.form.submit')],
+                'messages' => ['saved' => lang('Business.created'), 'saveFailed' => lang('Business.saveFailed')],
+                'fields'   => $this->businessFields($types, $user),
+            ],
+        ];
+        return view('generic_form', $data);
+    }
+
+    /**
+     * Create a business through LINK_INTERNAL_API v1/client/business/create, with the signed-in client as its owner:
+     * { business: {...}, translations: {language_code: business_name} }. A client who had no business yet gets
+     * this one as their session business, as sign-in would have given it.
+     */
+    public function createBusinessPost(): ResponseInterface
+    {
+        $post     = (array) $this->request->getPost();
+        $business = array_intersect_key($post, array_flip(self::BUSINESS_FIELDS));
+        $names    = [];
+        foreach (array_keys(listSupportedLanguages()) as $language) {
+            $names[$language] = (string) ($post[self::TRANSLATION_PREFIX . $language] ?? '');
+        }
+
+        [$code, $body] = $this->callApi('v1/client/business/create', ['business' => $business, 'translations' => (object) $names]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            // the form names the translations translation_<language>, the API translations.<language>
+            $errors = [];
+            foreach ((array) ($body['errors'] ?? []) as $key => $message) {
+                $errors[preg_replace('/^translations\./', self::TRANSLATION_PREFIX, (string) $key)] = $message;
+            }
+            $body['errors'] = $errors;
+            return $this->saveFailed($code, $body, lang('Business.saveFailed'));
+        }
+
+        if (needsBusiness()) {
+            $saved = array_map(static fn ($value) => '' === trim((string) $value) ? null : trim((string) $value), $business);
+            unset($saved['tax_id']); // sign-in does not send it either
+            session()->set('business', [
+                'client_role'         => BusinessClientLinkModel::ROLE_OWNER,
+                'client_status'       => BusinessClientLinkModel::STATUS_ACTIVE,
+                'is_default_business' => BusinessClientLinkModel::DEFAULT_YES,
+                'start_date'          => date('Y-m-d'),
+                'business'            => ['business_slug' => $body['data']['business_slug'] ?? $saved['business_slug'] ?? null] + $saved,
+            ]);
+        }
+        return $this->response->setJSON([
+            'success'   => true,
+            'message'   => $body['message'] ?? lang('Business.created'),
+            'redirect'  => base_url('admin/dashboard'),
+            'csrf_hash' => csrf_hash(),
+        ]);
+    }
+
     public function myBusinesses(): string
     {
         $locale = $this->request->getLocale();
@@ -329,6 +430,54 @@ class Admin extends BaseController
                 }
                 $fields[] = $field;
             }
+        }
+        return $fields;
+    }
+
+    /**
+     * Fields of the create-business form, grouped under the BUSINESS_SECTIONS headings, then the business name in
+     * each UI language (optional, sent as translations)
+     * @param array $types public_id => type name, for the Business Type dropdown
+     * @param array $user  the session user, whose name and email start as the contact
+     */
+    private function businessFields(array $types, array $user): array
+    {
+        $config = (new BusinessMasterModel())->getConfiguration();
+        // the type goes to the API by its public_id; the ID rules of business_type_id are the API's to check
+        $config['business_type_public_id'] = [
+            'name'    => 'business_type_public_id',
+            'type'    => 'select',
+            'label'   => lang('BusinessMaster.fields.business_type_id'),
+            'options' => $types,
+            'rules'   => 'required',
+        ];
+        // is_unique is checked by the API, which answers with the field's error
+        $config['business_slug']['rules']    = 'required|max_length[128]|regex_match[/^[a-z0-9]+(-[a-z0-9]+)*$/]';
+        $config['business_slug']['help']     = lang('CreateBusiness.help.business-slug');
+        $config['business_slug']['messages'] = ['regex' => lang('CreateBusiness.error.business-slug')];
+        $config['business_mood_and_tone']['help']   = lang('CreateBusiness.help.mood-and-tone');
+        $config['contact_subdivision_code']['help'] = lang('CreateBusiness.help.subdivision');
+        $config['country_code']['help']             = lang('CreateBusiness.help.fixed');
+        $config['currency_code']['help']            = lang('CreateBusiness.help.fixed');
+        $config['contact_person_name']['default']   = (string) ($user['full_name'] ?? '');
+        $config['contact_email_address']['default'] = (string) ($user['email_address'] ?? '');
+
+        $fields = [];
+        foreach (self::BUSINESS_SECTIONS as $heading => $names) {
+            $fields[] = ['type' => 'heading', 'label' => lang('CreateBusiness.heading.' . $heading)];
+            foreach ($names as $name) {
+                $fields[] = $config[$name];
+            }
+        }
+        $fields[] = ['type' => 'heading', 'label' => lang('CreateBusiness.heading.translations')];
+        foreach (listSupportedLanguages() as $language => $label) {
+            $fields[] = [
+                'name'     => self::TRANSLATION_PREFIX . $language,
+                'type'     => 'text',
+                'label'    => lang('CreateBusiness.translation-label', [$label]),
+                'rules'    => 'max_length[255]',
+                'optional' => true,
+            ];
         }
         return $fields;
     }

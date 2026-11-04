@@ -21,6 +21,8 @@ final class LoginFlowTest extends CIUnitTestCase
         'access_token' => 'test-token',
         'expires_at'   => 0,
         'user'         => ['id' => 1, 'email_address' => 'client@example.com', 'full_name' => 'Test Client'],
+        'business'     => ['client_role' => 'O', 'client_status' => 'A', 'is_default_business' => 'Y', 'start_date' => '2026-11-01',
+                           'business' => ['business_name' => 'Otter Cafe', 'business_slug' => 'otter-cafe-sg']],
     ];
     private const PASSWORD_EXPIRED = [
         'otp_required'             => false,
@@ -71,6 +73,29 @@ final class LoginFlowTest extends CIUnitTestCase
         $this->assertSame('success', $this->json($result)['status']);
         $this->assertSame('C', $this->calls[0][1]['account_type']);
         $result->assertSessionHas('access_token', 'test-token');
+    }
+
+    public function testLoginGoesToDashboardWithABusiness(): void
+    {
+        $this->stubApi($this->success(['expires_at' => time() + 3600] + self::SIGNED_IN));
+
+        $result = $this->post('login', ['email' => 'client@example.com', 'password' => 'secret-password']);
+
+        $this->assertSame(base_url('admin/dashboard'), $this->json($result)['redirect']);
+        $result->assertSessionHas('business', self::SIGNED_IN['business']);
+    }
+
+    public function testLoginWithoutBusinessGoesToCreateBusiness(): void
+    {
+        $this->stubApi($this->success(['expires_at' => time() + 3600, 'business' => null] + self::SIGNED_IN));
+
+        $result = $this->post('login', ['email' => 'client@example.com', 'password' => 'secret-password']);
+
+        $result->assertOK();
+        $this->assertSame(base_url('admin/create-business'), $this->json($result)['redirect']);
+        $result->assertSessionHas('access_token', 'test-token');
+        $this->assertArrayHasKey('business', $_SESSION);
+        $this->assertNull($_SESSION['business']);
     }
 
     public function testLoginWithoutOtpAsksForNewPasswordWhenExpired(): void
