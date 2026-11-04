@@ -226,6 +226,7 @@
                 </a>
             </li>
             <!-- ONLY BUSINESS OWNER and MANAGER -->
+            <?php if (canManageBusiness()): ?>
             <li class="nav-heading"><span><?= lang('System.page.business') ?></span></li>
             <li class="nav-item has-submenu ">
                 <a class="nav-link" href="#" aria-expanded="false">
@@ -250,6 +251,7 @@
                     <span class="nav-text"><?= lang('System.page.products-and-services') ?></span>
                 </a>
             </li>
+            <?php endif ?>
         </ul>
     </nav>
     <!-- Sidebar Footer - User Card -->

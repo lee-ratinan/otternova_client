@@ -5,8 +5,10 @@ namespace App\Controllers;
 use App\Models\AuthMasterModel;
 use App\Models\BusinessClientLinkModel;
 use App\Models\BusinessMasterModel;
+use App\Models\BusinessStoreModel;
 use App\Models\BusinessTypeModel;
 use App\Models\ClientMasterModel;
+use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\ResponseInterface;
 use CURLFile;
 use RuntimeException;
@@ -48,6 +50,32 @@ class Admin extends BaseController
         'business_mood_and_tone', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
         'contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code', 'contact_postal_code',
         'country_code', 'currency_code', 'tax_id'];
+
+    /**
+     * The edit-business form, section => fields. country_code and currency_code are shown but never sent: they are
+     * fixed once the business is created. tax_id and the names in other languages are left out, as the session
+     * business (v1/client/business/switch) does not carry them; left out of the edit, the API keeps them.
+     */
+    private const BUSINESS_EDIT_SECTIONS = [
+        'business' => ['business_type_public_id', 'business_name', 'business_slug', 'country_code', 'currency_code',
+            'business_description', 'business_mood_and_tone'],
+        'contact'  => ['contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website'],
+        'address'  => ['contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code',
+            'contact_postal_code'],
+    ];
+    private const BUSINESS_EDIT_FIELDS = ['business_type_public_id', 'business_name', 'business_slug', 'business_description',
+        'business_mood_and_tone', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
+        'contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code', 'contact_postal_code'];
+
+    /** Hidden field of the edit-business form: the slug the form was opened with, so a session switched meanwhile is seen */
+    private const BUSINESS_CURRENT_SLUG = 'current_business_slug';
+
+    /** The store form, section => fields; all of them go to v1/client/store/create and store/edit as "store" */
+    private const STORE_SECTIONS = [
+        'store'   => ['store_name', 'store_type', 'store_phone_number'],
+        'address' => BusinessStoreModel::ADDRESS_FIELDS,
+    ];
+    private const STORE_FIELDS = ['store_name', 'store_type', 'store_phone_number', ...BusinessStoreModel::ADDRESS_FIELDS];
 
     /** Form field name of the business name in a language: translation_<language_code> */
     private const TRANSLATION_PREFIX = 'translation_';
@@ -311,19 +339,9 @@ class Admin extends BaseController
      */
     public function createBusiness(): string
     {
-        [$code, $body] = $this->callApi('v1/client/business-types', []);
-        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
-            throw new RuntimeException($body['message'] ?? lang('CreateBusiness.form.types-failed'));
-        }
         $locale = $this->request->getLocale();
-        $types  = [];
-        foreach ((array) ($body['data']['rows'] ?? []) as $row) {
-            $names = (array) ($row['translations'] ?? []);
-            $types[(string) $row['public_id']] = $names[$locale] ?? $names[BusinessTypeModel::DEFAULT_LANGUAGE] ?? (string) $row['type_code'];
-        }
-        asort($types, SORT_NATURAL | SORT_FLAG_CASE);
-
-        $user = (array) session('user');
+        $types  = $this->businessTypeOptions($locale);
+        $user   = (array) session('user');
         $data = [
             'locale'     => $locale,
             'slug'       => 'create-business',
@@ -367,13 +385,7 @@ class Admin extends BaseController
 
         [$code, $body] = $this->callApi('v1/client/business/create', ['business' => $business, 'translations' => (object) $names]);
         if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
-            // the form names the translations translation_<language>, the API translations.<language>
-            $errors = [];
-            foreach ((array) ($body['errors'] ?? []) as $key => $message) {
-                $errors[preg_replace('/^translations\./', self::TRANSLATION_PREFIX, (string) $key)] = $message;
-            }
-            $body['errors'] = $errors;
-            return $this->saveFailed($code, $body, lang('Business.saveFailed'));
+            return $this->saveFailed($code, $this->translationErrors($body), lang('Business.saveFailed'));
         }
 
         if (needsBusiness()) {
@@ -525,6 +537,257 @@ class Admin extends BaseController
         ]);
     }
 
+    /**
+     * The session business (the one the client is working in), opened in view mode; the Edit button switches the
+     * same page to edit mode. Its owners and managers only (see BusinessManagerFilter). The values are fetched
+     * afresh through v1/client/business/switch, so a change made elsewhere shows. Country and currency are shown
+     * but cannot be changed; changing the business slug asks first, as it moves the store's address at once.
+     */
+    public function business(): string
+    {
+        $locale   = $this->request->getLocale();
+        $business = $this->refreshSessionBusiness(null, $names) ?? (array) session('business');
+        $values   = (array) ($business['business'] ?? []);
+        $slug     = (string) ($values['business_slug'] ?? '');
+        $values[self::BUSINESS_CURRENT_SLUG] = $slug;
+        foreach ($names ?? [] as $language => $name) {
+            $values[self::TRANSLATION_PREFIX . $language] = $name;
+        }
+        $formId = 'edit-business-form';
+        $data   = [
+            'locale'       => $locale,
+            'slug'         => 'business',
+            'user'         => (array) session('user'),
+            'formConfig'   => [
+                'form_id'  => $formId,
+                'title'    => lang('EditBusiness.form.title'),
+                'subtitle' => lang('EditBusiness.form.subtitle', [(string) ($values['business_name'] ?? '')]),
+                'mode'     => 'view',
+                'id_field' => self::BUSINESS_CURRENT_SLUG,
+                'id'       => $slug,
+                'locale'   => $locale,
+                'urls'     => [
+                    'submit' => base_url('admin/business/save'),
+                    'edit'   => base_url('admin/business'),
+                ],
+                'messages' => ['saved' => lang('EditBusiness.form.saved'), 'saveFailed' => lang('EditBusiness.form.failed')],
+                'values'   => $values,
+                'fields'   => $this->businessEditFields($this->businessTypeOptions($locale), (string) ($values['country_code'] ?? ''), $slug, null !== $names),
+            ],
+            // asks before a changed business slug is saved
+            'customScript' => view('scripts/edit_business', [
+                'formId'  => $formId,
+                'slug'    => $slug,
+                'baseUrl' => $this->storeBaseUrl(),
+                'confirm' => [
+                    'title'   => lang('EditBusiness.slug-confirm.title'),
+                    'text'    => lang('EditBusiness.slug-confirm.text'),
+                    'confirm' => lang('EditBusiness.slug-confirm.confirm'),
+                    'cancel'  => lang('EditBusiness.slug-confirm.cancel'),
+                ],
+            ]),
+        ];
+        return view('generic_form', $data);
+    }
+
+    /**
+     * Save the session business through LINK_INTERNAL_API v1/client/business/edit { business_slug, business,
+     * translations }. country_code, currency_code and tax_id are never forwarded, so the API keeps them. The names
+     * in the form's languages replace the stored ones, and those in other languages are kept (fetched afresh, as the
+     * API replaces them all); a form without them sends no translations. A renamed business slug becomes the
+     * session business's key at once.
+     */
+    public function businessEditPost(): ResponseInterface
+    {
+        $current = (string) currentBusinessSlug();
+        // the session switched to another business (e.g. in another tab) since the form was opened
+        if ($current !== (string) $this->request->getPost(self::BUSINESS_CURRENT_SLUG)) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success'   => false,
+                'message'   => lang('Business.notFound'),
+                'redirect'  => base_url('admin/business'),
+                'csrf_hash' => csrf_hash(),
+            ]);
+        }
+        $post     = (array) $this->request->getPost();
+        $business = array_intersect_key($post, array_flip(self::BUSINESS_EDIT_FIELDS));
+        $payload  = ['business_slug' => $current, 'business' => $business];
+        $posted   = array_filter(array_keys(listSupportedLanguages()), static fn (string $language) => array_key_exists(self::TRANSLATION_PREFIX . $language, $post));
+        if ([] !== $posted) {
+            // the API replaces all the names, so the names in other languages than the form's are sent as they are
+            if (null === $this->refreshSessionBusiness($current, $names)) {
+                return $this->saveFailed(500, [], lang('EditBusiness.form.failed'));
+            }
+            foreach ($posted as $language) {
+                $names[$language] = (string) $post[self::TRANSLATION_PREFIX . $language];
+            }
+            $payload['translations'] = (object) $names;
+        }
+
+        [$code, $body] = $this->callApi('v1/client/business/edit', $payload);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            return $this->saveFailed($code, $this->translationErrors($body), lang('EditBusiness.form.failed'));
+        }
+
+        // the session business follows: fetched afresh, or else patched with what was saved
+        $slug = (string) ($body['data']['business_slug'] ?? $business['business_slug'] ?? $current);
+        if (null === $this->refreshSessionBusiness($slug)) {
+            $saved   = array_map(static fn ($value) => '' === trim((string) $value) ? null : trim((string) $value), $business);
+            $session = (array) session('business');
+            $session['business'] = ['business_slug' => $slug] + $saved + (array) ($session['business'] ?? []);
+            session()->set('business', $session);
+        }
+        return $this->response->setJSON([
+            'success'   => true,
+            'message'   => $body['message'] ?? lang('EditBusiness.form.saved'),
+            'redirect'  => base_url('admin/business'),
+            'csrf_hash' => csrf_hash(),
+        ]);
+    }
+
+    /**
+     * The stores of the session business (generic_list); its owners and managers only. Each row opens the store.
+     */
+    public function stores(): string
+    {
+        $data = [
+            'locale'     => $this->request->getLocale(),
+            'slug'       => 'stores',
+            'user'       => (array) session('user'),
+            'listConfig' => $this->storesListConfig(),
+        ];
+        return view('generic_list', $data);
+    }
+
+    /**
+     * DataTables data of stores(), from LINK_INTERNAL_API v1/client/stores { business_slug }. A business has a
+     * handful of stores, so the API sends them all and the search, order and paging are done here.
+     */
+    public function storesData(): ResponseInterface
+    {
+        $config = $this->storesListConfig();
+        $params = lb_request($this->request, $config);
+        [$stores, $error] = $this->loadStores();
+        if (null !== $error) {
+            return $this->response->setJSON(lb_response($params['draw'], 0, 0, []) + ['error' => $error, 'csrf_hash' => csrf_hash()]);
+        }
+
+        $locale       = $this->request->getLocale();
+        $types        = lang('BusinessStore.enum.store_type');
+        $subdivisions = listSupportedSubdivisions((string) (session('business')['business']['country_code'] ?? ''));
+        $rows         = [];
+        foreach ($stores as $store) {
+            $phone       = (string) ($store['store_phone_number'] ?? '');
+            $subdivision = (string) ($store['store_subdivision_code'] ?? '');
+            $location    = array_filter([(string) ($store['store_city'] ?? ''), $subdivisions[$subdivision] ?? $subdivision]);
+            $rows[]      = [
+                'public_id'          => (string) ($store['public_id'] ?? ''),
+                // the name in the UI language, when the store has one
+                'store_name'         => (string) (($store['translations'] ?? [])[$locale] ?? $store['store_name'] ?? ''),
+                'store_type'         => (string) ($store['store_type'] ?? ''),
+                'store_phone_number' => '' === $phone ? '' : formatPhoneNumber($phone),
+                'location'           => implode(', ', $location),
+            ];
+        }
+        $total = count($rows);
+        $rows  = $this->searchAndOrder($rows, $params, static fn (array $row, string $column) => 'store_type' === $column
+            ? (string) ($types[$row[$column]] ?? $row[$column]) : (string) $row[$column]);
+        $filtered = count($rows);
+        $rows     = lb_rows(array_slice($rows, $params['start'], $params['length']), $config);
+
+        return $this->response->setJSON(lb_response($params['draw'], $total, $filtered, $rows) + ['csrf_hash' => csrf_hash()]);
+    }
+
+    /**
+     * The form to add a store to the session business, or, with $publicId, one of its stores opened in view mode
+     * (the Edit button switches the page to edit mode). Address fields hide for an online store.
+     * @param string|null $publicId business_store.public_id
+     */
+    public function storeForm(?string $publicId = null): string
+    {
+        $values = [];
+        if (null !== $publicId) {
+            $store = $this->findStore($publicId);
+            if (null === $store) {
+                throw PageNotFoundException::forPageNotFound(lang('Stores.form.not-found'));
+            }
+            $values = $store;
+            foreach ((array) ($store['translations'] ?? []) as $language => $name) {
+                $values[self::TRANSLATION_PREFIX . $language] = $name;
+            }
+            unset($values['translations']);
+        }
+        $locale  = $this->request->getLocale();
+        $country = (string) (session('business')['business']['country_code'] ?? '');
+        $formId  = 'store-form';
+        $data    = [
+            'locale'       => $locale,
+            'slug'         => 'stores',
+            'user'         => (array) session('user'),
+            'formConfig'   => [
+                'form_id'  => $formId,
+                'title'    => lang(null === $publicId ? 'Stores.form.create-title' : 'Stores.form.edit-title'),
+                'subtitle' => lang('Stores.form.subtitle', [(string) currentBusinessName()]),
+                'mode'     => null === $publicId ? 'create' : 'view',
+                'id_field' => 'public_id',
+                'id'       => (string) $publicId,
+                'locale'   => $locale,
+                'urls'     => [
+                    'submit' => base_url('admin/business/stores/save'),
+                    'edit'   => null === $publicId ? '' : base_url('admin/business/stores/edit/' . rawurlencode($publicId)),
+                    'list'   => base_url('admin/business/stores'),
+                ],
+                'messages' => ['saved' => lang(null === $publicId ? 'Stores.form.created' : 'Stores.form.saved'), 'saveFailed' => lang('Stores.form.failed')],
+                'values'   => $values,
+                'fields'   => $this->storeFields($country),
+            ],
+            'customScript' => view('scripts/store_form', [
+                'formId'  => $formId,
+                'online'  => BusinessStoreModel::TYPE_ONLINE,
+                'address' => BusinessStoreModel::ADDRESS_FIELDS,
+            ]),
+        ];
+        return view('generic_form', $data);
+    }
+
+    /**
+     * Create or save a store of the session business through LINK_INTERNAL_API: v1/client/store/create
+     * { business_slug, store, translations }, or, with public_id, v1/client/store/edit { public_id, store, translations }.
+     * The form has the names in the UI languages only; on an edit, the names in other languages are kept, as the
+     * API replaces them all.
+     */
+    public function storeSavePost(): ResponseInterface
+    {
+        $post     = (array) $this->request->getPost();
+        $publicId = trim((string) ($post['public_id'] ?? ''));
+        $store    = array_intersect_key($post, array_flip(self::STORE_FIELDS));
+        $names    = [];
+        if ('' !== $publicId) {
+            $stored = $this->findStore($publicId);
+            if (null === $stored) {
+                return $this->saveFailed(404, ['message' => lang('Stores.form.not-found')], lang('Stores.form.failed'));
+            }
+            $names = (array) ($stored['translations'] ?? []);
+        }
+        foreach (array_keys(listSupportedLanguages()) as $language) {
+            $names[$language] = (string) ($post[self::TRANSLATION_PREFIX . $language] ?? '');
+        }
+
+        [$code, $body] = '' === $publicId
+            ? $this->callApi('v1/client/store/create', ['business_slug' => (string) currentBusinessSlug(), 'store' => $store, 'translations' => (object) $names])
+            : $this->callApi('v1/client/store/edit', ['public_id' => $publicId, 'store' => $store, 'translations' => (object) $names]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            return $this->saveFailed($code, $this->translationErrors($body), lang('Stores.form.failed'));
+        }
+        $savedId = (string) ($body['data']['public_id'] ?? $publicId);
+        return $this->response->setJSON([
+            'success'   => true,
+            'message'   => $body['message'] ?? lang('' === $publicId ? 'Stores.form.created' : 'Stores.form.saved'),
+            'redirect'  => '' === $savedId ? base_url('admin/business/stores') : base_url('admin/business/stores/edit/' . rawurlencode($savedId)),
+            'csrf_hash' => csrf_hash(),
+        ]);
+    }
+
     public function notifications(): string
     {
         $locale = $this->request->getLocale();
@@ -619,7 +882,16 @@ class Admin extends BaseController
                 $fields[] = $config[$name];
             }
         }
-        $fields[] = ['type' => 'heading', 'label' => lang('CreateBusiness.heading.translations')];
+        return [...$fields, ...$this->businessNameFields()];
+    }
+
+    /**
+     * The business name in each UI language (listSupportedLanguages()), optional, under their own heading: sent as
+     * translations, kept in business_master_translation
+     */
+    private function businessNameFields(): array
+    {
+        $fields = [['type' => 'heading', 'label' => lang('CreateBusiness.heading.translations')]];
         foreach (listSupportedLanguages() as $language => $label) {
             $fields[] = [
                 'name'     => self::TRANSLATION_PREFIX . $language,
@@ -689,6 +961,249 @@ class Admin extends BaseController
             $html .= $button('switch', 'btn-outline-primary', 'bi-arrow-left-right', lang('MyBusinesses.switch'));
         }
         return $html;
+    }
+
+    /**
+     * The business types for the Business Type dropdown, from LINK_INTERNAL_API v1/client/business-types (active
+     * types only), named in the UI language
+     * @return array public_id => type name
+     */
+    private function businessTypeOptions(string $locale): array
+    {
+        [$code, $body] = $this->callApi('v1/client/business-types', []);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            throw new RuntimeException($body['message'] ?? lang('CreateBusiness.form.types-failed'));
+        }
+        $types = [];
+        foreach ((array) ($body['data']['rows'] ?? []) as $row) {
+            $names = (array) ($row['translations'] ?? []);
+            $types[(string) $row['public_id']] = $names[$locale] ?? $names[BusinessTypeModel::DEFAULT_LANGUAGE] ?? (string) $row['type_code'];
+        }
+        asort($types, SORT_NATURAL | SORT_FLAG_CASE);
+        return $types;
+    }
+
+    /**
+     * Fetch a business of the signed-in client afresh through LINK_INTERNAL_API v1/client/business/switch, in the
+     * shape sign-in gives it, and keep it as the session business
+     * @param string|null $slug  null: the session business
+     * @param array|null  $names set to its names in other languages (language_code => business_name), which are
+     *                           not kept in the session; null when it cannot be fetched
+     * @return array|null the session business; null when it cannot be fetched (the session is left as it is)
+     */
+    private function refreshSessionBusiness(?string $slug = null, ?array &$names = null): ?array
+    {
+        $names = null;
+        $slug ??= currentBusinessSlug();
+        if (null === $slug || '' === $slug) {
+            return null;
+        }
+        [$code, $body] = $this->callApi('v1/client/business/switch', ['business_slug' => $slug]);
+        $business = $body['data']['business'] ?? null;
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success' || ! is_array($business)) {
+            return null;
+        }
+        session()->set('business', $business);
+        $names = (array) ($body['data']['translations'] ?? []);
+        return $business;
+    }
+
+    /**
+     * Where a business's store is found on LINK_MART: this followed by its business_slug
+     */
+    private function storeBaseUrl(): string
+    {
+        return rtrim((string) getenv('LINK_MART'), '/') . '/';
+    }
+
+    /**
+     * Fields of the edit-business form, grouped under the BUSINESS_EDIT_SECTIONS headings. The country and the
+     * currency are disabled, so they are shown but never submitted.
+     * @param array  $types   public_id => type name, for the Business Type dropdown
+     * @param string $country business_master.country_code, for the subdivisions and the telephone number
+     * @param string $slug      the business slug now, for the store address in its help
+     * @param bool   $withNames with the business name in each UI language (left out when they could not be fetched,
+     *                          so the names are not saved as empty)
+     */
+    private function businessEditFields(array $types, string $country, string $slug, bool $withNames = true): array
+    {
+        $config = (new BusinessMasterModel())->getConfiguration();
+        $config['business_type_public_id'] = [
+            'name'    => 'business_type_public_id',
+            'type'    => 'select',
+            'label'   => lang('BusinessMaster.fields.business_type_id'),
+            'options' => $types,
+            'rules'   => 'required',
+        ];
+        // is_unique is checked by the API, which answers with the field's error
+        $config['business_slug']['rules']    = 'required|max_length[128]|regex_match[/^[a-z0-9]+(-[a-z0-9]+)*$/]';
+        $config['business_slug']['help']     = lang('EditBusiness.help.business-slug', [$this->storeBaseUrl() . $slug]);
+        $config['business_slug']['messages'] = ['regex' => lang('CreateBusiness.error.business-slug')];
+        $config['business_mood_and_tone']['help'] = lang('CreateBusiness.help.mood-and-tone');
+        foreach (BusinessMasterModel::FIXED_FIELDS as $name) {
+            $config[$name]['disabled_in'] = ['create', 'edit'];
+            $config[$name]['help']        = lang('EditBusiness.help.fixed');
+            $config[$name]['optional']    = false;
+            $config[$name]['rules']       = '';
+        }
+        $config['contact_subdivision_code']['type']    = 'select';
+        $config['contact_subdivision_code']['options'] = listSupportedSubdivisions($country);
+        $config['contact_phone_number']['country']     = $country;
+
+        $fields = [];
+        foreach (self::BUSINESS_EDIT_SECTIONS as $heading => $names) {
+            $fields[] = ['type' => 'heading', 'label' => lang('CreateBusiness.heading.' . $heading)];
+            foreach ($names as $name) {
+                $fields[] = $config[$name];
+            }
+        }
+        return $withNames ? [...$fields, ...$this->businessNameFields()] : $fields;
+    }
+
+    /**
+     * Fields of the store form, grouped under the STORE_SECTIONS headings, then the store name in each UI language
+     * (optional, sent as translations). The address heading is marked, so the form's script hides it with the
+     * address fields for an online store.
+     * @param string $country business_master.country_code of the session business
+     */
+    private function storeFields(string $country): array
+    {
+        $config = (new BusinessStoreModel())->getConfiguration();
+        $config['store_type']['default']               = BusinessStoreModel::TYPE_PHYSICAL;
+        $config['store_type']['help']                  = lang('Stores.help.store-type');
+        $config['store_phone_number']['country']       = $country;
+        $config['store_subdivision_code']['type']      = 'select';
+        $config['store_subdivision_code']['options']   = listSupportedSubdivisions($country);
+
+        $fields = [];
+        foreach (self::STORE_SECTIONS as $heading => $names) {
+            if ('address' === $heading) {
+                // a heading of its own, as the form builder's headings cannot be told apart
+                $fields[] = ['type' => 'html', 'html' => '<div class="row mb-2 mt-4" data-store-address><div class="col-sm-8 offset-sm-4">'
+                    . '<h6 class="text-uppercase text-muted mb-0">' . esc(lang('Stores.heading.address')) . '</h6></div></div>'];
+            } else {
+                $fields[] = ['type' => 'heading', 'label' => lang('Stores.heading.' . $heading)];
+            }
+            foreach ($names as $name) {
+                $fields[] = $config[$name];
+            }
+        }
+        $fields[] = ['type' => 'heading', 'label' => lang('Stores.heading.translations')];
+        foreach (listSupportedLanguages() as $language => $label) {
+            $fields[] = [
+                'name'     => self::TRANSLATION_PREFIX . $language,
+                'type'     => 'text',
+                'label'    => lang('Stores.translation-label', [$label]),
+                'rules'    => 'max_length[255]',
+                'optional' => true,
+            ];
+        }
+        return $fields;
+    }
+
+    /**
+     * Table Builder config of stores(): each row's edit button opens the store, the Add button the store form
+     */
+    private function storesListConfig(): array
+    {
+        $config = (new BusinessStoreModel())->getConfiguration();
+        return [
+            'table_id' => 'stores-table',
+            'title'    => lang('Stores.list.title'),
+            'subtitle' => lang('Stores.list.subtitle', [(string) currentBusinessName()]),
+            'id_field' => 'public_id',
+            'urls'     => [
+                'data'   => base_url('admin/business/stores/data'),
+                'create' => base_url('admin/business/stores/create'),
+                'edit'   => base_url('admin/business/stores/edit/{public_id}'),
+            ],
+            'labels'   => ['add' => lang('Stores.list.add')],
+            'messages' => ['loadFailed' => lang('Stores.list.load-failed')],
+            'columns'  => [
+                ['data' => 'store_name', 'title' => lang('Stores.list.column.store_name')],
+                ['data' => 'store_type', 'title' => lang('Stores.list.column.store_type'), 'type' => 'badge', 'badges' => $config['store_type']['badges']],
+                ['data' => 'store_phone_number', 'title' => lang('Stores.list.column.store_phone_number'), 'orderable' => false],
+                ['data' => 'location', 'title' => lang('Stores.list.column.location')],
+            ],
+            'order'    => [['store_name', 'asc']],
+        ];
+    }
+
+    /**
+     * The stores of the session business, from LINK_INTERNAL_API v1/client/stores
+     * @return array{0: array, 1: string|null} [stores, null] or [[], error message]
+     */
+    private function loadStores(): array
+    {
+        [$code, $body] = $this->callApi('v1/client/stores', ['business_slug' => (string) currentBusinessSlug()]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            return [[], (string) ($body['message'] ?? lang('Stores.list.load-failed'))];
+        }
+        return [(array) ($body['data']['stores'] ?? []), null];
+    }
+
+    /**
+     * One store of the session business by its public_id (the API has no single-store call)
+     * @return array|null null when the business has no such store
+     * @throws RuntimeException when the stores cannot be loaded
+     */
+    private function findStore(string $publicId): ?array
+    {
+        [$stores, $error] = $this->loadStores();
+        if (null !== $error) {
+            throw new RuntimeException($error);
+        }
+        foreach ($stores as $store) {
+            if ((string) ($store['public_id'] ?? '') === $publicId) {
+                return (array) $store;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The DataTables search and order of rows the API sent in full (storesData())
+     * @param array    $rows   rows keyed by column data key
+     * @param array    $params lb_request()
+     * @param callable $text   fn(array $row, string $column): string, the text the client sees, to search and order by
+     * @return array the matching rows, in order (not paged)
+     */
+    private function searchAndOrder(array $rows, array $params, callable $text): array
+    {
+        $columns = array_column(array_filter($params['columns'], static fn (array $column) => $column['searchable']), 'data');
+        if ('' !== $params['search']) {
+            $needle = mb_strtolower($params['search']);
+            $rows   = array_values(array_filter($rows, static function (array $row) use ($columns, $text, $needle) {
+                foreach ($columns as $column) {
+                    if (array_key_exists($column, $row) && str_contains(mb_strtolower($text($row, $column)), $needle)) {
+                        return true;
+                    }
+                }
+                return false;
+            }));
+        }
+        foreach (array_reverse($params['order']) as [$column, $direction]) {
+            // stable, so the earlier order columns win
+            usort($rows, static function (array $a, array $b) use ($column, $direction, $text) {
+                $cmp = strnatcasecmp($text($a, $column), $text($b, $column));
+                return 'DESC' === $direction ? -$cmp : $cmp;
+            });
+        }
+        return $rows;
+    }
+
+    /**
+     * A failed API body with its translation errors renamed for the form: the API names them
+     * translations.<language>, the form translation_<language>
+     */
+    private function translationErrors(array $body): array
+    {
+        $errors = [];
+        foreach ((array) ($body['errors'] ?? []) as $key => $message) {
+            $errors[preg_replace('/^translations\./', self::TRANSLATION_PREFIX, (string) $key)] = $message;
+        }
+        $body['errors'] = $errors;
+        return $body;
     }
 
     /**

@@ -31,6 +31,16 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->post('my-businesses/data', 'Admin::myBusinessesData');
     $routes->post('my-businesses/make-default', 'Admin::myBusinessesMakeDefault');
     $routes->post('my-businesses/switch', 'Admin::myBusinessesSwitch');
+    // the session business and its stores: its owners and managers only (see BusinessManagerFilter)
+    $routes->group('business', ['filter' => 'manager'], static function ($routes) {
+        $routes->get('/', 'Admin::business');
+        $routes->post('save', 'Admin::businessEditPost');
+        $routes->get('stores', 'Admin::stores');
+        $routes->post('stores/data', 'Admin::storesData');
+        $routes->get('stores/create', 'Admin::storeForm');
+        $routes->get('stores/edit/(:segment)', 'Admin::storeForm/$1');
+        $routes->post('stores/save', 'Admin::storeSavePost');
+    });
     $routes->get('notifications', 'Admin::notifications');
     $routes->get('messages', 'Admin::messages');
 
