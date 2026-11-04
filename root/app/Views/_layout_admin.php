@@ -210,29 +210,45 @@
     <!-- Sidebar Navigation -->
     <nav class="sidebar-nav">
         <ul class="nav-menu">
-            <li class="nav-heading"><span>Overview</span></li>
+            <!-- SHOW NAV MENU IF THERE IS BUSINESS -->
             <li class="nav-item">
-                <a class="nav-link " href="<?= base_url('admin/dashboard') ?>">
-                    <span class="nav-icon"><i class="ph ph-house"></i></span>
-                    <span class="nav-text">Home</span>
+                <a class="nav-link<?= ('dashboard' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/dashboard') ?>">
+                    <span class="nav-icon"><i class="bi bi-speedometer2"></i></span>
+                    <span class="nav-text"><?= lang('System.page.dashboard') ?></span>
                 </a>
             </li>
-
-
-            <!-- Error Pages -->
+            <!-- ALL STAFF CAN SEE -->
+            <li class="nav-heading"><span><?= lang('System.page.sales') ?></span></li>
+            <li class="nav-item">
+                <a class="nav-link<?= ('sales' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/sales') ?>">
+                    <span class="nav-icon"><i class="bi bi-receipt-cutoff"></i></span>
+                    <span class="nav-text"><?= lang('System.page.sales') ?></span>
+                </a>
+            </li>
+            <!-- ONLY BUSINESS OWNER and MANAGER -->
+            <li class="nav-heading"><span><?= lang('System.page.business') ?></span></li>
             <li class="nav-item has-submenu ">
                 <a class="nav-link" href="#" aria-expanded="false">
-                    <span class="nav-icon"><i class="ph ph-warning"></i></span>
-                    <span class="nav-text">Error Pages</span>
+                    <span class="nav-icon"><i class="bi bi-shop"></i></span>
+                    <span class="nav-text"><?= lang('System.page.business') ?></span>
                     <i class="ph ph-caret-right nav-arrow"></i>
                 </a>
                 <ul class="nav-submenu ">
-                    <li><a class="nav-link " href="error-404.html">404 Not Found</a></li>
-                    <li><a class="nav-link " href="error-403.html">403 Forbidden</a></li>
-                    <li><a class="nav-link " href="error-500.html">500 Server Error</a></li>
-                    <li><a class="nav-link " href="error-maintenance.html">Maintenance</a></li>
-                    <li><a class="nav-link " href="error-coming-soon.html">Coming Soon</a></li>
+                    <li><a class="nav-link<?= ('business' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business') ?>"><?= lang('System.page.business') ?></a></li>
+                    <li><a class="nav-link<?= ('stores' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/stores') ?>"><?= lang('System.page.stores') ?></a></li>
                 </ul>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link<?= ('employees' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/employees') ?>">
+                    <span class="nav-icon"><i class="bi bi-people"></i></span>
+                    <span class="nav-text"><?= lang('System.page.employees') ?></span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link<?= ('artifacts' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts') ?>">
+                    <span class="nav-icon"><i class="bi bi-box"></i></span>
+                    <span class="nav-text"><?= lang('System.page.products-and-services') ?></span>
+                </a>
             </li>
         </ul>
     </nav>
