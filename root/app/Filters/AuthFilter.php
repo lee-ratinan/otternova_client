@@ -19,7 +19,7 @@ class AuthFilter implements FilterInterface
         helper('auth');
         /** @var IncomingRequest $request */
         if (hasActiveSession()) {
-            if (needsBusiness() && $request->getMethod() === 'GET' && ! $request->isAJAX() && ! url_is('admin/create-business')) {
+            if (needsBusiness() && $request->getMethod() === 'GET' && ! $request->isAJAX() && ! url_is('admin/create-business') && ! url_is('admin/api/*')) {
                 return redirect()->to(base_url('admin/create-business'));
             }
             return null;

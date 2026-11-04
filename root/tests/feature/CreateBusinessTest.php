@@ -84,6 +84,37 @@ final class CreateBusinessTest extends CIUnitTestCase
         $result->assertSee('name="business_slug"');
         $result->assertSee('name="translation_th"');
         $result->assertSee('value="client@example.com"');
+
+        // country and currency right under the slug
+        $html = $result->getBody();
+        $at   = static fn (string $name) => strpos($html, 'data-fb-row="' . $name . '"');
+        $this->assertTrue($at('business_slug') < $at('country_code') && $at('country_code') < $at('currency_code')
+            && $at('currency_code') < $at('business_description'));
+
+        // currency and subdivision start without options; the page's script fills them for the country
+        $this->assertMatchesRegularExpression('#<select id="currency_code"[^>]*><option value="" selected>[^<]*</option></select>#', $html);
+        $this->assertMatchesRegularExpression('#<select id="contact_subdivision_code"[^>]*><option value="" selected>[^<]*</option></select>#', $html);
+        $result->assertSee('"currencies":"' . base_url('admin/api/currencies') . '"');
+        $result->assertSee('form.elements.contact_subdivision_code');
+
+        // the phone: country dropdown and number, neither submitted, and the hidden E.164 input
+        $result->assertSee('id="contact_phone_number__country"');
+        $result->assertSee('<option value="TH">TH +66</option>');
+        $result->assertSee('type="hidden" id="contact_phone_number__e164" name="contact_phone_number"');
+        $this->assertSame(1, substr_count($html, 'name="contact_phone_number"'));
+        $result->assertSee('"telephoneFormat":"' . base_url('admin/api/telephone-format-e164') . '"');
+    }
+
+    public function testSavedTelephoneIsSplitForEditing(): void
+    {
+        helper('form');
+        $html = fb_render(['form_id' => 'f', 'mode' => 'view', 'values' => ['phone' => '+66812345678'],
+            'fields' => [['name' => 'phone', 'type' => 'tel', 'label' => 'Phone']]]);
+
+        $this->assertStringContainsString('<option value="TH" selected>TH +66</option>', $html);
+        $this->assertStringContainsString('value="0812345678"', $html);
+        $this->assertStringContainsString('name="phone" value="&#x2B;66812345678"', $html);
+        $this->assertStringContainsString('+66 81 234 5678', $html); // view pane
     }
 
     public function testCreateSendsTheFieldsAndSetsTheSessionBusiness(): void

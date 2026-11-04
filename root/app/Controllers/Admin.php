@@ -36,11 +36,13 @@ class Admin extends BaseController
 
     /** The create-business form, section => fields; all of them go to v1/client/business/create as "business" */
     private const BUSINESS_SECTIONS = [
-        'business' => ['business_type_public_id', 'business_name', 'business_slug', 'business_description', 'business_mood_and_tone'],
+        // the country and currency come first: they are fixed once created, and the rest depends on the country
+        'business' => ['business_type_public_id', 'business_name', 'business_slug', 'country_code', 'currency_code',
+            'business_description', 'business_mood_and_tone'],
         'contact'  => ['contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website'],
         'address'  => ['contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code',
-            'contact_postal_code', 'country_code'],
-        'billing'  => ['currency_code', 'tax_id'],
+            'contact_postal_code'],
+        'billing'  => ['tax_id'],
     ];
     private const BUSINESS_FIELDS = ['business_type_public_id', 'business_name', 'business_slug', 'business_description',
         'business_mood_and_tone', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
@@ -320,6 +322,13 @@ class Admin extends BaseController
                 'messages' => ['saved' => lang('Business.created'), 'saveFailed' => lang('Business.saveFailed')],
                 'fields'   => $this->businessFields($types, $user),
             ],
+            // fills the currency and subdivision dropdowns for the country picked
+            'customScript' => view('scripts/create_business', [
+                'formId' => 'create-business-form',
+                'urls'   => ['currencies' => base_url('admin/api/currencies'), 'subdivisions' => base_url('admin/api/subdivisions')],
+                'select' => lang('Form.select'),
+                'failed' => lang('CreateBusiness.form.locale-failed'),
+            ]),
         ];
         return view('generic_form', $data);
     }
@@ -456,7 +465,11 @@ class Admin extends BaseController
         $config['business_slug']['help']     = lang('CreateBusiness.help.business-slug');
         $config['business_slug']['messages'] = ['regex' => lang('CreateBusiness.error.business-slug')];
         $config['business_mood_and_tone']['help']   = lang('CreateBusiness.help.mood-and-tone');
-        $config['contact_subdivision_code']['help'] = lang('CreateBusiness.help.subdivision');
+        // no options until a country is picked: customScript fills them from admin/api/currencies and subdivisions
+        $config['currency_code']['options']            = [];
+        $config['contact_subdivision_code']['type']    = 'select';
+        $config['contact_subdivision_code']['options'] = [];
+        $config['contact_subdivision_code']['help']    = lang('CreateBusiness.help.subdivision');
         $config['country_code']['help']             = lang('CreateBusiness.help.fixed');
         $config['currency_code']['help']            = lang('CreateBusiness.help.fixed');
         $config['contact_person_name']['default']   = (string) ($user['full_name'] ?? '');

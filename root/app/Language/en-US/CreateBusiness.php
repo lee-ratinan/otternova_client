@@ -5,6 +5,7 @@ return [
         'subtitle'     => 'You need a business to get started. Fields marked with * are required',
         'submit'       => 'Create Business',
         'types-failed' => 'Could not load the business types.',
+        'locale-failed' => 'Could not load the currencies and states of this country. Please pick the country again.',
     ],
     'heading'           => [
         'business'     => 'Business',
@@ -16,7 +17,7 @@ return [
     'help'              => [
         'business-slug' => 'Lowercase letters, numbers and hyphens, e.g. otter-cafe-sg. It appears in your page addresses.',
         'mood-and-tone' => 'How your business speaks to customers, e.g. friendly and playful.',
-        'subdivision'   => 'The code of the state or province, e.g. TH-10 for Bangkok.',
+        'subdivision'   => 'Choose the country first.',
         'fixed'         => 'Cannot be changed once the business is created.',
     ],
     'error'             => [

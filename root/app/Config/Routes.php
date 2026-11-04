@@ -29,4 +29,9 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->get('my-businesses', 'Admin::myBusinesses');
     $routes->get('notifications', 'Admin::notifications');
     $routes->get('messages', 'Admin::messages');
+
+    // JSON lookups for the pages' scripts; see App\Controllers\ApiList
+    $routes->post('api/telephone-format-e164', 'ApiList::telephoneFormatE164');
+    $routes->match(['GET', 'POST'], 'api/subdivisions', 'ApiList::subdivisions');
+    $routes->match(['GET', 'POST'], 'api/currencies', 'ApiList::currencies');
 });

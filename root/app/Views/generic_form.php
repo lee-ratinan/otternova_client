@@ -9,6 +9,12 @@
  *
  * Optional: $extraForms, more form configs rendered below it, each with its own card and script
  * (e.g. the stand-alone upload forms of 'file' fields).
+ * Optional: $customScript, the page's own JavaScript (without <script> tags), added after the form builder's
+ * scripts so window.FormBuilder[form_id] is there. Render it from a view of its own, so values reach it escaped:
+ *
+ *   'customScript' => view('scripts/create_business', ['urls' => [...]]),
+ *
+ * It is output as given: never put user input in it unescaped.
  *
  * Requirements in _layout: Bootstrap 5, Bootstrap Icons, toastr (JS + CSS).
  * Optional: SweetAlert2 (window.Swal) for a nicer delete confirmation; falls back to confirm().
@@ -70,4 +76,9 @@ helper('form'); // loads app/Helpers/form_helper.php (all functions are prefixed
 <?php foreach ($extraForms ?? [] as $extraForm): ?>
     <?= fb_script($extraForm) ?>
 <?php endforeach ?>
+<?php if (! empty($customScript)): ?>
+<script>
+<?= $customScript ?>
+</script>
+<?php endif ?>
 <?= $this->endSection() ?>
