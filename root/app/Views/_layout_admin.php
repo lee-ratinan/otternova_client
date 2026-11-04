@@ -26,6 +26,7 @@
     <link href="<?= base_url('assets/vendor/choices.js/choices.min.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/vendor/flatpickr/flatpickr.min.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/vendor/toastr/toastr.min.css') ?>" rel="stylesheet">
+    <link href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <!-- Template Main CSS File -->
     <link href="<?= base_url('assets/css/main.css') ?>" rel="stylesheet">
     <!-- =======================================================
@@ -116,7 +117,7 @@
                             </span>
                             <span class="user-menu-name"><?= esc(userDisplayName($user)) ?></span>
                             <span class="user-menu-mail"><?= esc($user['email_address'] ?? '') ?></span>
-                            <span class="user-menu-role"><?= esc(currentBusinessName() ?? '') ?></span>
+                            <span class="user-menu-role"><?= esc(currentBusinessName()) ?? '<i class="bi bi-stars"></i>' ?></span>
                         </div>
                         <div class="user-menu-body">
                             <a class="dropdown-item" href="<?= base_url('admin/profile') ?>">
@@ -288,6 +289,9 @@
 <!-- Vendor JS Files -->
 <script src="<?= base_url('assets/vendor/jquery/jquery-4.0.0.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
+<!-- DataTables (jQuery), for the Table Builder of generic_list.php -->
+<script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js"></script>
 <script src="<?= base_url('assets/vendor/apexcharts/apexcharts.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/chart.js/chart.umd.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/echarts/echarts.min.js') ?>"></script>

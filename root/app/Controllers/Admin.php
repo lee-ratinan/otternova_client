@@ -378,16 +378,134 @@ class Admin extends BaseController
         ]);
     }
 
+    /**
+     * The businesses the signed-in client works in (generic_list), with buttons to make one their default (the
+     * one sign-in opens) and to switch the session to another. No edit link; the Add button creates a business.
+     */
     public function myBusinesses(): string
     {
         $locale = $this->request->getLocale();
+        $config = $this->myBusinessesListConfig();
         $data   = [
-            'locale' => $locale,
-            'slug'   => 'my-businesses',
-            'user'   => session()->get('user') ?? [],
-            'listConfig' => []
+            'locale'       => $locale,
+            'slug'         => 'my-businesses',
+            'user'         => session()->get('user') ?? [],
+            'listConfig'   => $config,
+            'customScript' => view('scripts/my_businesses', [
+                'tableId' => $config['table_id'],
+                'urls'    => [
+                    'make-default' => base_url('admin/my-businesses/make-default'),
+                    'switch'       => base_url('admin/my-businesses/switch'),
+                ],
+                'failed'  => lang('MyBusinesses.action-failed'),
+            ]),
         ];
         return view('generic_list', $data);
+    }
+
+    /**
+     * DataTables data of myBusinesses(), from LINK_INTERNAL_API v1/client/businesses. A client has a handful of
+     * businesses, so the API sends them all and the search, order and paging are done here.
+     */
+    public function myBusinessesData(): ResponseInterface
+    {
+        $config = $this->myBusinessesListConfig();
+        $params = lb_request($this->request, $config);
+        [$code, $body] = $this->callApi('v1/client/businesses', []);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            return $this->response->setJSON(lb_response($params['draw'], 0, 0, []) + [
+                'error'     => $body['message'] ?? lang('MyBusinesses.load-failed'),
+                'csrf_hash' => csrf_hash(),
+            ]);
+        }
+
+        $current   = (string) (session('business')['business']['business_slug'] ?? '');
+        $countries = listCountries();
+        $rows      = [];
+        foreach ((array) ($body['data']['businesses'] ?? []) as $business) {
+            $slug    = (string) ($business['business_slug'] ?? '');
+            $country = (string) ($business['country_code'] ?? '');
+            $rows[]  = [
+                'business_slug'       => $slug,
+                'business_name'       => (string) ($business['business_name'] ?? ''),
+                'country'             => $countries[$country] ?? $country,
+                'client_role'         => (string) ($business['client_role'] ?? ''),
+                'is_default_business' => (string) ($business['is_default_business'] ?? ''),
+                'actions'             => $this->myBusinessActions($slug, (string) ($business['business_name'] ?? ''),
+                    $slug === $current, ($business['is_default_business'] ?? '') === BusinessClientLinkModel::DEFAULT_YES),
+            ];
+        }
+        $total = count($rows);
+
+        // search the text the client sees, so a role or country is found by its label
+        $roles = lang('BusinessClientLink.enum.client_role');
+        if ('' !== $params['search']) {
+            $needle = mb_strtolower($params['search']);
+            $rows   = array_values(array_filter($rows, static fn (array $row) => str_contains(
+                mb_strtolower($row['business_name'] . ' ' . $row['country'] . ' ' . ($roles[$row['client_role']] ?? $row['client_role'])),
+                $needle
+            )));
+        }
+        $filtered = count($rows);
+        foreach (array_reverse($params['order']) as [$column, $direction]) {
+            // stable, so the earlier order columns win
+            usort($rows, static function (array $a, array $b) use ($column, $direction, $roles) {
+                $left  = 'client_role' === $column ? ($roles[$a[$column]] ?? $a[$column]) : $a[$column];
+                $right = 'client_role' === $column ? ($roles[$b[$column]] ?? $b[$column]) : $b[$column];
+                $cmp   = strnatcasecmp((string) $left, (string) $right);
+                return 'DESC' === $direction ? -$cmp : $cmp;
+            });
+        }
+        $rows = array_slice($rows, $params['start'], $params['length']);
+
+        return $this->response->setJSON(lb_response($params['draw'], $total, $filtered, $rows) + ['csrf_hash' => csrf_hash()]);
+    }
+
+    /**
+     * Make a business the signed-in client's default one through LINK_INTERNAL_API v1/client/business/make-default
+     * { business_slug }; the session business follows, so it stays as the API has it.
+     */
+    public function myBusinessesMakeDefault(): ResponseInterface
+    {
+        $slug = trim((string) ($this->request->getJsonVar('business_slug') ?? $this->request->getPost('business_slug')));
+        [$code, $body] = $this->callApi('v1/client/business/make-default', ['business_slug' => $slug]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            return $this->actionFailed($code, $body);
+        }
+
+        $business = session('business');
+        if (is_array($business)) {
+            $isCurrent = ($business['business']['business_slug'] ?? null) === $slug;
+            $business['is_default_business'] = $isCurrent ? BusinessClientLinkModel::DEFAULT_YES : BusinessClientLinkModel::DEFAULT_NO;
+            session()->set('business', $business);
+        }
+        return $this->response->setJSON([
+            'success'   => true,
+            'message'   => $body['message'] ?? lang('MyBusinesses.default-saved'),
+            'csrf_hash' => csrf_hash(),
+        ]);
+    }
+
+    /**
+     * Switch the session to another business of the signed-in client: LINK_INTERNAL_API v1/client/business/switch
+     * { business_slug } gives it as sign-in does, and it replaces the session business.
+     */
+    public function myBusinessesSwitch(): ResponseInterface
+    {
+        $slug = trim((string) ($this->request->getJsonVar('business_slug') ?? $this->request->getPost('business_slug')));
+        [$code, $body] = $this->callApi('v1/client/business/switch', ['business_slug' => $slug]);
+        $business = $body['data']['business'] ?? null;
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success' || ! is_array($business)) {
+            return $this->actionFailed($code, $body);
+        }
+
+        session()->set('business', $business);
+        return $this->response->setJSON([
+            'success'   => true,
+            'message'   => lang('MyBusinesses.switched', [(string) ($business['business']['business_name'] ?? '')]),
+            'redirect'  => base_url('admin/dashboard'),
+            'csrf_hash' => csrf_hash(),
+        ]);
     }
 
     public function notifications(): string
@@ -495,6 +613,79 @@ class Admin extends BaseController
             ];
         }
         return $fields;
+    }
+
+    /**
+     * Table Builder config of myBusinesses(): no edit column, the Add button opens the create-business form
+     */
+    private function myBusinessesListConfig(): array
+    {
+        $roles    = lang('BusinessClientLink.enum.client_role');
+        $defaults = lang('BusinessClientLink.enum.is_default_business');
+        return [
+            'table_id' => 'my-businesses-table',
+            'title'    => lang('MyBusinesses.title'),
+            'subtitle' => lang('MyBusinesses.subtitle'),
+            'id_field' => 'business_slug',
+            'editable' => false,
+            'urls'     => [
+                'data'   => base_url('admin/my-businesses/data'),
+                'create' => base_url('admin/create-business'),
+            ],
+            'labels'   => ['add' => lang('MyBusinesses.add')],
+            'messages' => ['loadFailed' => lang('MyBusinesses.load-failed')],
+            'columns'  => [
+                ['data' => 'business_name', 'title' => lang('MyBusinesses.column.business_name')],
+                ['data' => 'country', 'title' => lang('MyBusinesses.column.country')],
+                ['data' => 'client_role', 'title' => lang('MyBusinesses.column.client_role'), 'type' => 'badge', 'badges' => [
+                    BusinessClientLinkModel::ROLE_OWNER    => ['label' => $roles[BusinessClientLinkModel::ROLE_OWNER], 'class' => 'bg-primary'],
+                    BusinessClientLinkModel::ROLE_MANAGER  => ['label' => $roles[BusinessClientLinkModel::ROLE_MANAGER], 'class' => 'bg-info'],
+                    BusinessClientLinkModel::ROLE_EMPLOYEE => ['label' => $roles[BusinessClientLinkModel::ROLE_EMPLOYEE], 'class' => 'bg-secondary'],
+                ]],
+                ['data' => 'is_default_business', 'title' => lang('MyBusinesses.column.is_default_business'), 'type' => 'badge', 'badges' => [
+                    BusinessClientLinkModel::DEFAULT_YES => ['label' => $defaults[BusinessClientLinkModel::DEFAULT_YES], 'class' => 'bg-success'],
+                    BusinessClientLinkModel::DEFAULT_NO  => ['label' => $defaults[BusinessClientLinkModel::DEFAULT_NO], 'class' => 'bg-secondary'],
+                ]],
+                ['data' => 'actions', 'title' => lang('MyBusinesses.column.actions'), 'type' => 'html', 'orderable' => false,
+                    'searchable' => false, 'class' => 'text-end text-nowrap'],
+            ],
+            'order'    => [['business_name', 'asc']],
+        ];
+    }
+
+    /**
+     * The Actions cell of a row of myBusinessesData(): Make Default unless it is the default already, Switch unless
+     * it is the session business (marked Current instead). Escaped here, as the column is inserted as HTML.
+     */
+    private function myBusinessActions(string $slug, string $name, bool $isCurrent, bool $isDefault): string
+    {
+        $button = static fn (string $action, string $class, string $icon, string $label) => '<button type="button" class="btn btn-sm ' . $class
+            . ' ms-1" data-business-action="' . $action . '" data-business-slug="' . esc($slug, 'attr') . '" data-business-name="'
+            . esc($name, 'attr') . '"><i class="bi ' . $icon . '"></i> ' . esc($label) . '</button>';
+        $html = '';
+        if (! $isDefault) {
+            $html .= $button('make-default', 'btn-outline-secondary', 'bi-star', lang('MyBusinesses.make-default'));
+        }
+        if ($isCurrent) {
+            $html .= '<span class="badge bg-primary ms-1">' . esc(lang('MyBusinesses.current')) . '</span>';
+        } else {
+            $html .= $button('switch', 'btn-outline-primary', 'bi-arrow-left-right', lang('MyBusinesses.switch'));
+        }
+        return $html;
+    }
+
+    /**
+     * JSON answer of a failed make-default or switch call
+     * @param int   $code HTTP status of the API call
+     * @param array $body decoded API response
+     */
+    private function actionFailed(int $code, array $body): ResponseInterface
+    {
+        return $this->response->setStatusCode($code === 200 ? 502 : $code)->setJSON([
+            'success'   => false,
+            'message'   => $body['message'] ?? lang('MyBusinesses.action-failed'),
+            'csrf_hash' => csrf_hash(),
+        ]);
     }
 
     /**

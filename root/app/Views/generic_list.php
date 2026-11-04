@@ -9,6 +9,9 @@
  *
  * Requirements in _layout: jQuery, DataTables js + css, Bootstrap 5, Bootstrap Icons.
  * toastr is optional (used to show data-loading errors).
+ *
+ * Optional: $customScript, the page's own JavaScript (without <script> tags), added after the table builder's
+ *   'customScript' => view('scripts/my_businesses', [...]),
  */
 $this->extend('_layout_admin');
 ?>
@@ -42,4 +45,9 @@ $this->extend('_layout_admin');
 <?php // Generates the JavaScript: DataTables server-side init, the edit-button first column
 // (URL taken from the JSON), and reloading the data whenever a filter changes. ?>
 <?= lb_script($listConfig) ?>
+<?php if (! empty($customScript)): ?>
+<script>
+<?= $customScript ?>
+</script>
+<?php endif ?>
 <?= $this->endSection() ?>

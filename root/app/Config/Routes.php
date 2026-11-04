@@ -27,6 +27,9 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->post('image-upload', 'Admin::imageUpload');
     $routes->post('image-delete', 'Admin::imageDelete');
     $routes->get('my-businesses', 'Admin::myBusinesses');
+    $routes->post('my-businesses/data', 'Admin::myBusinessesData');
+    $routes->post('my-businesses/make-default', 'Admin::myBusinessesMakeDefault');
+    $routes->post('my-businesses/switch', 'Admin::myBusinessesSwitch');
     $routes->get('notifications', 'Admin::notifications');
     $routes->get('messages', 'Admin::messages');
 
