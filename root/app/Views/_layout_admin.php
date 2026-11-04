@@ -237,6 +237,7 @@
                 <ul class="nav-submenu ">
                     <li><a class="nav-link<?= ('business' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business') ?>"><?= lang('System.page.business') ?></a></li>
                     <li><a class="nav-link<?= ('stores' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/stores') ?>"><?= lang('System.page.stores') ?></a></li>
+                    <li><a class="nav-link<?= ('plans' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/plans') ?>"><?= lang('System.page.plans') ?></a></li>
                 </ul>
             </li>
             <li class="nav-item">

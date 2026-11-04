@@ -83,6 +83,13 @@ final class CreateBusinessTest extends CIUnitTestCase
         $result->assertSee('bakery'); // no name in any language: the code
         $result->assertSee('name="business_slug"');
         $result->assertSee('name="translation_th"');
+        // the audience, the general public to start with
+        foreach (['lgbt_audience', 'naturist_audience', 'age_restricted'] as $name) {
+            $result->assertSee('name="' . $name . '"');
+        }
+        $result->assertSee('<option value="GEN" selected');
+        $result->assertSee('<option value="N" selected');
+        $result->assertSee('LGBT-friendly');
         $result->assertSee('value="client@example.com"');
 
         // country and currency right under the slug
@@ -130,6 +137,9 @@ final class CreateBusinessTest extends CIUnitTestCase
             'country_code'            => 'SG',
             'currency_code'           => 'SGD',
             'tax_id'                  => 'T123',
+            'lgbt_audience'           => 'FNDLY',
+            'naturist_audience'       => 'GEN',
+            'age_restricted'          => 'Y',
             'translation_th'          => 'ออตเตอร์คาเฟ่',
             'translation_en-US'       => '',
             'unexpected'              => 'dropped',
@@ -142,6 +152,7 @@ final class CreateBusinessTest extends CIUnitTestCase
         $this->assertArrayNotHasKey('unexpected', $payload['business']);
         $this->assertSame('aB3d', $payload['business']['business_type_public_id']);
         $this->assertSame('T123', $payload['business']['tax_id']);
+        $this->assertSame(['FNDLY', 'GEN', 'Y'], [$payload['business']['lgbt_audience'], $payload['business']['naturist_audience'], $payload['business']['age_restricted']]);
         $this->assertSame(['en-US' => '', 'th' => 'ออตเตอร์คาเฟ่'], (array) $payload['translations']);
 
         $business = $_SESSION['business'];

@@ -41,13 +41,14 @@ class Admin extends BaseController
         // the country and currency come first: they are fixed once created, and the rest depends on the country
         'business' => ['business_type_public_id', 'business_name', 'business_slug', 'country_code', 'currency_code',
             'business_description', 'business_mood_and_tone'],
+        'audience' => ['lgbt_audience', 'naturist_audience', 'age_restricted'],
         'contact'  => ['contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website'],
         'address'  => ['contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code',
             'contact_postal_code'],
         'billing'  => ['tax_id'],
     ];
     private const BUSINESS_FIELDS = ['business_type_public_id', 'business_name', 'business_slug', 'business_description',
-        'business_mood_and_tone', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
+        'business_mood_and_tone', 'lgbt_audience', 'naturist_audience', 'age_restricted', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
         'contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code', 'contact_postal_code',
         'country_code', 'currency_code', 'tax_id'];
 
@@ -59,12 +60,13 @@ class Admin extends BaseController
     private const BUSINESS_EDIT_SECTIONS = [
         'business' => ['business_type_public_id', 'business_name', 'business_slug', 'country_code', 'currency_code',
             'business_description', 'business_mood_and_tone'],
+        'audience' => ['lgbt_audience', 'naturist_audience', 'age_restricted'],
         'contact'  => ['contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website'],
         'address'  => ['contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code',
             'contact_postal_code'],
     ];
     private const BUSINESS_EDIT_FIELDS = ['business_type_public_id', 'business_name', 'business_slug', 'business_description',
-        'business_mood_and_tone', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
+        'business_mood_and_tone', 'lgbt_audience', 'naturist_audience', 'age_restricted', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
         'contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code', 'contact_postal_code'];
 
     /** Hidden field of the edit-business form: the slug the form was opened with, so a session switched meanwhile is seen */
@@ -865,6 +867,7 @@ class Admin extends BaseController
         $config['business_slug']['help']     = lang('CreateBusiness.help.business-slug');
         $config['business_slug']['messages'] = ['regex' => lang('CreateBusiness.error.business-slug')];
         $config['business_mood_and_tone']['help']   = lang('CreateBusiness.help.mood-and-tone');
+        $this->audienceHelp($config);
         // no options until a country is picked: customScript fills them from admin/api/currencies and subdivisions
         $config['currency_code']['options']            = [];
         $config['contact_subdivision_code']['type']    = 'select';
@@ -883,6 +886,17 @@ class Admin extends BaseController
             }
         }
         return [...$fields, ...$this->businessNameFields()];
+    }
+
+    /**
+     * The help of the audience fields, shared by the create- and edit-business forms
+     * @param array $config BusinessMasterModel::getConfiguration(), changed in place
+     */
+    private function audienceHelp(array &$config): void
+    {
+        $config['lgbt_audience']['help']     = lang('CreateBusiness.help.audience');
+        $config['naturist_audience']['help'] = lang('CreateBusiness.help.audience');
+        $config['age_restricted']['help']    = lang('CreateBusiness.help.age-restricted');
     }
 
     /**
@@ -1040,6 +1054,7 @@ class Admin extends BaseController
         $config['business_slug']['help']     = lang('EditBusiness.help.business-slug', [$this->storeBaseUrl() . $slug]);
         $config['business_slug']['messages'] = ['regex' => lang('CreateBusiness.error.business-slug')];
         $config['business_mood_and_tone']['help'] = lang('CreateBusiness.help.mood-and-tone');
+        $this->audienceHelp($config);
         foreach (BusinessMasterModel::FIXED_FIELDS as $name) {
             $config[$name]['disabled_in'] = ['create', 'edit'];
             $config[$name]['help']        = lang('EditBusiness.help.fixed');

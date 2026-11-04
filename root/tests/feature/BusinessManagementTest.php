@@ -20,7 +20,8 @@ final class BusinessManagementTest extends CIUnitTestCase
     private const USER = ['id' => 1, 'uid' => 'test-uid', 'email_address' => 'client@example.com', 'full_name' => 'Test Client',
         'avatar_path' => null, 'display_name' => null, 'preferred_language' => 'en-US'];
     private const BUSINESS = ['business_slug' => 'otter-cafe', 'business_name' => 'Otter Cafe', 'business_type_public_id' => 'aB3d',
-        'contact_email_address' => 'hello@otter.cafe', 'contact_subdivision_code' => 'TH-10', 'country_code' => 'TH', 'currency_code' => 'THB'];
+        'contact_email_address' => 'hello@otter.cafe', 'contact_subdivision_code' => 'TH-10', 'country_code' => 'TH', 'currency_code' => 'THB',
+        'lgbt_audience' => 'GAY', 'naturist_audience' => 'OPT', 'age_restricted' => 'Y'];
     private const TYPES = ['rows' => [['public_id' => 'aB3d', 'type_code' => 'cafe', 'translations' => ['en-US' => 'Café']]]];
     private const STORES = ['stores' => [
         ['public_id' => 'st0re1', 'store_name' => 'Bangkok', 'store_type' => 'P', 'store_phone_number' => '+66812345678',
@@ -96,6 +97,9 @@ final class BusinessManagementTest extends CIUnitTestCase
         $result->assertSee('name="current_business_slug" value="otter-cafe"');
         $result->assertSee('value="otter-cafe"');
         $result->assertSee('<option value="TH-10" selected>');
+        $result->assertSee('<option value="GAY" selected>');
+        $result->assertSee('<option value="OPT" selected>');
+        $result->assertSee('<option value="Y" selected>');
         $result->assertSee('The URL to your store will be changed immediately');
         $result->assertSee('"slug":"otter-cafe"');
         $result->assertDontSee('name="tax_id"');
@@ -131,6 +135,9 @@ final class BusinessManagementTest extends CIUnitTestCase
             'country_code'          => 'SG',
             'currency_code'         => 'SGD',
             'tax_id'                => 'T1',
+            'lgbt_audience'         => 'LES',
+            'naturist_audience'     => 'NAT',
+            'age_restricted'        => 'N',
         ]);
 
         $result->assertOK();
@@ -142,6 +149,7 @@ final class BusinessManagementTest extends CIUnitTestCase
             $this->assertArrayNotHasKey($field, $payload['business']);
         }
         $this->assertArrayNotHasKey('translations', $payload);
+        $this->assertSame(['LES', 'NAT', 'N'], [$payload['business']['lgbt_audience'], $payload['business']['naturist_audience'], $payload['business']['age_restricted']]);
         $this->assertSame(['v1/client/business/switch', ['business_slug' => 'otter-cafe-bkk']], $this->calls[1]);
         $this->assertSame('otter-cafe-bkk', $_SESSION['business']['business']['business_slug']);
     }
