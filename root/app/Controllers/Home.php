@@ -43,7 +43,7 @@ class Home extends BaseController
             return $this->fail(lang('Login.error.invalid-input'), 422);
         }
 
-        [$code, $body] = $this->callApi('v1/login', [
+        [$code, $body] = $this->callPublicApi('v1/login', [
             'email_address' => $email,
             'password'      => $password,
             'account_type'  => self::USER_TYPE,
@@ -91,7 +91,7 @@ class Home extends BaseController
             return $this->fail(lang('Login.error.otp-format'), 422);
         }
 
-        [$code, $body] = $this->callApi('v1/verify-otp', [
+        [$code, $body] = $this->callPublicApi('v1/verify-otp', [
             'otp_token' => $otpToken,
             'otp'       => $otp,
         ]);
@@ -128,7 +128,7 @@ class Home extends BaseController
             return $this->fail(lang('Login.error.password-mismatch'), 422);
         }
 
-        [$code, $body] = $this->callApi('v1/change-expired-password', [
+        [$code, $body] = $this->callPublicApi('v1/change-expired-password', [
             'password_change_token' => $changeToken,
             'new_password'          => $password,
         ]);
@@ -152,7 +152,7 @@ class Home extends BaseController
         $session = session();
         $token   = $session->get('access_token');
         if (! empty($token)) {
-            $this->callApi('v1/logout', [], $token);
+            $this->callPublicApi('v1/logout', [], $token);
         }
         $session->destroy();
         return redirect()->to(base_url());
@@ -198,7 +198,7 @@ class Home extends BaseController
             return $this->fail(lang('Login.create-account.invalid-input'), 422, $errors);
         }
 
-        [$code, $body] = $this->callApi('v1/create-client-account', [
+        [$code, $body] = $this->callPublicApi('v1/create-client-account', [
             'full_name'     => $fullName,
             'email_address' => $email,
             'password'      => $password,
@@ -230,7 +230,7 @@ class Home extends BaseController
             return redirect()->to(base_url())->with('auth_alert', ['danger', lang('Login.activate.invalid')]);
         }
 
-        [$code, $body] = $this->callApi('v1/activate-client-account', ['token' => $token]);
+        [$code, $body] = $this->callPublicApi('v1/activate-client-account', ['token' => $token]);
         if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
             return redirect()->to(base_url())->with('auth_alert', ['danger', $body['message'] ?? lang('Login.activate.invalid')]);
         }
@@ -262,7 +262,7 @@ class Home extends BaseController
             return $this->fail(lang('Login.main.email-invalid-feedback'), 422, ['email' => lang('Login.main.email-invalid-feedback')]);
         }
 
-        [$code, $body] = $this->callApi('v1/request-password-reset', [
+        [$code, $body] = $this->callPublicApi('v1/request-password-reset', [
             'email_address' => $email,
             'account_type'  => self::USER_TYPE,
         ]);
@@ -288,7 +288,7 @@ class Home extends BaseController
         $token   = trim((string) $this->request->getGet('token'));
         if ($token !== '') {
             $session->remove('reset_token');
-            [$code, $body] = $this->callApi('v1/check-password-reset', ['token' => $token]);
+            [$code, $body] = $this->callPublicApi('v1/check-password-reset', ['token' => $token]);
             if ($code === 200 && ($body['status'] ?? '') === 'success') {
                 $session->set('reset_token', $token);
             } else {
@@ -330,7 +330,7 @@ class Home extends BaseController
             return $this->fail($message, 422, ['confirm_password' => $message]);
         }
 
-        [$code, $body] = $this->callApi('v1/reset-password', [
+        [$code, $body] = $this->callPublicApi('v1/reset-password', [
             'token'        => $token,
             'new_password' => $password,
         ]);
@@ -399,9 +399,9 @@ class Home extends BaseController
     }
 
     /**
-     * POST JSON to LINK_INTERNAL_API and return [http status, decoded body].
+     * POST JSON to LINK_INTERNAL_API before sign-in (or with the given token) and return [http status, decoded body].
      */
-    private function callApi(string $endpoint, array $payload, ?string $token = null): array
+    private function callPublicApi(string $endpoint, array $payload, ?string $token = null): array
     {
         $headers = ['Accept' => 'application/json'];
         if ($token !== null) {

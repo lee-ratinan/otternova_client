@@ -41,6 +41,17 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->get('stores/edit/(:segment)', 'Admin::storeForm/$1');
         $routes->post('stores/save', 'Admin::storeSavePost');
     });
+    // the session business's subscription: its owners only, as the API allows
+    $routes->group('plans', ['filter' => 'manager:owner'], static function ($routes) {
+        $routes->get('/', 'Plans::index');
+        $routes->post('discounts', 'Plans::discounts');
+        $routes->post('subscribe', 'Plans::subscribe');
+        $routes->post('apply-discount', 'Plans::applyDiscount');
+        $routes->post('pay', 'Plans::pay');
+        $routes->post('cancel', 'Plans::cancel');
+        $routes->post('resume', 'Plans::resume');
+        $routes->post('change', 'Plans::change');
+    });
     $routes->get('notifications', 'Admin::notifications');
     $routes->get('messages', 'Admin::messages');
 

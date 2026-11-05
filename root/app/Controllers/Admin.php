@@ -12,7 +12,6 @@ use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\ResponseInterface;
 use CURLFile;
 use RuntimeException;
-use Throwable;
 
 class Admin extends BaseController
 {
@@ -1269,35 +1268,5 @@ class Admin extends BaseController
             'errors'    => $errors ?: null,
             'csrf_hash' => csrf_hash(), // keeps the form's token fresh when CSRF regenerates
         ]);
-    }
-
-    /**
-     * POST to LINK_INTERNAL_API with the signed-in client's JWT and return [http status, decoded body]
-     * @param bool $multipart true: sent as multipart/form-data (files as CURLFile), otherwise as JSON
-     */
-    private function callApi(string $endpoint, array $payload, bool $multipart = false): array
-    {
-        try {
-            $response = service('curlrequest')->post(getenv('LINK_INTERNAL_API') . $endpoint, [
-                ($multipart ? 'multipart' : 'json') => $payload,
-                'headers'     => [
-                    'Accept'        => 'application/json',
-                    'Authorization' => 'Bearer ' . session()->get('access_token'),
-                ],
-                'timeout'     => 15,
-                'http_errors' => false,
-            ]);
-            $code = $response->getStatusCode();
-            $body = json_decode($response->getBody(), true);
-            // a 404 without the API's own error body means the endpoint is missing, not the record
-            if (! is_array($body) || $code >= 500 || ($code === 404 && ($body['status'] ?? '') !== 'error')) {
-                log_message('error', 'LINK_INTERNAL_API ' . $endpoint . ' returned HTTP ' . $code);
-                return [503, ['message' => lang('Login.error.service-unavailable')]];
-            }
-            return [$code, $body];
-        } catch (Throwable $e) {
-            log_message('error', 'LINK_INTERNAL_API ' . $endpoint . ' failed: ' . $e->getMessage());
-            return [503, ['message' => lang('Login.error.service-unavailable')]];
-        }
     }
 }
