@@ -20,6 +20,7 @@ return [
         'employees'             => 'Employees',
         'products-and-services' => 'Products and Services',
         'sales'                 => 'Sales',
+        'reviews'               => 'Reviews'
     ],
     'header'     => [
         'toggle-theme'           => 'Toggle Theme',

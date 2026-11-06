@@ -20,6 +20,7 @@ return [
         'employees'             => 'พนักงาน',
         'products-and-services' => 'สินค้าและบริการ',
         'sales'                 => 'การขาย',
+        'reviews'               => 'รีวิว'
     ],
     'header'     => [
         'toggle-theme'           => 'สลับธีม',

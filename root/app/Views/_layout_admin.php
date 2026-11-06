@@ -255,6 +255,12 @@
                 </a>
             </li>
             <?php endif ?>
+            <li class="nav-item">
+                <a class="nav-link<?= ('reviews' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/reviews') ?>">
+                    <span class="nav-icon"><i class="bi bi-star"></i></span>
+                    <span class="nav-text"><?= lang('System.page.reviews') ?></span>
+                </a>
+            </li>
         </ul>
     </nav>
     <!-- Sidebar Footer - User Card -->
@@ -288,7 +294,17 @@
             <h1 class="page-title"><?= lang('System.page.' . $slug) ?></h1>
             <nav class="breadcrumb">
                 <a href="<?= base_url('admin/dashboard') ?>" class="breadcrumb-item">Home</a>
-                <span class="breadcrumb-item active"><?= lang('System.page.' . $slug) ?></span>
+                <?php if ('dashboard' != $slug): ?>
+                    <!-- if there are other pages in between, add them here: -->
+                    <!-- the $breadcrumbs structure must be the URL => page title -->
+                    <?php if (isset($breadcrumbs)) : ?>
+                        <?php foreach ($breadcrumbs as $u => $t) : ?>
+                            <span class="breadcrumb-item"><a href="<?= $u ?>"><?= esc($t) ?></a></span>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                    <!-- if not dashboard, at least it needs its own page here: -->
+                    <span class="breadcrumb-item active"><?= lang('System.page.' . $slug) ?></span>
+                <?php endif; ?>
             </nav>
         </div>
         <!-- PAGE CONTENTS GO HERE -->
