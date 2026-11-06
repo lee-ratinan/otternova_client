@@ -80,7 +80,7 @@
   --background-color: #f5f3fa;
   --default-color: #3f3a52;
   --heading-color: #191233;
-  --accent-color: #c97232;
+  --accent-color: #7c3aed;
   --surface-color: #ffffff;
   --contrast-color: #ffffff;
   /* Extended text colors */
@@ -111,15 +111,15 @@
   --header-shadow: none;
   --header-border: var(--border-color);
   /* Sidebar - deep plum-ink panel (dark in both modes) */
-  --sidebar-bg: #371012;
-  --sidebar-border: #5a2020;
-  --sidebar-color: #efc7c8;
-  --sidebar-muted-color: #bc8183;
+  --sidebar-bg: #171032;
+  --sidebar-border: #2a2050;
+  --sidebar-color: #cfc7e8;
+  --sidebar-muted-color: #8c81b3;
   --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
-  --sidebar-active-bg: #c97232;
+  --sidebar-active-bg: #7c3aed;
   --sidebar-active-color: #ffffff;
   /* Cards */
-  --card-bg: #efefef;
+  --card-bg: #ffffff;
   --card-shadow: 0 1px 2px 0 rgb(30 18 66 / 0.04), 0 6px 20px -4px rgb(30 18 66 / 0.07);
   --card-border: var(--border-color);
   /* Tables */
@@ -138,11 +138,11 @@
 --------------------------------------------------------------*/
 [data-theme=dark] {
   /* Core palette */
-  --background-color: #2e0a0f;
+  --background-color: #0e0a1f;
   --default-color: #e4e0f5;
   --heading-color: #f4f1ff;
-  --accent-color: #c97232;
-  --surface-color: #3e1a0f;
+  --accent-color: #a78bfa;
+  --surface-color: #191330;
   --contrast-color: #ffffff;
   /* Extended text colors */
   --muted-color: #9d94bd;
@@ -172,15 +172,15 @@
   --header-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.35);
   --header-border: var(--border-color);
   /* Sidebar */
-  --sidebar-bg: #371012;
-  --sidebar-border: #5a2020;
-  --sidebar-color: #efc7c8;
-  --sidebar-muted-color: #bc8183;
+  --sidebar-bg: #120d26;
+  --sidebar-border: #251b4a;
+  --sidebar-color: #cfc7e8;
+  --sidebar-muted-color: #8c81b3;
   --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
-  --sidebar-active-bg: #c97232;
+  --sidebar-active-bg: #7c3aed;
   --sidebar-active-color: #ffffff;
   /* Cards */
-  --card-bg: #391310;
+  --card-bg: #191330;
   --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.35);
   --card-border: var(--border-color);
   /* Tables */
@@ -519,7 +519,7 @@ ol {
 # Code
 --------------------------------------------------------------*/
 code {
-  font-family: var(--mono-font);
+  font-family: var(--mono-font), monospace;
   font-size: 0.875em;
   color: var(--danger-color);
   background-color: var(--danger-color-light);
@@ -528,7 +528,7 @@ code {
 }
 
 pre {
-  font-family: var(--mono-font);
+  font-family: var(--mono-font), monospace;
   font-size: 0.875rem;
   margin: 0;
   padding: var(--spacing-md);
@@ -1322,7 +1322,11 @@ button {
 --------------------------------------------------------------*/
 /* ApexCharts */
 .apexcharts-canvas {
-  font-family: var(--font-default) !important;
+  font-family: var(--default-font), sans-serif !important;
+}
+
+.lang-th .apexcharts-canvas {
+  font-family: var(--default-th-font), sans-serif !important;
 }
 
 .apexcharts-title-text {
@@ -1386,12 +1390,17 @@ button {
   border-radius: var(--radius-md) !important;
   box-shadow: var(--shadow-lg) !important;
   padding: var(--spacing-sm) var(--spacing-md) !important;
-  font-family: var(--font-default) !important;
+  font-family: var(--default-font), sans-serif !important;
 }
 
 /* ECharts */
 .echarts-tooltip {
-  font-family: var(--font-default) !important;
+  font-family: var(--default-font), sans-serif !important;
+}
+
+.lang-th .chartjs-tooltip,
+.lang-th .echarts-tooltip {
+  font-family: var(--default-th-font), sans-serif !important;
 }
 
 /* Chart Containers */
@@ -1689,7 +1698,7 @@ button {
   padding: 2px 10px;
   font-size: 0.6875rem;
   font-weight: 600;
-  font-family: var(--mono-font);
+  font-family: var(--mono-font), monospace;
   color: var(--muted-color);
   background: var(--surface-color);
   border: 1px solid var(--border-color);
@@ -3847,7 +3856,7 @@ a.header-action:hover {
   width: 44%;
   max-width: 620px;
   padding: var(--spacing-2xl);
-  background: linear-gradient(160deg, color-mix(in srgb, #443300, var(--accent-color) 14%), #3a1400 60%);
+  background: linear-gradient(160deg, color-mix(in srgb, #171032, var(--accent-color) 14%), #171032 60%);
   overflow: hidden;
 }
 
@@ -4011,7 +4020,7 @@ a.header-action:hover {
   font-size: 1.125rem;
   color: var(--contrast-color);
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 45%));
+  background: linear-gradient(135deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 45%));
   box-shadow: 0 6px 14px -4px rgba(124, 58, 237, 0.45);
 }
 
@@ -4058,7 +4067,7 @@ a.header-action:hover {
   border-radius: var(--radius-xl);
   font-size: 1.75rem;
   color: var(--contrast-color);
-  background: linear-gradient(135deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 45%));
+  background: linear-gradient(135deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 45%));
   box-shadow: 0 10px 22px -8px rgba(124, 58, 237, 0.55);
 }
 
@@ -4085,7 +4094,7 @@ a.header-action:hover {
   margin: 0 auto var(--spacing-md);
   padding: 4px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 45%));
+  background: linear-gradient(135deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 45%));
 }
 
 .auth-avatar img {
@@ -4210,7 +4219,7 @@ a.header-action:hover {
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--contrast-color);
-  background: linear-gradient(105deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 42%));
+  background: linear-gradient(105deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 42%));
   box-shadow: 0 8px 18px -6px rgba(124, 58, 237, 0.5);
   cursor: pointer;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
@@ -6755,6 +6764,7 @@ textarea.form-control {
 /* Dropdown Item with Icon */
 .dropdown-item i {
   width: 20px;
+  margin-right: var(--spacing-sm);
   color: var(--muted-color);
   text-align: center;
 }
@@ -7677,11 +7687,6 @@ textarea.form-control {
 .toast-solid-success .toast-header {
   background-color: transparent;
   border-bottom-color: rgba(255, 255, 255, 0.2);
-  color: var(--contrast-color);
-}
-
-.toast-solid-success .toast-title,
-.toast-solid-success .toast-message {
   color: var(--contrast-color);
 }
 
@@ -10894,7 +10899,7 @@ textarea.form-control {
 }
 
 .lang-th .page-dashboard-analytics .ana-kpi-value {
-  font-family: var(--heading-th-font);
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-analytics .ana-kpi-label {
@@ -11135,7 +11140,7 @@ textarea.form-control {
 }
 
 .page-dashboard-analytics .ana-realtime-path {
-  font-family: var(--mono-font);
+  font-family: var(--mono-font), monospace;
   font-size: 0.75rem;
   color: #cfc7e8;
 }
@@ -11363,7 +11368,7 @@ textarea.form-control {
 
 .page-dashboard-analytics .ana-page-path {
   flex: 1;
-  font-family: var(--mono-font);
+  font-family: var(--mono-font), monospace;
   font-size: 0.78125rem;
   font-weight: 500;
   color: var(--heading-color);
@@ -13844,6 +13849,10 @@ textarea.form-control {
   white-space: nowrap;
 }
 
+.lang-th .page-dashboard-finance .fin-upcoming-amount {
+  font-family: var(--heading-th-font), sans-serif;
+}
+
 .page-dashboard-finance {
   /*------------------------------------------------------------
   # Responsive
@@ -14050,6 +14059,10 @@ textarea.form-control {
   color: var(--heading-color);
 }
 
+.lang-th .page-dashboard-projects .proj-kpi-value {
+  font-family: var(--heading-th-font), sans-serif;
+}
+
 .page-dashboard-projects .proj-kpi-label {
   font-size: 0.75rem;
   font-weight: 600;
@@ -14187,6 +14200,10 @@ textarea.form-control {
   line-height: 1.25;
 }
 
+.lang-th .page-dashboard-projects .proj-card-name {
+  font-family: var(--heading-th-font), sans-serif;
+}
+
 .page-dashboard-projects .proj-card-client {
   font-size: 0.75rem;
   color: var(--muted-color);
@@ -14266,6 +14283,10 @@ textarea.form-control {
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--accent-color);
+}
+
+.lang-th .page-dashboard-projects .proj-card-progress-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-projects .proj-progress-track {
@@ -14392,6 +14413,10 @@ textarea.form-control {
   color: var(--heading-color);
 }
 
+.lang-th .page-dashboard-projects .proj-card-new-title {
+  font-family: var(--heading-th-font), sans-serif;
+}
+
 .page-dashboard-projects .proj-card-new-text {
   font-size: 0.75rem;
   color: var(--muted-color);
@@ -14499,6 +14524,10 @@ textarea.form-control {
   color: var(--accent-color);
 }
 
+.lang-th .page-dashboard-projects .proj-workload-pct {
+  font-family: var(--heading-th-font), sans-serif;
+}
+
 .page-dashboard-projects .proj-workload-role {
   display: block;
   margin-bottom: 8px;
@@ -14586,6 +14615,10 @@ textarea.form-control {
   font-weight: 700;
   line-height: 1.1;
   color: var(--accent-color);
+}
+
+.lang-th .page-dashboard-projects .proj-date-day {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-dashboard-projects .proj-date-month {
@@ -14918,7 +14951,7 @@ textarea.form-control {
 .page-notifications .st-theme-preview.light,
 .page-activity .st-theme-preview.light {
   background: #f5f3fa;
-  color: #c97232;
+  color: #7c3aed;
 }
 
 .page-settings .st-theme-preview.dark,
@@ -15142,6 +15175,10 @@ textarea.form-control {
   color: transparent;
 }
 
+.lang-th .error-page .error-code {
+  font-family: var(--heading-th-font), sans-serif;
+}
+
 .error-page {
   /* Gradient icon tile (maintenance / coming soon) */
 }
@@ -15201,7 +15238,7 @@ textarea.form-control {
   display: inline-block;
   margin-bottom: var(--spacing-xl);
   padding: 0.35rem 1rem;
-  font-family: var(--mono-font);
+  font-family: var(--mono-font), monospace;
   font-size: 0.75rem;
   color: var(--muted-color);
   background: var(--surface-color);
@@ -15375,6 +15412,10 @@ textarea.form-control {
   font-weight: 800;
   line-height: 1.2;
   color: var(--heading-color);
+}
+
+.lang-th .error-page .countdown-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .error-page .countdown-label {
@@ -15616,7 +15657,7 @@ textarea.form-control {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--contrast-color);
-  background: linear-gradient(105deg, #c97232, color-mix(in srgb, #c97232, var(--danger-color) 42%));
+  background: linear-gradient(105deg, #7c3aed, color-mix(in srgb, #7c3aed, var(--danger-color) 42%));
   box-shadow: 0 6px 16px -5px rgba(124, 58, 237, 0.6);
   cursor: pointer;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
@@ -15653,6 +15694,10 @@ textarea.form-control {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--contrast-color);
+}
+
+.lang-th .page-profile .pf-hero-stat-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-profile .pf-hero-stat-label {
@@ -16062,6 +16107,10 @@ textarea.form-control {
   font-weight: 700;
   color: var(--heading-color);
   line-height: 1.2;
+}
+
+.lang-th .page-activity .ac-summary-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-activity .ac-summary-label {
@@ -16863,6 +16912,17 @@ textarea.form-control {
   font-weight: 700;
   color: var(--heading-color);
   line-height: 1.2;
+}
+
+.lang-th .page-users .users-stat-value,
+.lang-th .page-users-view .users-stat-value,
+.lang-th .page-users-edit .users-stat-value,
+.lang-th .page-profile .users-stat-value,
+.lang-th .page-settings .users-stat-value,
+.lang-th .page-notifications .users-stat-value,
+.lang-th .page-activity .users-stat-value,
+.lang-th .page-roles .users-stat-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-users .users-stat-label,
@@ -18193,6 +18253,10 @@ textarea.form-control {
   color: var(--heading-color);
 }
 
+.lang-th .page-users-view .uv-statbar-value {
+  font-family: var(--heading-th-font), sans-serif;
+}
+
 .page-users-view .uv-statbar-label {
   font-size: 0.7187rem;
   color: var(--muted-color);
@@ -18953,6 +19017,14 @@ textarea.form-control {
   color: var(--heading-color);
 }
 
+.lang-th .page-users-edit .ue-identity-name,
+.lang-th .page-settings .ue-identity-name,
+.lang-th .page-notifications .ue-identity-name,
+.lang-th .page-activity .ue-identity-name,
+.lang-th .page-roles .ue-identity-name {
+  font-family: var(--heading-th-font), sans-serif;
+}
+
 .page-users-edit .ue-identity-mail,
 .page-settings .ue-identity-mail,
 .page-notifications .ue-identity-mail,
@@ -19462,6 +19534,10 @@ textarea.form-control {
   margin-bottom: 2px;
 }
 
+.lang-th .page-roles .rl-name {
+  font-family: var(--heading-th-font), sans-serif;
+}
+
 .page-roles .rl-desc {
   font-size: 0.7812rem;
   color: var(--muted-color);
@@ -19929,6 +20005,10 @@ textarea.form-control {
   font-weight: 700;
   color: var(--heading-color);
   line-height: 1.2;
+}
+
+.lang-th .page-invoice-list .inv-stat-value {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-invoice-list .inv-stat-label {
@@ -20428,6 +20508,10 @@ textarea.form-control {
   line-height: 1.3;
 }
 
+.lang-th .page-invoice .inv-brand-name {
+  font-family: var(--heading-th-font), sans-serif;
+}
+
 .page-invoice .inv-brand-tag {
   font-size: 0.75rem;
   color: color-mix(in srgb, var(--contrast-color), transparent 40%);
@@ -20610,6 +20694,10 @@ textarea.form-control {
   color: var(--heading-color);
 }
 
+.lang-th .page-invoice .inv-total-row.grand {
+  font-family: var(--heading-th-font), sans-serif;
+}
+
 .page-invoice .inv-total-row.grand span:last-child {
   font-size: 1.375rem;
   font-weight: 700;
@@ -20688,6 +20776,10 @@ textarea.form-control {
   color: var(--contrast-color);
   line-height: 1.2;
   margin: 4px 0 2px;
+}
+
+.lang-th .page-invoice .inv-pay-amount {
+  font-family: var(--heading-th-font), sans-serif;
 }
 
 .page-invoice .inv-pay-due {
@@ -20999,6 +21091,11 @@ textarea.form-control {
   color: var(--heading-color);
   align-self: flex-start;
   margin-top: 0.25rem;
+}
+
+.lang-th .page-pricing .plan-currency,
+.lang-th .page-pricing .plan-amount {
+  font-family: var(--heading-font), sans-serif;
 }
 
 .page-pricing .plan-amount {
@@ -42348,15 +42445,15 @@ textarea.form-control {
 [data-theme=dark] .footer-brand-mark,
 [data-theme=dark] .back-to-top,
 [data-theme=dark] .user-menu-avatar {
-  background: linear-gradient(120deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 48%));
+  background: linear-gradient(120deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 48%));
 }
 
 [data-theme=dark] .sidebar-logo-mark {
-  background: linear-gradient(135deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 48%));
+  background: linear-gradient(135deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 48%));
 }
 
 [data-theme=dark] .page-dashboard .dash-hero-btn {
-  color: #c97232;
+  color: #7c3aed;
 }
 
 /* Chart specific dark mode */
