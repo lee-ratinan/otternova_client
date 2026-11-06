@@ -68,10 +68,13 @@ class ApiList extends BaseController
 
     /**
      * GET|POST admin/api/generate-slug { text, strict?, max-length? }
-     * A URL-safe slug of any text, e.g. "Otter Café & Bakery" -> otter-cafe-bakery: other scripts are transliterated to
-     * Latin (ออตเตอร์ -> xxt-texr), every character outside App::$permittedURIChars becomes a hyphen, and so do spaces
-     * and % (allowed in a URI, but not as they are). strict=1 keeps only a-z, 0-9 and single hyphens between them,
-     * as business_slug takes it. max-length (default 128) cuts it, never leaving a separator at either end.
+     * A URL-safe slug of any text, kept in its own script where App::$permittedURIChars allows it, e.g.
+     * "Otter Café & Bakery" -> otter-cafe-bakery, "ร้าน Otter" -> ร้าน-otter: characters outside permittedURIChars are
+     * dropped, Latin letters lose their accents and go lower case, and every run of anything but letters and digits
+     * becomes one hyphen. Only when nothing is left (e.g. Arabic) is the name transliterated to Latin.
+     * Every slug fits BusinessMasterModel::SLUG_PATTERN (business_slug).
+     * strict=1 always transliterates, keeping only a-z, 0-9 and single hyphens between them (ออตเตอร์ -> xxt-texr),
+     * for anything that must be ASCII. max-length (default 128 characters) cuts it, never leaving a hyphen at either end.
      */
     public function generateSlug(): ResponseInterface
     {
@@ -92,22 +95,40 @@ class ApiList extends BaseController
      */
     public static function slugify(string $text, bool $strict = false, int $maxLength = self::SLUG_MAX_LENGTH): string
     {
-        if (function_exists('transliterator_transliterate')) {
-            $text = (string) transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
-        } else {
-            helper('text'); // without intl, only accented Latin letters can be turned into ASCII
-            $text = mb_strtolower(convert_accented_characters($text));
+        helper('text');
+        if (class_exists(\Normalizer::class)) {
+            $text = (string) \Normalizer::normalize($text, \Normalizer::FORM_C); // é as one character, not e + a combining accent
         }
-        // what the router accepts: '/\A[<permittedURIChars>]+\z/iu'; anything else, spaces and % are separators
+        // the name as it is, in its own script, when any of it may be in a URL; otherwise (or strict) transliterated
+        $slug = $strict ? '' : self::slugWords($text);
+        if ($slug === '') {
+            if (function_exists('transliterator_transliterate')) {
+                $text = (string) transliterator_transliterate('Any-Latin; Latin-ASCII', $text);
+            } // without intl, only accented Latin letters can be turned into ASCII (convert_accented_characters below)
+            $slug = self::slugWords($text);
+            if ($strict) {
+                $slug = trim((string) preg_replace('/[^a-z0-9]+/', '-', $slug), '-');
+            }
+        }
+        return trim(mb_substr($slug, 0, $maxLength), '-');
+    }
+
+    /**
+     * 1. drop every character the router refuses ('/\A[<permittedURIChars>]+\z/iu'),
+     * 2. Latin letters without accents, in lower case,
+     * 3. anything left that is not a letter, a mark (Thai vowels and tones) or a digit -- spaces, ~ % . : _ -- is a hyphen.
+     * '' when no letter or digit is left.
+     */
+    private static function slugWords(string $text): string
+    {
+        $text      = (string) preg_replace('/\s+/u', ' ', $text);
         $permitted = config('App')->permittedURIChars;
         if ($permitted !== '') {
-            $text = (string) preg_replace('/[^' . $permitted . ']+/iu', '-', $text);
+            $text = (string) preg_replace('/[^' . $permitted . ']+/iu', '', $text);
         }
-        $text = (string) preg_replace($strict ? '/[^a-z0-9]+/' : '/[\s%]+/u', '-', $text);
-        $text = (string) preg_replace('/-{2,}/', '-', $text);
-
-        $trim = $strict ? '-' : '-._~:';
-        return trim(substr(trim($text, $trim), 0, $maxLength), $trim);
+        $text = mb_strtolower(convert_accented_characters($text));
+        $text = (string) preg_replace('/[^\p{L}\p{M}\p{N}]+/u', '-', $text);
+        return trim($text, '-');
     }
 
     /**

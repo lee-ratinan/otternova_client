@@ -871,7 +871,7 @@ class Admin extends BaseController
             'rules'   => 'required',
         ];
         // is_unique is checked by the API, which answers with the field's error
-        $config['business_slug']['rules']    = 'required|max_length[128]|regex_match[/^[a-z0-9]+(-[a-z0-9]+)*$/]';
+        $config['business_slug']['rules']    = 'required|max_length[128]|regex_match[' . BusinessMasterModel::SLUG_PATTERN . ']';
         $config['business_slug']['help']     = lang('CreateBusiness.help.business-slug');
         $config['business_slug']['messages'] = ['regex' => lang('CreateBusiness.error.business-slug')];
         $config['business_mood_and_tone']['help']   = lang('CreateBusiness.help.mood-and-tone');
@@ -1074,7 +1074,7 @@ class Admin extends BaseController
             'rules'   => 'required',
         ];
         // is_unique is checked by the API, which answers with the field's error
-        $config['business_slug']['rules']    = 'required|max_length[128]|regex_match[/^[a-z0-9]+(-[a-z0-9]+)*$/]';
+        $config['business_slug']['rules']    = 'required|max_length[128]|regex_match[' . BusinessMasterModel::SLUG_PATTERN . ']';
         $config['business_slug']['help']     = lang('EditBusiness.help.business-slug', [$this->storeBaseUrl() . $slug]);
         $config['business_slug']['messages'] = ['regex' => lang('CreateBusiness.error.business-slug')];
         $config['business_mood_and_tone']['help'] = lang('CreateBusiness.help.mood-and-tone');

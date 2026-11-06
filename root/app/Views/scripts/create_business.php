@@ -87,7 +87,6 @@ $config = ['formId' => $formId, 'urls' => $urls, 'select' => $select, 'failed' =
       if (text === '') { return; }
       var body = new FormData();
       body.set('text', text);
-      body.set('strict', '1'); // business_slug: a-z, 0-9 and single hyphens only
       var csrf = form.querySelector('[data-fb-csrf]');
       if (csrf) { body.set(csrf.name, csrf.value); }
       var data;
