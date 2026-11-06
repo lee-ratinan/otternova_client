@@ -12,6 +12,8 @@ use Throwable;
  * Model for the business_master table: a client's business entity, whose contact details are also its billing
  * details. One entity has one country and one currency, fixed once created; going international means another
  * entity. tax_id is encrypted (App\Libraries\FieldEncryption): the writes here encrypt it, findDecrypted() decrypts it.
+ * Tips (tip_*) and the service charge (service_charge_*) are in percent or in the business's currency_code; the service
+ * charge applies to services only (artifact_type S), once per service line. The API checks that they fit together.
  */
 class BusinessMasterModel extends Model
 {
@@ -38,6 +40,30 @@ class BusinessMasterModel extends Model
     public const AGE_ADULTS_ONLY = 'Y';
     public const AGE_GENERAL     = 'N';
 
+    // tip_policy
+    public const TIP_DISABLED   = 'D';   // tipping is not allowed through the system
+    public const TIP_OFF_SYSTEM = 'OFF'; // tipping is welcome, but not collected at checkout
+    public const TIP_OPTIONAL   = 'O';   // the customer may tip at checkout
+    public const TIP_MANDATORY  = 'M';   // the customer must tip at least tip_value at checkout
+
+    // tip_unit and service_charge_unit
+    public const UNIT_PERCENTAGE = 'P';
+    public const UNIT_FIXED      = 'F'; // in the business's currency_code; a service charge is added once per service line
+
+    // tip_value_kind
+    public const TIP_VALUE_SUGGESTED = 'S';
+    public const TIP_VALUE_MINIMUM   = 'M';
+
+    /** How the business takes tips and service charges, and what a business left without a value gets: none of either */
+    public const CHARGE_DEFAULTS = [
+        'tip_policy'           => self::TIP_DISABLED,
+        'tip_value'            => '0.00',
+        'tip_unit'             => self::UNIT_PERCENTAGE,
+        'tip_value_kind'       => self::TIP_VALUE_SUGGESTED,
+        'service_charge_value' => '0.00',
+        'service_charge_unit'  => self::UNIT_PERCENTAGE,
+    ];
+
     /** Who the business is for, and what a business left without a value gets: the general public */
     public const AUDIENCE_DEFAULTS = [
         'lgbt_audience'     => self::LGBT_GENERAL,
@@ -60,6 +86,12 @@ class BusinessMasterModel extends Model
         'lgbt_audience',
         'naturist_audience',
         'age_restricted',
+        'tip_policy',
+        'tip_value',
+        'tip_unit',
+        'tip_value_kind',
+        'service_charge_value',
+        'service_charge_unit',
         'contact_person_name',
         'contact_email_address',
         'contact_phone_number',
@@ -92,6 +124,12 @@ class BusinessMasterModel extends Model
         'lgbt_audience'            => 'required|in_list[FNDLY,LGBT,GAY,LES,GEN]',
         'naturist_audience'        => 'required|in_list[OPT,NUD,NAT,GEN]',
         'age_restricted'           => 'required|in_list[Y,N]',
+        'tip_policy'               => 'required|in_list[D,OFF,O,M]',
+        'tip_value'                => 'required|decimal|greater_than_equal_to[0]', // up to 2 decimal places; the API checks the rest
+        'tip_unit'                 => 'required|in_list[P,F]',
+        'tip_value_kind'           => 'required|in_list[S,M]',
+        'service_charge_value'     => 'required|decimal|greater_than_equal_to[0]',
+        'service_charge_unit'      => 'required|in_list[P,F]',
         'contact_person_name'      => 'permit_empty|max_length[128]',
         'contact_email_address'    => 'required|valid_email|max_length[128]',
         'contact_phone_number'     => 'permit_empty|max_length[32]',
@@ -136,6 +174,12 @@ class BusinessMasterModel extends Model
             'lgbt_audience'            => ['type' => 'select', 'default' => self::LGBT_GENERAL],
             'naturist_audience'        => ['type' => 'select', 'default' => self::NATURIST_GENERAL],
             'age_restricted'           => ['type' => 'select', 'default' => self::AGE_GENERAL],
+            'tip_policy'               => ['type' => 'select', 'default' => self::TIP_DISABLED],
+            'tip_value'                => ['type' => 'number', 'step' => '0.01', 'default' => '0.00', 'searchable' => false],
+            'tip_unit'                 => ['type' => 'select', 'default' => self::UNIT_PERCENTAGE],
+            'tip_value_kind'           => ['type' => 'select', 'default' => self::TIP_VALUE_SUGGESTED],
+            'service_charge_value'     => ['type' => 'number', 'step' => '0.01', 'default' => '0.00', 'searchable' => false], // services only
+            'service_charge_unit'      => ['type' => 'select', 'default' => self::UNIT_PERCENTAGE],
             'contact_person_name'      => ['type' => 'text'],
             'contact_email_address'    => ['type' => 'email'],
             'contact_phone_number'     => ['type' => 'tel'],
@@ -152,9 +196,13 @@ class BusinessMasterModel extends Model
 
         // the general public last: the select shows the others first, as the ones a business picks
         $enums = [
-            'lgbt_audience'     => [self::LGBT_FRIENDLY, self::LGBT_ONLY, self::LGBT_GAY, self::LGBT_LESBIAN, self::LGBT_GENERAL],
-            'naturist_audience' => [self::NATURIST_OPTIONAL, self::NATURIST_REQUIRED, self::NATURIST_ONLY, self::NATURIST_GENERAL],
-            'age_restricted'    => [self::AGE_ADULTS_ONLY, self::AGE_GENERAL],
+            'lgbt_audience'       => [self::LGBT_FRIENDLY, self::LGBT_ONLY, self::LGBT_GAY, self::LGBT_LESBIAN, self::LGBT_GENERAL],
+            'naturist_audience'   => [self::NATURIST_OPTIONAL, self::NATURIST_REQUIRED, self::NATURIST_ONLY, self::NATURIST_GENERAL],
+            'age_restricted'      => [self::AGE_ADULTS_ONLY, self::AGE_GENERAL],
+            'tip_policy'          => [self::TIP_DISABLED, self::TIP_OFF_SYSTEM, self::TIP_OPTIONAL, self::TIP_MANDATORY],
+            'tip_unit'            => [self::UNIT_PERCENTAGE, self::UNIT_FIXED],
+            'tip_value_kind'      => [self::TIP_VALUE_SUGGESTED, self::TIP_VALUE_MINIMUM],
+            'service_charge_unit' => [self::UNIT_PERCENTAGE, self::UNIT_FIXED],
         ];
 
         return $this->buildConfiguration('BusinessMaster', $fields, $enums);

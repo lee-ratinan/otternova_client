@@ -90,6 +90,13 @@ final class CreateBusinessTest extends CIUnitTestCase
         $result->assertSee('<option value="GEN" selected');
         $result->assertSee('<option value="N" selected');
         $result->assertSee('LGBT-friendly');
+        // no tips or service charge to start with
+        foreach (['tip_policy', 'tip_value', 'tip_unit', 'tip_value_kind', 'service_charge_value', 'service_charge_unit'] as $name) {
+            $result->assertSee('name="' . $name . '"');
+        }
+        $result->assertSee('<option value="D" selected');
+        $result->assertSee('Required at checkout');
+        $this->assertMatchesRegularExpression('#name="service_charge_value"[^>]*value="0.00"#', $result->getBody());
         $result->assertSee('value="client@example.com"');
 
         // country and currency right under the slug
@@ -140,6 +147,12 @@ final class CreateBusinessTest extends CIUnitTestCase
             'lgbt_audience'           => 'FNDLY',
             'naturist_audience'       => 'GEN',
             'age_restricted'          => 'Y',
+            'tip_policy'              => 'O',
+            'tip_value'               => '15',
+            'tip_unit'                => 'P',
+            'tip_value_kind'          => 'S',
+            'service_charge_value'    => '0',
+            'service_charge_unit'     => 'P',
             'translation_th'          => 'ออตเตอร์คาเฟ่',
             'translation_en-US'       => '',
             'unexpected'              => 'dropped',
@@ -153,6 +166,8 @@ final class CreateBusinessTest extends CIUnitTestCase
         $this->assertSame('aB3d', $payload['business']['business_type_public_id']);
         $this->assertSame('T123', $payload['business']['tax_id']);
         $this->assertSame(['FNDLY', 'GEN', 'Y'], [$payload['business']['lgbt_audience'], $payload['business']['naturist_audience'], $payload['business']['age_restricted']]);
+        $this->assertSame(['O', '15', 'S', '0'], [$payload['business']['tip_policy'], $payload['business']['tip_value'],
+            $payload['business']['tip_value_kind'], $payload['business']['service_charge_value']]);
         $this->assertSame(['en-US' => '', 'th' => 'ออตเตอร์คาเฟ่'], (array) $payload['translations']);
 
         $business = $_SESSION['business'];

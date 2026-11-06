@@ -110,6 +110,36 @@ final class BusinessManagementTest extends CIUnitTestCase
         $this->assertArrayNotHasKey('translations', $_SESSION['business']);
     }
 
+    public function testEditPageShowsTheTipsAndServiceCharge(): void
+    {
+        $charges = ['tip_policy' => 'OFF', 'tip_value' => '5.00', 'tip_unit' => 'F', 'tip_value_kind' => 'S',
+            'service_charge_value' => '12.50', 'service_charge_unit' => 'P'];
+        $this->stubApi($this->switched($charges + self::BUSINESS), [200, ['status' => 'success', 'data' => self::TYPES]]);
+
+        $result = $this->withSession($this->session('O'))->get('admin/business');
+
+        $result->assertOK();
+        $html = $result->getBody();
+        $result->assertSee('Tips and Service Charge');
+        $result->assertSee('<option value="OFF" selected>');
+        $result->assertSee('<option value="F" selected>');
+        $this->assertMatchesRegularExpression('#name="tip_value"[^>]*value="5.00"#', $html);
+        $this->assertMatchesRegularExpression('#name="service_charge_value"[^>]*value="12.50"#', $html);
+        $result->assertSee('Added to each service in an order, not to products');
+    }
+
+    public function testEditPageOfAnOlderSessionBusinessShowsNoTipsOrServiceCharge(): void
+    {
+        // a business as the API gave it before it had tips and service charges
+        $this->stubApi([500, ['status' => 'error']], [200, ['status' => 'success', 'data' => self::TYPES]]);
+
+        $result = $this->withSession($this->session('O'))->get('admin/business');
+
+        $result->assertOK();
+        $result->assertSee('<option value="D" selected>');
+        $this->assertMatchesRegularExpression('#name="tip_value"[^>]*value="0.00"#', $result->getBody());
+    }
+
     public function testEditPageLeavesOutTheNamesWhenTheyCannotBeFetched(): void
     {
         $this->stubApi([500, ['status' => 'error']], [200, ['status' => 'success', 'data' => self::TYPES]]);
@@ -138,6 +168,12 @@ final class BusinessManagementTest extends CIUnitTestCase
             'lgbt_audience'         => 'LES',
             'naturist_audience'     => 'NAT',
             'age_restricted'        => 'N',
+            'tip_policy'            => 'M',
+            'tip_value'             => '10',
+            'tip_unit'              => 'P',
+            'tip_value_kind'        => 'M',
+            'service_charge_value'  => '2.5',
+            'service_charge_unit'   => 'F',
         ]);
 
         $result->assertOK();
@@ -150,6 +186,9 @@ final class BusinessManagementTest extends CIUnitTestCase
         }
         $this->assertArrayNotHasKey('translations', $payload);
         $this->assertSame(['LES', 'NAT', 'N'], [$payload['business']['lgbt_audience'], $payload['business']['naturist_audience'], $payload['business']['age_restricted']]);
+        $this->assertSame(['M', '10', 'P', 'M', '2.5', 'F'], [$payload['business']['tip_policy'], $payload['business']['tip_value'],
+            $payload['business']['tip_unit'], $payload['business']['tip_value_kind'], $payload['business']['service_charge_value'],
+            $payload['business']['service_charge_unit']]);
         $this->assertSame(['v1/client/business/switch', ['business_slug' => 'otter-cafe-bkk']], $this->calls[1]);
         $this->assertSame('otter-cafe-bkk', $_SESSION['business']['business']['business_slug']);
     }

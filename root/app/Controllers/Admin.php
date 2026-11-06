@@ -41,13 +41,15 @@ class Admin extends BaseController
         'business' => ['business_type_public_id', 'business_name', 'business_slug', 'country_code', 'currency_code',
             'business_description', 'business_mood_and_tone'],
         'audience' => ['lgbt_audience', 'naturist_audience', 'age_restricted'],
+        'charges'  => ['tip_policy', 'tip_value', 'tip_unit', 'tip_value_kind', 'service_charge_value', 'service_charge_unit'],
         'contact'  => ['contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website'],
         'address'  => ['contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code',
             'contact_postal_code'],
         'billing'  => ['tax_id'],
     ];
     private const BUSINESS_FIELDS = ['business_type_public_id', 'business_name', 'business_slug', 'business_description',
-        'business_mood_and_tone', 'lgbt_audience', 'naturist_audience', 'age_restricted', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
+        'business_mood_and_tone', 'lgbt_audience', 'naturist_audience', 'age_restricted', 'tip_policy', 'tip_value', 'tip_unit',
+        'tip_value_kind', 'service_charge_value', 'service_charge_unit', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
         'contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code', 'contact_postal_code',
         'country_code', 'currency_code', 'tax_id'];
 
@@ -60,12 +62,14 @@ class Admin extends BaseController
         'business' => ['business_type_public_id', 'business_name', 'business_slug', 'country_code', 'currency_code',
             'business_description', 'business_mood_and_tone'],
         'audience' => ['lgbt_audience', 'naturist_audience', 'age_restricted'],
+        'charges'  => ['tip_policy', 'tip_value', 'tip_unit', 'tip_value_kind', 'service_charge_value', 'service_charge_unit'],
         'contact'  => ['contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website'],
         'address'  => ['contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code',
             'contact_postal_code'],
     ];
     private const BUSINESS_EDIT_FIELDS = ['business_type_public_id', 'business_name', 'business_slug', 'business_description',
-        'business_mood_and_tone', 'lgbt_audience', 'naturist_audience', 'age_restricted', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
+        'business_mood_and_tone', 'lgbt_audience', 'naturist_audience', 'age_restricted', 'tip_policy', 'tip_value', 'tip_unit',
+        'tip_value_kind', 'service_charge_value', 'service_charge_unit', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
         'contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code', 'contact_postal_code'];
 
     /** Hidden field of the edit-business form: the slug the form was opened with, so a session switched meanwhile is seen */
@@ -548,7 +552,8 @@ class Admin extends BaseController
     {
         $locale   = $this->request->getLocale();
         $business = $this->refreshSessionBusiness(null, $names) ?? (array) session('business');
-        $values   = (array) ($business['business'] ?? []);
+        // a session business kept from before the API had tips and service charges: what the API stored for it then
+        $values   = (array) ($business['business'] ?? []) + BusinessMasterModel::CHARGE_DEFAULTS;
         $slug     = (string) ($values['business_slug'] ?? '');
         $values[self::BUSINESS_CURRENT_SLUG] = $slug;
         foreach ($names ?? [] as $language => $name) {
@@ -871,6 +876,7 @@ class Admin extends BaseController
         $config['business_slug']['messages'] = ['regex' => lang('CreateBusiness.error.business-slug')];
         $config['business_mood_and_tone']['help']   = lang('CreateBusiness.help.mood-and-tone');
         $this->audienceHelp($config);
+        $this->chargeHelp($config);
         // no options until a country is picked: customScript fills them from admin/api/currencies and subdivisions
         $config['currency_code']['options']            = [];
         $config['contact_subdivision_code']['type']    = 'select';
@@ -900,6 +906,21 @@ class Admin extends BaseController
         $config['lgbt_audience']['help']     = lang('CreateBusiness.help.audience');
         $config['naturist_audience']['help'] = lang('CreateBusiness.help.audience');
         $config['age_restricted']['help']    = lang('CreateBusiness.help.age-restricted');
+    }
+
+    /**
+     * The help of the tip and service charge fields, shared by the create- and edit-business forms. Whether they fit
+     * together (e.g. a required tip needs a minimum above 0) is the API's to check, which answers with the field's error.
+     * @param array $config BusinessMasterModel::getConfiguration(), changed in place
+     */
+    private function chargeHelp(array &$config): void
+    {
+        $config['tip_policy']['help']           = lang('CreateBusiness.help.tip-policy');
+        $config['tip_value']['help']            = lang('CreateBusiness.help.tip-value');
+        $config['service_charge_value']['help'] = lang('CreateBusiness.help.service-charge');
+        foreach (['tip_value', 'service_charge_value'] as $name) {
+            $config[$name]['min'] = 0;
+        }
     }
 
     /**
@@ -1058,6 +1079,7 @@ class Admin extends BaseController
         $config['business_slug']['messages'] = ['regex' => lang('CreateBusiness.error.business-slug')];
         $config['business_mood_and_tone']['help'] = lang('CreateBusiness.help.mood-and-tone');
         $this->audienceHelp($config);
+        $this->chargeHelp($config);
         foreach (BusinessMasterModel::FIXED_FIELDS as $name) {
             $config[$name]['disabled_in'] = ['create', 'edit'];
             $config[$name]['help']        = lang('EditBusiness.help.fixed');
