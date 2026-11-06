@@ -112,6 +112,20 @@ abstract class BaseController extends Controller
     }
 
     /**
+     * A failed API body with its translation errors renamed for the form: the API names them
+     * translations.<language>, the form translation_<language>
+     */
+    protected function translationErrors(array $body): array
+    {
+        $errors = [];
+        foreach ((array) ($body['errors'] ?? []) as $key => $message) {
+            $errors[preg_replace('/^translations\./', 'translation_', (string) $key)] = $message;
+        }
+        $body['errors'] = $errors;
+        return $body;
+    }
+
+    /**
      * Form response of a failed API call
      * @param int    $code     HTTP status of the API call
      * @param array  $body     decoded API response

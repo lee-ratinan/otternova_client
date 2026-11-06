@@ -22,6 +22,10 @@ return [
         'products-and-services' => 'สินค้าและบริการ',
         'artifacts'             => 'สินค้าและบริการ',
         'artifact-create'       => 'สร้างสินค้าหรือบริการ',
+        'artifact-categories'       => 'หมวดหมู่',
+        'artifact-category-create'  => 'สร้างหมวดหมู่',
+        'artifact-attributes'       => 'คุณสมบัติของตัวเลือก',
+        'artifact-attribute-create' => 'สร้างคุณสมบัติของตัวเลือก',
         'sales'                 => 'การขาย',
         'reviews'               => 'รีวิว'
     ],

@@ -248,11 +248,17 @@
                     <span class="nav-text"><?= lang('System.page.employees') ?></span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link<?= ('artifacts' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts') ?>">
+            <li class="nav-item has-submenu ">
+                <a class="nav-link" href="#" aria-expanded="false">
                     <span class="nav-icon"><i class="bi bi-box"></i></span>
                     <span class="nav-text"><?= lang('System.page.products-and-services') ?></span>
+                    <i class="ph ph-caret-right nav-arrow"></i>
                 </a>
+                <ul class="nav-submenu ">
+                    <li><a class="nav-link<?= ('artifacts' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts') ?>"><?= lang('System.page.artifacts') ?></a></li>
+                    <li><a class="nav-link<?= ('artifact-categories' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts/categories') ?>"><?= lang('System.page.artifact-categories') ?></a></li>
+                    <li><a class="nav-link<?= ('artifact-attributes' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts/attributes') ?>"><?= lang('System.page.artifact-attributes') ?></a></li>
+                </ul>
             </li>
             <?php endif ?>
             <li class="nav-item">

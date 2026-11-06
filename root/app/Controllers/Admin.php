@@ -1195,20 +1195,6 @@ class Admin extends BaseController
     }
 
     /**
-     * A failed API body with its translation errors renamed for the form: the API names them
-     * translations.<language>, the form translation_<language>
-     */
-    private function translationErrors(array $body): array
-    {
-        $errors = [];
-        foreach ((array) ($body['errors'] ?? []) as $key => $message) {
-            $errors[preg_replace('/^translations\./', self::TRANSLATION_PREFIX, (string) $key)] = $message;
-        }
-        $body['errors'] = $errors;
-        return $body;
-    }
-
-    /**
      * JSON answer of a failed make-default or switch call
      * @param int   $code HTTP status of the API call
      * @param array $body decoded API response

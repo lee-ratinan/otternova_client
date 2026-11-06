@@ -62,6 +62,17 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('image-upload', 'Artifacts::imageUpload');
         $routes->post('image-delete', 'Artifacts::imageDelete');
         $routes->post('image-reorder', 'Artifacts::imageReorder');
+        // what the products and services are grouped by, and what their variants differ by
+        $routes->get('categories', 'ArtifactCategories::index');
+        $routes->post('categories/data', 'ArtifactCategories::data');
+        $routes->get('categories/create', 'ArtifactCategories::form');
+        $routes->get('categories/edit/(:segment)', 'ArtifactCategories::form/$1');
+        $routes->post('categories/save', 'ArtifactCategories::save');
+        $routes->get('attributes', 'ArtifactAttributes::index');
+        $routes->post('attributes/data', 'ArtifactAttributes::data');
+        $routes->get('attributes/create', 'ArtifactAttributes::form');
+        $routes->get('attributes/edit/(:segment)', 'ArtifactAttributes::form/$1');
+        $routes->post('attributes/save', 'ArtifactAttributes::save');
     });
     // the reviews of the session business's products and services: anyone working in it, as the API allows
     $routes->get('reviews', 'Reviews::index');

@@ -22,6 +22,10 @@ return [
         'products-and-services' => 'Products and Services',
         'artifacts'             => 'Products and Services',
         'artifact-create'       => 'Create Product or Service',
+        'artifact-categories'       => 'Categories',
+        'artifact-category-create'  => 'Create Category',
+        'artifact-attributes'       => 'Variant Options',
+        'artifact-attribute-create' => 'Create Variant Option',
         'sales'                 => 'Sales',
         'reviews'               => 'Reviews'
     ],
