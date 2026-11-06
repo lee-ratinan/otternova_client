@@ -81,6 +81,58 @@ abstract class BaseController extends Controller
     }
 
     /**
+     * The DataTables search and order of rows the API sent in full (e.g. storesData())
+     * @param array    $rows   rows keyed by column data key
+     * @param array    $params lb_request()
+     * @param callable $text   fn(array $row, string $column): string, the text the client sees, to search and order by
+     * @return array the matching rows, in order (not paged)
+     */
+    protected function searchAndOrder(array $rows, array $params, callable $text): array
+    {
+        $columns = array_column(array_filter($params['columns'], static fn (array $column) => $column['searchable']), 'data');
+        if ('' !== $params['search']) {
+            $needle = mb_strtolower($params['search']);
+            $rows   = array_values(array_filter($rows, static function (array $row) use ($columns, $text, $needle) {
+                foreach ($columns as $column) {
+                    if (array_key_exists($column, $row) && str_contains(mb_strtolower($text($row, $column)), $needle)) {
+                        return true;
+                    }
+                }
+                return false;
+            }));
+        }
+        foreach (array_reverse($params['order']) as [$column, $direction]) {
+            // stable, so the earlier order columns win
+            usort($rows, static function (array $a, array $b) use ($column, $direction, $text) {
+                $cmp = strnatcasecmp($text($a, $column), $text($b, $column));
+                return 'DESC' === $direction ? -$cmp : $cmp;
+            });
+        }
+        return $rows;
+    }
+
+    /**
+     * Form response of a failed API call
+     * @param int    $code     HTTP status of the API call
+     * @param array  $body     decoded API response
+     * @param string $fallback message when the API gives none
+     */
+    protected function saveFailed(int $code, array $body, string $fallback): ResponseInterface
+    {
+        // the API prefixes errors with their group (profile.status_emoji); the form only knows the field name
+        $errors = [];
+        foreach ((array) ($body['errors'] ?? []) as $key => $message) {
+            $errors[preg_replace('/^.*\./', '', (string) $key)] = $message;
+        }
+        return $this->response->setStatusCode($code === 200 ? 422 : $code)->setJSON([
+            'success'   => false,
+            'message'   => $body['message'] ?? $fallback,
+            'errors'    => $errors ?: null,
+            'csrf_hash' => csrf_hash(), // keeps the form's token fresh when CSRF regenerates
+        ]);
+    }
+
+    /**
      * A signed-in client sees the UI in client_master.preferred_language (kept in the session user from sign-in,
      * and updated when the profile is saved) instead of the browser's language, when the UI has that language
      */

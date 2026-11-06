@@ -357,26 +357,19 @@ class Plans extends BaseController
     }
 
     /**
-     * The plan's name in the UI language (BusinessPlans.plan-names), or its code when it has none
+     * The plan's name in the UI language; see planName()
      */
     private static function planName(string $code): string
     {
-        $key  = 'BusinessPlans.plan-names.' . $code;
-        $name = lang($key);
-        return $name === $key ? ucfirst($code) : $name;
+        return planName($code);
     }
 
     /**
-     * An amount from the API ("299.00") in its currency: as formatCurrency() writes it when it knows the currency,
-     * else "EUR 299.00"
+     * An amount from the API ("299.00") in its currency; see formatMoney()
      */
     private static function money(mixed $amount, string $currency): string
     {
-        if (null === $amount || ! is_numeric($amount)) {
-            return '';
-        }
-        $text = formatCurrency((float) $amount, $currency);
-        return str_starts_with($text, '[') ? trim($currency . ' ' . number_format((float) $amount, 2)) : $text;
+        return formatMoney($amount, $currency);
     }
 
     private static function isZero(string $amount): bool

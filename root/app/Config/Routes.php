@@ -52,6 +52,22 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('resume', 'Plans::resume');
         $routes->post('change', 'Plans::change');
     });
+    // the products and services of the session business: its owners and managers only (see BusinessManagerFilter)
+    $routes->group('artifacts', ['filter' => 'manager'], static function ($routes) {
+        $routes->get('/', 'Artifacts::index');
+        $routes->post('data', 'Artifacts::data');
+        $routes->get('create', 'Artifacts::form');
+        $routes->get('edit/(:segment)', 'Artifacts::form/$1');
+        $routes->post('save', 'Artifacts::save');
+        $routes->post('image-upload', 'Artifacts::imageUpload');
+        $routes->post('image-delete', 'Artifacts::imageDelete');
+        $routes->post('image-reorder', 'Artifacts::imageReorder');
+    });
+    // the reviews of the session business's products and services: anyone working in it, as the API allows
+    $routes->get('reviews', 'Reviews::index');
+    $routes->post('reviews/data', 'Reviews::data');
+    $routes->post('reviews/approve', 'Reviews::approve');
+    $routes->post('reviews/hide', 'Reviews::hide');
     $routes->get('notifications', 'Admin::notifications');
     $routes->get('messages', 'Admin::messages');
 

@@ -9,6 +9,8 @@
  *
  * Optional: $extraForms, more form configs rendered below it, each with its own card and script
  * (e.g. the stand-alone upload forms of 'file' fields).
+ * Optional: $extraHtml, markup of the page's own rendered below the forms (e.g. a card the form builder cannot make).
+ * It is output as given: render it from a view of its own, so values reach it escaped.
  * Optional: $customScript, the page's own JavaScript (without <script> tags), added after the form builder's
  * scripts so window.FormBuilder[form_id] is there. Render it from a view of its own, so values reach it escaped:
  *
@@ -33,6 +35,8 @@ helper('form'); // loads app/Helpers/form_helper.php (all functions are prefixed
                 <?php foreach ($extraForms ?? [] as $extraForm): ?>
                     <div class="mt-4"><?= fb_render($extraForm) ?></div>
                 <?php endforeach ?>
+
+                <?= $extraHtml ?? '' ?>
 
                 <?php
                 /* ---------------------------------------------------------------------------

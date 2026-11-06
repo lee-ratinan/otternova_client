@@ -20,6 +20,8 @@ return [
         'plans'                 => 'แผน',
         'employees'             => 'พนักงาน',
         'products-and-services' => 'สินค้าและบริการ',
+        'artifacts'             => 'สินค้าและบริการ',
+        'artifact-create'       => 'สร้างสินค้าหรือบริการ',
         'sales'                 => 'การขาย',
         'reviews'               => 'รีวิว'
     ],

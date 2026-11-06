@@ -4,6 +4,38 @@ use libphonenumber\PhoneNumberUtil;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\NumberParseException;
 
+if (!function_exists('planName')) {
+    /**
+     * A plan's name in the UI language (BusinessPlans.plan-names), or its code when it has none
+     * @param string $code plan_master.plan_code
+     * @return string
+     */
+    function planName(string $code): string
+    {
+        $key  = 'BusinessPlans.plan-names.' . $code;
+        $name = lang($key);
+        return $name === $key ? ucfirst($code) : $name;
+    }
+}
+
+if (!function_exists('formatMoney')) {
+    /**
+     * An amount from the API ("299.00") in its currency: as formatCurrency() writes it when it knows the currency,
+     * else "EUR 299.00"; '' when it is not a number
+     * @param mixed  $amount
+     * @param string $currencyCode
+     * @return string
+     */
+    function formatMoney(mixed $amount, string $currencyCode): string
+    {
+        if (null === $amount || ! is_numeric($amount)) {
+            return '';
+        }
+        $text = formatCurrency((float) $amount, $currencyCode);
+        return str_starts_with($text, '[') ? trim($currencyCode . ' ' . number_format((float) $amount, 2)) : $text;
+    }
+}
+
 if (!function_exists('formatCurrency')) {
     /**
      * Format amount in the target currency
