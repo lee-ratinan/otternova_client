@@ -85,7 +85,7 @@
   --contrast-color: #ffffff;
   /* Extended text colors */
   --muted-color: #9f7f66;
-  --light-color: #a29ab8;
+  --light-color: #c29aa8;
   /* Borders */
   --border-color: #e7e2f2;
   --border-color-light: #f1edf9;
@@ -114,7 +114,7 @@
   --sidebar-bg: #3e1800;
   --sidebar-border: #2e0800;
   --sidebar-color: #cfc7e8;
-  --sidebar-muted-color: #8c81b3;
+  --sidebar-muted-color: #bc8183;
   --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
   --sidebar-active-bg: #c97232;
   --sidebar-active-color: #ffffff;
@@ -130,7 +130,7 @@
   --input-bg: #ffffff;
   --input-border: var(--border-color);
   --input-focus-border: var(--accent-color);
-  --input-focus-ring: rgb(124 58 237 / 0.18);
+  --input-focus-ring: rgb(237 58 124 / 0.18);
 }
 
 /*--------------------------------------------------------------
@@ -141,7 +141,6 @@
   --background-color: #1f0a0e;
   --default-color: #e4e0f5;
   --heading-color: #f4f1ff;
-  --accent-color: #c97232;
   --surface-color: #3e1800;
   --contrast-color: #ffffff;
   /* Extended text colors */
@@ -4768,6 +4767,7 @@ a.header-action:hover {
 
 .btn-outline-primary:hover {
   color: var(--contrast-color);
+  border-color: var(--accent-color);
   background-color: var(--accent-color);
 }
 
