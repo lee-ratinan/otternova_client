@@ -25,11 +25,15 @@ class Reviews extends BaseController
     public function index(): string
     {
         $config = $this->listConfig();
+        // the business's rating comes with any page of the reviews; the shortest is asked for
+        [$code, $body] = $this->callApi('v1/client/artifact-reviews', ['business_slug' => (string) currentBusinessSlug(), 'start' => 0, 'length' => 1]);
+        $rating = $code === 200 && ($body['status'] ?? '') === 'success' ? (array) ($body['data']['business_rating'] ?? []) : null;
         return view('generic_list', [
             'locale'       => $this->request->getLocale(),
             'slug'         => 'reviews',
             'user'         => (array) session('user'),
             'listConfig'   => $config,
+            'headerHtml'   => null === $rating ? '' : view('reviews/summary', ['rating' => $rating]),
             'customScript' => view('scripts/reviews', [
                 'tableId' => $config['table_id'],
                 'urls'    => ['approve' => base_url('admin/reviews/approve'), 'hide' => base_url('admin/reviews/hide')],
@@ -40,7 +44,8 @@ class Reviews extends BaseController
 
     /**
      * DataTables data of index(): one page from LINK_INTERNAL_API v1/client/artifact-reviews { business_slug, start,
-     * length, filters }, which pages them itself, newest first (no search or other order)
+     * length, filters }, which pages them itself, newest first (no search or other order); with the business's
+     * rating, which the page's script shows again, as approving or hiding a review changes it
      */
     public function data(): ResponseInterface
     {
@@ -82,7 +87,7 @@ class Reviews extends BaseController
             (int) ($body['data']['records_total'] ?? 0),
             (int) ($body['data']['records_filtered'] ?? 0),
             $rows
-        ) + ['csrf_hash' => csrf_hash()]);
+        ) + ['business_rating' => (array) ($body['data']['business_rating'] ?? []), 'csrf_hash' => csrf_hash()]);
     }
 
     /**

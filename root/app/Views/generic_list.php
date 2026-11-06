@@ -10,6 +10,8 @@
  * Requirements in _layout: jQuery, DataTables js + css, Bootstrap 5, Bootstrap Icons.
  * toastr is optional (used to show data-loading errors).
  *
+ * Optional: $headerHtml, markup of the page's own rendered above the list (e.g. a summary card). It is output as given:
+ * render it from a view of its own, so values reach it escaped.
  * Optional: $customScript, the page's own JavaScript (without <script> tags), added after the table builder's
  *   'customScript' => view('scripts/my_businesses', [...]),
  */
@@ -19,6 +21,8 @@ $this->extend('_layout_admin');
     <section class="section">
         <div class="row g-4">
             <div class="col-12">
+
+                <?= $headerHtml ?? '' ?>
 
                 <?php // Card: title/subtitle, Add button (only if add.url is set), filters (only if any), table ?>
                 <?= lb_render($listConfig) ?>

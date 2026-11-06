@@ -11,6 +11,7 @@ $config = [
     'tableId' => $tableId,
     'urls'    => $urls,
     'failed'  => $failed,
+    'summary' => ['count' => lang('Reviews.summary.count'), 'none' => lang('Reviews.summary.none')],
     'csrf'    => ['header' => csrf_header(), 'hash' => csrf_hash()],
 ];
 ?>
@@ -22,12 +23,36 @@ $config = [
     if (window.toastr) { window.toastr[type](text); } else if (type === 'error') { window.alert(text); }
   }
 
+  // fills partials/rating_summary again
+  function showRating(rating) {
+    var box = document.querySelector('[data-rating-summary]');
+    if (!box) { return; }
+    var count = Number(rating.rating_count) || 0;
+    var average = Number(rating.rating_average) || 0;
+    box.querySelector('[data-rating-average]').textContent = average.toFixed(2);
+    box.querySelector('[data-rating-count]').textContent = count ? cfg.summary.count.replace('{0}', count) : cfg.summary.none;
+    box.querySelectorAll('[data-rating-stars] i').forEach(function (icon, i) {
+      icon.className = 'bi ' + (average >= i + 0.75 ? 'bi-star-fill' : (average >= i + 0.25 ? 'bi-star-half' : 'bi-star'));
+    });
+    for (var star = 1; star <= 5; star++) {
+      var reviews = Number((rating.rating_breakdown || {})[star]) || 0;
+      var bar = box.querySelector('[data-rating-bar="' + star + '"]');
+      bar.setAttribute('aria-valuemax', count);
+      bar.setAttribute('aria-valuenow', reviews);
+      bar.firstElementChild.style.width = (count ? Math.round(reviews * 100 / count) : 0) + '%';
+      box.querySelector('[data-rating-reviews="' + star + '"]').textContent = reviews;
+    }
+  }
+
   function init() {
     var table = document.getElementById(cfg.tableId);
     if (!table) { return; }
-    // the table's data requests refresh the token too
+    // the table's data requests refresh the token too, and bring the business's rating, changed by approving or hiding
     if (window.jQuery) {
-      window.jQuery(table).on('xhr.dt', function (e, settings, json) { if (json && json.csrf_hash) { csrfHash = json.csrf_hash; } });
+      window.jQuery(table).on('xhr.dt', function (e, settings, json) {
+        if (json && json.csrf_hash) { csrfHash = json.csrf_hash; }
+        if (json && json.business_rating) { showRating(json.business_rating); }
+      });
     }
 
     table.addEventListener('click', function (e) {

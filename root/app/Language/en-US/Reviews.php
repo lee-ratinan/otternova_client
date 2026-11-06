@@ -7,6 +7,14 @@ return [
     'approve'        => 'Approve',
     'hide'           => 'Hide',
     'replied'        => 'Reply:',
+    'summary'        => [
+        'title'    => 'Rating of {0}',
+        'subtitle' => 'All products and services together, approved reviews only.',
+        'count'    => '{0} approved reviews',
+        'none'     => 'No approved reviews yet',
+        'stars'    => '{0} stars',
+        'heading'  => 'Rating',
+    ],
     'column'         => [
         'created_at'    => 'Date',
         'artifact_name' => 'Product or Service',

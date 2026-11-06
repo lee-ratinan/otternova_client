@@ -205,7 +205,8 @@ class Artifacts extends BaseController
                 ],
                 'messages' => ['saved' => lang(null === $publicId ? 'Artifacts.form.created' : 'Artifacts.form.saved'), 'saveFailed' => lang('Artifacts.form.failed')],
                 'values'   => $values,
-                'fields'   => $this->fields($type, $typeCaps, $plan, (string) ($values['artifact_status'] ?? ''), $editor),
+                'fields'   => $this->fields($type, $typeCaps, $plan, (string) ($values['artifact_status'] ?? ''), $editor,
+                    array_intersect_key((array) ($detail['artifact'] ?? []), array_flip(['rating_count', 'rating_average', 'rating_breakdown']))),
             ],
             'extraHtml'    => view('artifacts/images', [
                 'publicId' => $publicId,
@@ -438,8 +439,9 @@ class Artifacts extends BaseController
      * @param string $plan     plan_code of the business
      * @param string $status   artifact_status of the artifact being edited
      * @param array  $editor   what the variants editor and view are built from
+     * @param array  $rating   the artifact's rating_count, rating_average and rating_breakdown, for the view pane
      */
-    private function fields(string $type, array $typeCaps, string $plan, string $status, array $editor): array
+    private function fields(string $type, array $typeCaps, string $plan, string $status, array $editor, array $rating = []): array
     {
         $enums = lang('Artifacts.enum');
         $label = static fn (string $field) => lang('Artifacts.fields.' . $field);
@@ -485,6 +487,9 @@ class Artifacts extends BaseController
             ['type' => 'html', 'show_in' => ['view'], 'html' => view('artifacts/variants_view', $editor + [
                 'currency' => (string) (session('business')['business']['currency_code'] ?? ''),
             ])],
+            ['type' => 'heading', 'label' => lang('Reviews.summary.heading'), 'show_in' => ['view']],
+            ['type' => 'html', 'show_in' => ['view'], 'html' => '<div class="row mb-3"><div class="col-12">'
+                . view('partials/rating_summary', ['rating' => $rating]) . '</div></div>'],
             ['type' => 'heading', 'label' => lang('Artifacts.heading.translations')],
         ];
         foreach (listSupportedLanguages() as $language => $name) {
