@@ -78,13 +78,13 @@
 :root {
   /* Core palette */
   --background-color: #f5f3fa;
-  --default-color: #3f3a52;
-  --heading-color: #191233;
-  --accent-color: #7c3aed;
+  --default-color: #523a3f;
+  --heading-color: #3e1800;
+  --accent-color: #c97232;
   --surface-color: #ffffff;
   --contrast-color: #ffffff;
   /* Extended text colors */
-  --muted-color: #776f8f;
+  --muted-color: #9f7f66;
   --light-color: #a29ab8;
   /* Borders */
   --border-color: #e7e2f2;
@@ -116,7 +116,7 @@
   --sidebar-color: #cfc7e8;
   --sidebar-muted-color: #8c81b3;
   --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
-  --sidebar-active-bg: #7c3aed;
+  --sidebar-active-bg: #c97232;
   --sidebar-active-color: #ffffff;
   /* Cards */
   --card-bg: #ffffff;
@@ -177,7 +177,7 @@
   --sidebar-color: #cfc7e8;
   --sidebar-muted-color: #8c81b3;
   --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
-  --sidebar-active-bg: #7c3aed;
+  --sidebar-active-bg: #c97232;
   --sidebar-active-color: #ffffff;
   /* Cards */
   --card-bg: #191330;
@@ -4020,7 +4020,7 @@ a.header-action:hover {
   font-size: 1.125rem;
   color: var(--contrast-color);
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 45%));
+  background: linear-gradient(135deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 45%));
   box-shadow: 0 6px 14px -4px rgba(124, 58, 237, 0.45);
 }
 
@@ -4067,7 +4067,7 @@ a.header-action:hover {
   border-radius: var(--radius-xl);
   font-size: 1.75rem;
   color: var(--contrast-color);
-  background: linear-gradient(135deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 45%));
+  background: linear-gradient(135deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 45%));
   box-shadow: 0 10px 22px -8px rgba(124, 58, 237, 0.55);
 }
 
@@ -4094,7 +4094,7 @@ a.header-action:hover {
   margin: 0 auto var(--spacing-md);
   padding: 4px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 45%));
+  background: linear-gradient(135deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 45%));
 }
 
 .auth-avatar img {
@@ -4219,7 +4219,7 @@ a.header-action:hover {
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--contrast-color);
-  background: linear-gradient(105deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 42%));
+  background: linear-gradient(105deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 42%));
   box-shadow: 0 8px 18px -6px rgba(124, 58, 237, 0.5);
   cursor: pointer;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
@@ -14951,7 +14951,7 @@ textarea.form-control {
 .page-notifications .st-theme-preview.light,
 .page-activity .st-theme-preview.light {
   background: #f5f3fa;
-  color: #7c3aed;
+  color: #c97232;
 }
 
 .page-settings .st-theme-preview.dark,
@@ -15657,7 +15657,7 @@ textarea.form-control {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--contrast-color);
-  background: linear-gradient(105deg, #7c3aed, color-mix(in srgb, #7c3aed, var(--danger-color) 42%));
+  background: linear-gradient(105deg, #c97232, color-mix(in srgb, #c97232, var(--danger-color) 42%));
   box-shadow: 0 6px 16px -5px rgba(124, 58, 237, 0.6);
   cursor: pointer;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
@@ -42445,15 +42445,15 @@ textarea.form-control {
 [data-theme=dark] .footer-brand-mark,
 [data-theme=dark] .back-to-top,
 [data-theme=dark] .user-menu-avatar {
-  background: linear-gradient(120deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 48%));
+  background: linear-gradient(120deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 48%));
 }
 
 [data-theme=dark] .sidebar-logo-mark {
-  background: linear-gradient(135deg, #7c3aed, color-mix(in srgb, #7c3aed, #f43f5e 48%));
+  background: linear-gradient(135deg, #c97232, color-mix(in srgb, #c97232, #f43f5e 48%));
 }
 
 [data-theme=dark] .page-dashboard .dash-hero-btn {
-  color: #7c3aed;
+  color: #c97232;
 }
 
 /* Chart specific dark mode */
