@@ -40,12 +40,12 @@
 <div class="auth-layout auth-split">
     <!-- Brand Panel (desktop only) -->
     <aside class="auth-panel">
-        <a href="<?= base_url() ?>" class="auth-panel-logo">
+        <span class="auth-panel-logo">
             <span class="auth-logo-mark">
                 <img src="<?= base_url('assets/img/logo.webp') ?>" alt="<?= SITE_TITLE ?>">
             </span>
             <span><?= SITE_TITLE ?></span>
-        </a>
+        </span>
         <div class="auth-panel-body">
             <h2 class="auth-panel-title"><?= lang('Login.auth-panel.title') ?></h2>
             <p class="auth-panel-text"><?= lang('Login.auth-panel.paragraph') ?></p>

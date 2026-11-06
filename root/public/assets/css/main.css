@@ -3859,7 +3859,7 @@ a.header-action:hover {
   width: 44%;
   max-width: 620px;
   padding: var(--spacing-2xl);
-  background: linear-gradient(160deg, color-mix(in srgb, #171032, var(--accent-color) 14%), #171032 60%);
+  background: linear-gradient(160deg, color-mix(in srgb, #a98212, var(--accent-color) 14%), #c74232 60%);
   overflow: hidden;
 }
 
