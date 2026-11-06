@@ -26,6 +26,7 @@
  *       'edit'   => site_url('products/edit/{id}'),  // pattern used by lb_rows(); {field} = row value
  *   ],
  *   'edit_key' => 'edit_url',            // JSON key holding each row's edit URL (always the FIRST column)
+ *   'add_disabled' => '',                // non-empty = the Add button is shown disabled, with this text as the reason
  *   'labels'   => ['add'=>'Add New','edit'=>'Edit','reset'=>'Reset','all'=>'All'],
  *   'icons'    => ['add'=>'bi-plus-circle','edit'=>'bi-eye','reset'=>'bi-arrow-counterclockwise'],
  *   'messages' => ['loadFailed'=>...],
@@ -221,6 +222,7 @@ if (! function_exists('lb_defaults')) {
             'layout'          => ['filter_col' => 3],
             'urls'            => ['data' => '', 'create' => '', 'edit' => ''],
             'edit_key'        => 'edit_url',
+            'add_disabled'    => '',
             'labels'          => ['add' => 'Add New', 'edit' => 'Edit', 'reset' => 'Reset', 'all' => 'All'],
             'icons'           => ['add' => 'bi-plus-circle', 'edit' => 'bi-eye', 'reset' => 'bi-arrow-counterclockwise'],
             'messages'        => ['loadFailed' => 'Could not load data. Please try again.'],
@@ -339,12 +341,21 @@ if (! function_exists('lb_header')) {
 }
 
 if (! function_exists('lb_add_button')) {
-    /** "Add" button -> form page in create mode. Rendered only when urls.create is not empty. */
+    /**
+     * "Add" button -> form page in create mode. Rendered only when urls.create is not empty; disabled, with the
+     * reason under it, when add_disabled is not empty.
+     */
     function lb_add_button(array $cfg): string
     {
         $cfg = lb_defaults($cfg);
         if (trim((string) $cfg['urls']['create']) === '') {
             return '';
+        }
+        $icon   = '<i class="bi ' . lb_esc($cfg['icons']['add'], 'attr') . '"></i> ' . lb_esc($cfg['labels']['add']);
+        $reason = trim((string) $cfg['add_disabled']);
+        if ($reason !== '') {
+            return '<div class="text-end mb-3 me-3"><button type="button" class="btn btn-outline-primary" disabled aria-disabled="true">'
+                . $icon . '</button><div class="form-text">' . lb_esc($reason) . '</div></div>';
         }
 
         return '<div class="text-end mb-3 me-3"><a class="btn btn-outline-primary" href="' . lb_esc($cfg['urls']['create'], 'attr') . '">'

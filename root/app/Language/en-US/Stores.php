@@ -5,6 +5,7 @@ return [
         'subtitle'    => 'The stores of {0}: physical branches and online stores.',
         'add'         => 'Add New Store',
         'load-failed' => 'Could not load the stores. Please try again.',
+        'limit-reached' => 'The {1} plan allows up to {0} stores. Please upgrade your plan to add more.',
         'column'      => [
             'store_name'         => 'Store',
             'store_type'         => 'Type',
@@ -15,7 +16,7 @@ return [
     'form'              => [
         'create-title' => 'Add a Store',
         'edit-title'   => 'Edit Store',
-        'subtitle'     => 'A store of {0}. Fields marked with * are required',
+        'subtitle'    => 'A store of {0}. Fields marked with * are required',
         'saved'        => 'Store saved.',
         'created'      => 'Store created.',
         'failed'       => 'Could not save the store. Please try again.',

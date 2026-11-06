@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= lang('System.page.' . $slug) ?> - <?= lang('System.site-title') ?></title>
+    <title><?= $page_title ?? lang('System.page.' . $slug) ?> - <?= lang('System.site-title') ?></title>
     <meta name="description" content="<?= META_DESCRIPTION ?>">
     <meta name="keywords" content="<?= META_KEYWORDS ?>">
     <!-- Favicons -->
@@ -291,7 +291,7 @@
     <div class="main-content page-blank">
         <!-- Page Header -->
         <div class="page-header">
-            <h1 class="page-title"><?= lang('System.page.' . $slug) ?></h1>
+            <h1 class="page-title"><?= $page_title ?? lang('System.page.' . $slug) ?></h1>
             <nav class="breadcrumb">
                 <a href="<?= base_url('admin/dashboard') ?>" class="breadcrumb-item">Home</a>
                 <?php if ('dashboard' != $slug): ?>
@@ -299,11 +299,11 @@
                     <!-- the $breadcrumbs structure must be the URL => page title -->
                     <?php if (isset($breadcrumbs)) : ?>
                         <?php foreach ($breadcrumbs as $u => $t) : ?>
-                            <span class="breadcrumb-item"><a href="<?= $u ?>"><?= esc($t) ?></a></span>
+                            <span class="breadcrumb-item"><a class="ms-2" href="<?= $u ?>"><?= esc($t) ?></a></span>
                         <?php endforeach; ?>
                     <?php endif; ?>
                     <!-- if not dashboard, at least it needs its own page here: -->
-                    <span class="breadcrumb-item active"><?= lang('System.page.' . $slug) ?></span>
+                    <span class="breadcrumb-item active"><span class="ms-2"><?= $page_title ?? lang('System.page.' . $slug) ?></span></span>
                 <?php endif; ?>
             </nav>
         </div>

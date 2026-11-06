@@ -655,7 +655,7 @@ class Admin extends BaseController
             'locale'     => $this->request->getLocale(),
             'slug'       => 'stores',
             'user'       => (array) session('user'),
-            'listConfig' => $this->storesListConfig(),
+            'listConfig' => $this->storesListConfig() + ['add_disabled' => $this->storeCapReached()],
         ];
         return view('generic_list', $data);
     }
@@ -724,6 +724,10 @@ class Admin extends BaseController
         $data    = [
             'locale'       => $locale,
             'slug'         => 'stores',
+            'page_title'   => $values['store_name'] ?? lang('System.page.store-create'),
+            'breadcrumbs'  => [
+                base_url('admin/business/stores') => lang('System.page.stores'),
+            ],
             'user'         => (array) session('user'),
             'formConfig'   => [
                 'form_id'  => $formId,
@@ -1145,15 +1149,30 @@ class Admin extends BaseController
 
     /**
      * The stores of the session business, from LINK_INTERNAL_API v1/client/stores
-     * @return array{0: array, 1: string|null} [stores, null] or [[], error message]
+     * @return array{0: array, 1: string|null, 2: array} [stores, null, the whole data (plan_code, max_stores, can_add)]
+     *         or [[], error message, []]
      */
     private function loadStores(): array
     {
         [$code, $body] = $this->callApi('v1/client/stores', ['business_slug' => (string) currentBusinessSlug()]);
         if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
-            return [[], (string) ($body['message'] ?? lang('Stores.list.load-failed'))];
+            return [[], (string) ($body['message'] ?? lang('Stores.list.load-failed')), []];
         }
-        return [(array) ($body['data']['stores'] ?? []), null];
+        $data = (array) ($body['data'] ?? []);
+        return [(array) ($data['stores'] ?? []), null, $data];
+    }
+
+    /**
+     * Why no store can be added: the plan's cap (Config\PlanLimits::STORES in the API) is reached
+     * @return string '' when a store can be added, or the list failed to load (the API still refuses one over the cap)
+     */
+    private function storeCapReached(): string
+    {
+        [, $error, $data] = $this->loadStores();
+        if (null !== $error || ($data['can_add'] ?? true)) {
+            return '';
+        }
+        return lang('Stores.list.limit-reached', [(int) ($data['max_stores'] ?? 0), ucfirst((string) ($data['plan_code'] ?? ''))]);
     }
 
     /**

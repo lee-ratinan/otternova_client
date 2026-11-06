@@ -16,6 +16,7 @@ return [
         'search'                => 'Search',
         'business'              => 'Business',
         'stores'                => 'Stores',
+        'store-create'          => 'Create Store',
         'plans'                 => 'Plans',
         'employees'             => 'Employees',
         'products-and-services' => 'Products and Services',
