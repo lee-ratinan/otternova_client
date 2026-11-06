@@ -58,10 +58,10 @@ final class BusinessManagementTest extends CIUnitTestCase
             'business' => ['client_role' => $role, 'client_status' => 'A', 'is_default_business' => 'Y', 'business' => $business]];
     }
 
-    private function switched(array $business = self::BUSINESS, array $names = ['th' => 'ออตเตอร์คาเฟ่', 'ja' => 'オッターカフェ']): array
+    private function switched(array $business = self::BUSINESS, array $names = ['th' => 'ออตเตอร์คาเฟ่', 'ja' => 'オッターカフェ'], array $taxId = ['tax_id' => '0105561234567']): array
     {
         return [200, ['status' => 'success', 'data' => ['business' => ['client_role' => 'O', 'client_status' => 'A',
-            'is_default_business' => 'Y', 'business' => $business], 'translations' => $names]]];
+            'is_default_business' => 'Y', 'business' => $business], 'translations' => $names] + $taxId]];
     }
 
     private function json($result): array
@@ -102,7 +102,9 @@ final class BusinessManagementTest extends CIUnitTestCase
         $result->assertSee('<option value="Y" selected>');
         $result->assertSee('The URL to your store will be changed immediately');
         $result->assertSee('"slug":"otter-cafe"');
-        $result->assertDontSee('name="tax_id"');
+        // the tax ID, under the postal code; not kept in the session
+        $this->assertMatchesRegularExpression('#name="contact_postal_code".*name="tax_id"[^>]*value="0105561234567"#s', $html);
+        $this->assertArrayNotHasKey('tax_id', $_SESSION['business']['business']);
         // the names in the UI languages, filled in; not kept in the session
         $result->assertSee('name="translation_th" class="form-control" maxlength="255" value="' . esc('ออตเตอร์คาเฟ่') . '"');
         $result->assertSee('name="translation_en-US"');
@@ -149,6 +151,18 @@ final class BusinessManagementTest extends CIUnitTestCase
         $result->assertOK();
         $result->assertSee('value="otter-cafe"');
         $result->assertDontSee('name="translation_th"');
+        $result->assertDontSee('name="tax_id"');
+    }
+
+    public function testEditPageLeavesOutTheTaxIdWhenTheApiDoesNotGiveIt(): void
+    {
+        $this->stubApi($this->switched(self::BUSINESS, [], []), [200, ['status' => 'success', 'data' => self::TYPES]]);
+
+        $result = $this->withSession($this->session('O'))->get('admin/business');
+
+        $result->assertOK();
+        $result->assertSee('name="contact_postal_code"');
+        $result->assertDontSee('name="tax_id"');
     }
 
     public function testSaveNeverSendsCountryOrCurrencyAndFollowsANewSlug(): void
@@ -181,9 +195,10 @@ final class BusinessManagementTest extends CIUnitTestCase
         $this->assertSame('v1/client/business/edit', $endpoint);
         $this->assertSame('otter-cafe', $payload['business_slug']);
         $this->assertSame('otter-cafe-bkk', $payload['business']['business_slug']);
-        foreach (['country_code', 'currency_code', 'tax_id'] as $field) {
+        foreach (['country_code', 'currency_code'] as $field) {
             $this->assertArrayNotHasKey($field, $payload['business']);
         }
+        $this->assertSame('T1', $payload['business']['tax_id']);
         $this->assertArrayNotHasKey('translations', $payload);
         $this->assertSame(['LES', 'NAT', 'N'], [$payload['business']['lgbt_audience'], $payload['business']['naturist_audience'], $payload['business']['age_restricted']]);
         $this->assertSame(['M', '10', 'P', 'M', '2.5', 'F'], [$payload['business']['tip_policy'], $payload['business']['tip_value'],
