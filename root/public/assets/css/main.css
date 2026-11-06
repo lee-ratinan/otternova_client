@@ -111,8 +111,8 @@
   --header-shadow: none;
   --header-border: var(--border-color);
   /* Sidebar - deep plum-ink panel (dark in both modes) */
-  --sidebar-bg: #171032;
-  --sidebar-border: #2a2050;
+  --sidebar-bg: #3e1800;
+  --sidebar-border: #2e0800;
   --sidebar-color: #cfc7e8;
   --sidebar-muted-color: #8c81b3;
   --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
@@ -138,19 +138,19 @@
 --------------------------------------------------------------*/
 [data-theme=dark] {
   /* Core palette */
-  --background-color: #0e0a1f;
+  --background-color: #1f0a0e;
   --default-color: #e4e0f5;
   --heading-color: #f4f1ff;
-  --accent-color: #a78bfa;
-  --surface-color: #191330;
+  --accent-color: #c97232;
+  --surface-color: #3e1800;
   --contrast-color: #ffffff;
   /* Extended text colors */
-  --muted-color: #9d94bd;
-  --light-color: #6f6795;
+  --muted-color: #bd949d;
+  --light-color: #95676f;
   /* Borders */
-  --border-color: #2c2350;
-  --border-color-light: #191330;
-  --border-color-dark: #3b3066;
+  --border-color: #50232c;
+  --border-color-light: #3e1800;
+  --border-color-dark: #66303b;
   /* Status colors (adjusted for dark mode) */
   --success-color: #34d399;
   --success-color-light: rgba(52, 211, 153, 0.15);
@@ -168,19 +168,19 @@
   --nav-dropdown-color: var(--default-color);
   --nav-dropdown-hover-color: var(--accent-color);
   /* Header */
-  --header-bg: #191330;
+  --header-bg: #3e1800;
   --header-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.35);
   --header-border: var(--border-color);
   /* Sidebar */
-  --sidebar-bg: #120d26;
-  --sidebar-border: #251b4a;
+  --sidebar-bg: #3e1800;
+  --sidebar-border: #2e0800;
   --sidebar-color: #cfc7e8;
   --sidebar-muted-color: #8c81b3;
   --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
   --sidebar-active-bg: #c97232;
   --sidebar-active-color: #ffffff;
   /* Cards */
-  --card-bg: #191330;
+  --card-bg: #3e1800;
   --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.35);
   --card-border: var(--border-color);
   /* Tables */
@@ -2796,7 +2796,11 @@ a.header-action:hover {
   left: 0;
   bottom: 0;
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--sidebar-bg), var(--accent-color) 7%), var(--sidebar-bg) 320px);
+  background: linear-gradient(180deg,
+    color-mix(in srgb,
+      var(--sidebar-bg),
+      var(--accent-color) 7%),
+  var(--sidebar-bg) 320px);
   z-index: 1001;
   display: flex;
   flex-direction: column;

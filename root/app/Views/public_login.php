@@ -55,7 +55,9 @@
                 <div class="invalid-feedback"><?= lang('Login.error.otp-format') ?></div>
             </div>
             <button type="submit" class="auth-submit"><?= lang('Login.otp.verify-btn') ?> <i class="bi bi-arrow-right"></i></button>
-            <a href="#" id="otp-back" class="auth-back"><i class="bi bi-arrow-left"></i> <?= lang('Login.otp.back') ?></a>
+            <p class="auth-footer-text">
+                <a href="#" id="otp-back" class="auth-back"><i class="bi bi-arrow-left"></i> <?= lang('Login.otp.back') ?></a>
+            </p>
         </form>
         <form id="password-form" class="auth-form d-none" action="<?= base_url('change-password') ?>" method="post" novalidate>
             <div class="auth-field-group">
@@ -79,7 +81,9 @@
                 <div class="invalid-feedback"><?= lang('Login.error.password-mismatch') ?></div>
             </div>
             <button type="submit" class="auth-submit"><?= lang('Login.password-change.submit-btn') ?> <i class="bi bi-arrow-right"></i></button>
-            <a href="#" id="password-back" class="auth-back"><i class="bi bi-arrow-left"></i> <?= lang('Login.otp.back') ?></a>
+            <p class="auth-footer-text">
+                <a href="#" id="password-back" class="auth-back"><i class="bi bi-arrow-left"></i> <?= lang('Login.otp.back') ?></a>
+            </p>
         </form>
         <p class="auth-footer-text">
             <?= lang('Login.main.dont-have-account') ?>
