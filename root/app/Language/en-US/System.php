@@ -19,6 +19,7 @@ return [
         'store-create'          => 'Create Store',
         'plans'                 => 'Plans',
         'employees'             => 'Employees',
+        'employee-create'       => 'Add Employee',
         'products-and-services' => 'Products and Services',
         'artifacts'             => 'Products and Services',
         'artifact-create'       => 'Create Product or Service',

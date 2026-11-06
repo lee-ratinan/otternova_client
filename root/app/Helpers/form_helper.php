@@ -694,6 +694,10 @@ if (! function_exists('fb_field')) {
 
         $f['attrs']        = $a;
         $f['rules_client'] = $rules;
+        // a field that cannot be changed here is not the user's to fill in, so it is not marked "(optional)" either
+        if (! empty($a['disabled']) || ! empty($a['readonly'])) {
+            $f['optional'] = false;
+        }
 
         return $f;
     }

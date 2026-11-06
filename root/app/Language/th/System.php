@@ -19,6 +19,7 @@ return [
         'store-create'          => 'สร้างสาขาใหม่',
         'plans'                 => 'แผน',
         'employees'             => 'พนักงาน',
+        'employee-create'       => 'เพิ่มพนักงาน',
         'products-and-services' => 'สินค้าและบริการ',
         'artifacts'             => 'สินค้าและบริการ',
         'artifact-create'       => 'สร้างสินค้าหรือบริการ',

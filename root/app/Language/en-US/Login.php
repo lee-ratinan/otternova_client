@@ -92,6 +92,8 @@ return [
         'invalid-input'              => 'Please check the highlighted fields.',
         'failed'                     => 'Unable to create your account. Please try again.',
         'received'                   => 'We have sent an activation link to {0}. Please open it to activate your account.',
+        'invited'                    => 'You have been invited to work at {0} as {1}. Create your account with the invited email address to join.',
+        'invitation-invalid'         => 'This invitation link is invalid or has expired. Please ask the business owner to invite you again.',
     ],
     'activate'        => [
         'success' => 'Your account is active. You can now sign in.',

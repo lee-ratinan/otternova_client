@@ -242,12 +242,14 @@
                     <?php endif ?>
                 </ul>
             </li>
+            <?php if (isBusinessOwner()): ?>
             <li class="nav-item">
                 <a class="nav-link<?= ('employees' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/employees') ?>">
                     <span class="nav-icon"><i class="bi bi-people"></i></span>
                     <span class="nav-text"><?= lang('System.page.employees') ?></span>
                 </a>
             </li>
+            <?php endif ?>
             <li class="nav-item has-submenu ">
                 <a class="nav-link" href="#" aria-expanded="false">
                     <span class="nav-icon"><i class="bi bi-box"></i></span>

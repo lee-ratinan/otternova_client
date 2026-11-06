@@ -168,6 +168,16 @@ class Home extends BaseController
             'locale' => $locale,
             'slug'   => 'create-account'
         ];
+        // from a business owner's invitation: the account must use the invited address, and is linked to the business
+        $token = trim((string) $this->request->getGet('invitation'));
+        if ('' !== $token) {
+            [$code, $body] = $this->callPublicApi('v1/client-invitation', ['token' => $token]);
+            if ($code === 200 && ($body['status'] ?? '') === 'success') {
+                $data['invitation'] = ['token' => $token] + (array) ($body['data'] ?? []);
+            } else {
+                $data['invitationError'] = $body['message'] ?? lang('Login.create-account.invitation-invalid');
+            }
+        }
         return view('public_createAccount', $data);
     }
 
@@ -198,11 +208,12 @@ class Home extends BaseController
             return $this->fail(lang('Login.create-account.invalid-input'), 422, $errors);
         }
 
-        [$code, $body] = $this->callPublicApi('v1/create-client-account', [
-            'full_name'     => $fullName,
-            'email_address' => $email,
-            'password'      => $password,
-        ]);
+        $payload = ['full_name' => $fullName, 'email_address' => $email, 'password' => $password];
+        $invitation = trim((string) $this->request->getPost('invitation'));
+        if ('' !== $invitation) {
+            $payload['invitation'] = $invitation; // the API checks the address is the invited one
+        }
+        [$code, $body] = $this->callPublicApi('v1/create-client-account', $payload);
         if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
             // the API names its fields after the columns; the form names email_address just email
             $apiErrors = (array) ($body['errors'] ?? []);

@@ -5,8 +5,18 @@
             <h1 class="auth-title"><?= lang('Login.create-account.title') ?></h1>
             <p class="auth-subtitle"><?= lang('Login.create-account.subtitle') ?></p>
         </div>
+        <?php if (isset($invitation)): ?>
+            <div class="alert alert-info" role="status">
+                <?= esc(lang('Login.create-account.invited', [$invitation['business_name'] ?? '', lang('BusinessClientLink.enum.client_role.' . ($invitation['client_role'] ?? 'E'))])) ?>
+            </div>
+        <?php elseif (isset($invitationError)): ?>
+            <div class="alert alert-warning" role="alert"><?= esc($invitationError) ?></div>
+        <?php endif ?>
         <div id="create-alert" class="alert d-none" role="alert"></div>
         <form id="create-form" class="auth-form" action="<?= base_url('create-account') ?>" method="post" novalidate>
+            <?php if (isset($invitation)): ?>
+                <input type="hidden" name="invitation" value="<?= esc($invitation['token'], 'attr') ?>">
+            <?php endif ?>
             <div class="auth-field-group">
                 <label for="full_name" class="form-label"><?= lang('Login.create-account.full-name') ?></label>
                 <div class="auth-field">
@@ -24,7 +34,7 @@
                     <i class="bi bi-envelope auth-field-icon"></i>
                     <input type="email" class="form-control" id="email" name="email"
                            placeholder="<?= lang('Login.main.email-placeholder') ?>" maxlength="128"
-                           autocomplete="email" required>
+                           autocomplete="email" required<?php if (isset($invitation)): ?> value="<?= esc($invitation['email_address'] ?? '', 'attr') ?>" readonly<?php endif ?>>
                 </div>
                 <div class="invalid-feedback" data-feedback="email"><?= lang('Login.main.email-invalid-feedback') ?></div>
             </div>

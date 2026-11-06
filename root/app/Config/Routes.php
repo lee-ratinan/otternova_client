@@ -52,6 +52,19 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('resume', 'Plans::resume');
         $routes->post('change', 'Plans::change');
     });
+    // the people of the session business and their accounts: its owners only, as the API allows
+    $routes->group('employees', ['filter' => 'manager:owner'], static function ($routes) {
+        $routes->get('/', 'Employees::index');
+        $routes->post('data', 'Employees::data');
+        $routes->get('create', 'Employees::create');
+        $routes->get('edit/(:segment)', 'Employees::form/$1');
+        $routes->post('save', 'Employees::save');
+        $routes->post('terminate', 'Employees::terminate');
+        $routes->post('rehire', 'Employees::rehire');
+        $routes->post('find', 'Employees::find');
+        $routes->post('add', 'Employees::add');
+        $routes->post('invite', 'Employees::invite');
+    });
     // the products and services of the session business: its owners and managers only (see BusinessManagerFilter)
     $routes->group('artifacts', ['filter' => 'manager'], static function ($routes) {
         $routes->get('/', 'Artifacts::index');
