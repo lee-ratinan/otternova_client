@@ -237,6 +237,7 @@
                 <ul class="nav-submenu ">
                     <li><a class="nav-link<?= ('business' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business') ?>"><?= lang('System.page.business') ?></a></li>
                     <li><a class="nav-link<?= ('stores' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/stores') ?>"><?= lang('System.page.stores') ?></a></li>
+                    <li><a class="nav-link<?= ('commission' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/commission') ?>"><?= lang('System.page.commission') ?></a></li>
                     <?php if (isBusinessOwner()): ?>
                     <li><a class="nav-link<?= ('plans' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/plans') ?>"><?= lang('System.page.plans') ?></a></li>
                     <?php endif ?>
@@ -250,6 +251,12 @@
                 </a>
             </li>
             <?php endif ?>
+            <li class="nav-item">
+                <a class="nav-link<?= ('staff' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/staff') ?>">
+                    <span class="nav-icon"><i class="bi bi-person-badge"></i></span>
+                    <span class="nav-text"><?= lang('System.page.staff') ?></span>
+                </a>
+            </li>
             <li class="nav-item has-submenu ">
                 <a class="nav-link" href="#" aria-expanded="false">
                     <span class="nav-icon"><i class="bi bi-box"></i></span>

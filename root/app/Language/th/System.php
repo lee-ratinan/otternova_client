@@ -28,6 +28,8 @@ return [
         'artifact-attributes'       => 'คุณสมบัติของตัวเลือก',
         'artifact-attribute-create' => 'สร้างคุณสมบัติของตัวเลือก',
         'sales'                 => 'การขาย',
+        'staff'                 => 'พนักงานประจำร้าน',
+        'commission'            => 'ค่าคอมมิชชัน',
         'reviews'               => 'รีวิว'
     ],
     'header'     => [

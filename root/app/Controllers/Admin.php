@@ -79,10 +79,10 @@ class Admin extends BaseController
 
     /** The store form, section => fields; all of them go to v1/client/store/create and store/edit as "store" */
     private const STORE_SECTIONS = [
-        'store'   => ['store_name', 'store_type', 'store_phone_number'],
+        'store'   => ['store_name', 'store_type', 'store_timezone', 'store_phone_number'],
         'address' => BusinessStoreModel::ADDRESS_FIELDS,
     ];
-    private const STORE_FIELDS = ['store_name', 'store_type', 'store_phone_number', ...BusinessStoreModel::ADDRESS_FIELDS];
+    private const STORE_FIELDS = ['store_name', 'store_type', 'store_timezone', 'store_phone_number', ...BusinessStoreModel::ADDRESS_FIELDS];
 
     /** Form field name of the business name in a language: translation_<language_code> */
     private const TRANSLATION_PREFIX = 'translation_';
@@ -763,6 +763,8 @@ class Admin extends BaseController
                 'online'  => BusinessStoreModel::TYPE_ONLINE,
                 'address' => BusinessStoreModel::ADDRESS_FIELDS,
             ]),
+            // a saved store's opening hours are a page of their own
+            'extraHtml'    => null === $publicId ? '' : view('stores/hours_link', ['url' => base_url('admin/business/stores/hours/' . rawurlencode($publicId))]),
         ];
         return view('generic_form', $data);
     }
@@ -1128,6 +1130,11 @@ class Admin extends BaseController
         $config['store_type']['default']               = BusinessStoreModel::TYPE_PHYSICAL;
         $config['store_type']['help']                  = lang('Stores.help.store-type');
         $config['store_phone_number']['country']       = $country;
+        // the store's opening hours are in it; most countries have one, Indonesia three
+        $timezones                                     = listSupportedTimezones($country);
+        $config['store_timezone']['options']           = $timezones;
+        $config['store_timezone']['default']           = (string) array_key_first($timezones);
+        $config['store_timezone']['help']              = lang('Stores.help.store-timezone');
         $config['store_subdivision_code']['type']      = 'select';
         $config['store_subdivision_code']['options']   = listSupportedSubdivisions($country);
 

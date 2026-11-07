@@ -28,6 +28,8 @@ return [
         'artifact-attributes'       => 'Variant Options',
         'artifact-attribute-create' => 'Create Variant Option',
         'sales'                 => 'Sales',
+        'staff'                 => 'Staff',
+        'commission'            => 'Commission',
         'reviews'               => 'Reviews'
     ],
     'header'     => [

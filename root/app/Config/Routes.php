@@ -40,6 +40,24 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->get('stores/create', 'Admin::storeForm');
         $routes->get('stores/edit/(:segment)', 'Admin::storeForm/$1');
         $routes->post('stores/save', 'Admin::storeSavePost');
+        // a store's opening hours; see App\Controllers\StoreHours
+        $routes->get('stores/hours/(:segment)', 'StoreHours::index/$1');
+        $routes->post('stores/hours/save', 'StoreHours::save');
+        $routes->post('stores/hours/exception-save', 'StoreHours::exceptionSave');
+        $routes->post('stores/hours/exception-delete', 'StoreHours::exceptionDelete');
+        // how the business pays commission; see App\Controllers\Staff
+        $routes->get('commission', 'Staff::commission');
+        $routes->post('commission/save', 'Staff::commissionSave');
+    });
+    // where the people of the session business work and what they are paid: its owners and managers, as the API allows
+    $routes->group('staff', ['filter' => 'manager'], static function ($routes) {
+        $routes->get('/', 'Staff::index');
+        $routes->post('data', 'Staff::data');
+        $routes->get('edit/(:segment)', 'Staff::form/$1');
+        $routes->post('stores/save', 'Staff::saveStores');
+        $routes->post('services/save', 'Staff::saveServices');
+        $routes->post('salary/add', 'Staff::addSalary');
+        $routes->post('salary/edit', 'Staff::editSalary');
     });
     // the session business's subscription: its owners only, as the API allows
     $routes->group('plans', ['filter' => 'manager:owner'], static function ($routes) {

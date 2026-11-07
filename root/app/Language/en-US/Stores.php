@@ -28,7 +28,13 @@ return [
         'translations' => 'Store Name in Other Languages',
     ],
     'help'              => [
-        'store-type' => 'An online store has no address.',
+        'store-type'     => 'An online store has no address.',
+        'store-timezone' => 'The opening hours of the store are in this timezone.',
+    ],
+    'hours-link'        => [
+        'title' => 'Opening Hours',
+        'text'  => 'The regular weekly hours of this store, and the dates it closes or opens at other times.',
+        'open'  => 'Set Opening Hours',
     ],
     'translation-label' => 'Name in {0}',
 ];

@@ -3,6 +3,7 @@ return [
     'fields' => [
         'store_name'             => 'ชื่อร้านค้า',
         'store_type'             => 'ประเภทร้านค้า',
+        'store_timezone'         => 'เขตเวลา',
         'store_phone_number'     => 'หมายเลขโทรศัพท์',
         'store_address_line_1'   => 'ที่อยู่บรรทัดที่ 1',
         'store_address_line_2'   => 'ที่อยู่บรรทัดที่ 2',
