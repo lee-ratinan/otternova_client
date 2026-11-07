@@ -1,8 +1,9 @@
 <?php
 /**
  * The script of admin_plans.php: the monthly/yearly switch of the plan cards, the checkout modal (listed discount
- * codes, subscribe), the discount and payment forms of the invoice waiting for payment, and the buttons that cancel,
- * resume or change the plan (asked first). Every change reloads the page, which the server answers with 'redirect'.
+ * codes, subscribe), the discount and payment forms of the invoice waiting for payment, the buttons that cancel,
+ * resume or change the plan (asked first), the withholding tax request (and the button that withdraws it), and the
+ * certificate upload of a paid invoice. Every change reloads the page, which the server answers with 'redirect'.
  *
  * @var array $urls Plans::index() urls
  */
@@ -12,6 +13,7 @@ $config = [
     'messages' => [
         'failed'        => lang('BusinessPlans.save-failed'),
         'slipRequired'  => lang('BusinessPlans.pay.slip-required'),
+        'fileRequired'  => lang('BusinessPlans.certificates.file-required'),
         'confirmTitle'  => lang('BusinessPlans.confirm.title'),
         'confirmYes'    => lang('BusinessPlans.confirm.yes'),
         'confirmNo'     => lang('BusinessPlans.confirm.no'),
@@ -192,6 +194,51 @@ $config = [
         var submit = payForm.querySelector('[type="submit"]');
         submit.disabled = true;
         post(cfg.urls.pay, new FormData(payForm)).then(function (result) { finish(result, payForm, submit); });
+      });
+    }
+
+    // the request to withhold tax
+    var whtForm = document.getElementById('withholding-form');
+    if (whtForm) {
+      whtForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var submit = whtForm.querySelector('[type="submit"]');
+        submit.disabled = true;
+        showErrors(whtForm, null);
+        post(cfg.urls.withholding, {
+          legal_name: whtForm.elements.legal_name.value.trim(),
+          tax_branch_code: whtForm.elements.tax_branch_code.value.trim(),
+          wht_rule_code: whtForm.elements.wht_rule_code ? whtForm.elements.wht_rule_code.value : ''
+        }).then(function (result) { finish(result, whtForm, submit); });
+      });
+    }
+
+    // the certificate of a paid invoice: the amounts start as the invoice's, for the business to check against its copy
+    var certModalEl = document.getElementById('certificate-modal');
+    var certForm = document.getElementById('certificate-form');
+    if (certModalEl && certForm && window.bootstrap) {
+      var certModal = window.bootstrap.Modal.getOrCreateInstance(certModalEl);
+      page.addEventListener('click', function (e) {
+        var button = e.target.closest('[data-certificate-upload]');
+        if (!button) { return; }
+        certForm.reset();
+        showErrors(certForm, null);
+        certForm.elements.invoice_public_id.value = button.getAttribute('data-invoice');
+        certForm.elements.base_amount.value = button.getAttribute('data-base');
+        certForm.elements.wht_amount.value = button.getAttribute('data-withheld');
+        certForm.querySelector('[data-certificate="invoice-no"]').textContent = button.getAttribute('data-invoice-no');
+        certModal.show();
+      });
+      certForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        showErrors(certForm, null);
+        if (!certForm.elements.certificate.files.length) {
+          showErrors(certForm, { certificate: cfg.messages.fileRequired });
+          return;
+        }
+        var submit = certForm.querySelector('[type="submit"]');
+        submit.disabled = true;
+        post(cfg.urls.certificate, new FormData(certForm)).then(function (result) { finish(result, certForm, submit); });
       });
     }
   }

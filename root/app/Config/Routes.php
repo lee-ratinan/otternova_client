@@ -51,6 +51,9 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('cancel', 'Plans::cancel');
         $routes->post('resume', 'Plans::resume');
         $routes->post('change', 'Plans::change');
+        $routes->post('withholding', 'Plans::withholding');
+        $routes->post('withholding/withdraw', 'Plans::withdrawWithholding');
+        $routes->post('certificate', 'Plans::certificate');
     });
     // the people of the session business and their accounts: its owners only, as the API allows
     $routes->group('employees', ['filter' => 'manager:owner'], static function ($routes) {

@@ -15,7 +15,11 @@ use RuntimeException;
  *   period.
  * - On the free plan: the plans the business can have in its country, and the checkout: subscribe (with a discount
  *   code), then pay the first invoice by slip for the staff to check.
- * An invoice waiting for payment (the first one, or a renewal) is shown with the ways to pay it.
+ * An invoice waiting for payment (the first one, a renewal, or a withholding tax top-up) is shown with the ways to pay it.
+ *
+ * Withholding tax: a business whose country has a withholding rule (Thailand: 3% on services) can ask to withhold it,
+ * for the staff to approve. Its invoices are then less the tax (amount_payable), and for each one it pays it uploads
+ * the certificate (50 ทวิ). One not sent by its due date blocks the next invoice, or is billed as a top-up.
  */
 class Plans extends BaseController
 {
@@ -36,6 +40,17 @@ class Plans extends BaseController
     /** billing_cycle */
     private const CYCLES = ['M', 'Y'];
 
+    /** subscription_invoice.invoice_type of a withholding tax top-up */
+    private const TYPE_TOP_UP = 'W';
+
+    /** subscription_invoice.wht_cert_status: waiting for the certificate, sent and being checked, billed as a top-up */
+    private const CERT_WAITING   = 'W';
+    private const CERT_UPLOADED  = 'U';
+    private const CERT_TOPPED_UP = 'T';
+
+    /** withholding_tax_certificate.cert_status */
+    private const CERTIFICATE_REJECTED = 'R';
+
     /** How many invoices the billing history shows */
     private const HISTORY_LENGTH = 50;
 
@@ -55,13 +70,13 @@ class Plans extends BaseController
         }
         $plans = array_map(fn (array $plan) => $this->planView($plan), (array) ($body['data']['plans'] ?? []));
 
-        // the invoice waiting for payment, and the ways to pay it
+        // the invoice waiting for payment, a top-up first as the other cannot be paid while it is late, and the ways to pay it
         $invoices = (array) ($current['invoices'] ?? []);
         $pending  = null;
         foreach ($invoices as $invoice) {
-            if (self::INVOICE_PENDING === ($invoice['invoice_status'] ?? '')) {
+            if (self::INVOICE_PENDING === ($invoice['invoice_status'] ?? '')
+                && (null === $pending || self::TYPE_TOP_UP === ($invoice['invoice_type'] ?? ''))) {
                 $pending = $this->invoiceView($invoice);
-                break;
             }
         }
         $methods = [];
@@ -79,6 +94,11 @@ class Plans extends BaseController
             ? array_map(fn (array $invoice) => $this->invoiceView($invoice), (array) ($body['data']['rows'] ?? []))
             : null;
 
+        // the paid invoices whose withholding tax certificate is wanted or being checked, oldest first
+        $certificatesDue = array_values(array_reverse(array_filter($history ?? array_map(fn (array $invoice) => $this->invoiceView($invoice), $invoices),
+            static fn (array $invoice) => in_array($invoice['wht_cert_status'] ?? '', [self::CERT_WAITING, self::CERT_UPLOADED, self::CERT_TOPPED_UP], true))));
+        $certificateLate = [] !== array_filter($certificatesDue, static fn (array $invoice) => $invoice['certificate_late']);
+
         $data = [
             'locale'       => $this->request->getLocale(),
             'slug'         => 'plans',
@@ -90,6 +110,9 @@ class Plans extends BaseController
             'pending'      => $pending,
             'methods'      => $methods,
             'history'      => $history,
+            'withholding'  => $this->withholdingView((array) ($current['withholding'] ?? [])),
+            'certificates' => $certificatesDue,
+            'certificateLate' => $certificateLate,
             'urls'         => [
                 'discounts'      => base_url('admin/plans/discounts'),
                 'subscribe'      => base_url('admin/plans/subscribe'),
@@ -98,6 +121,10 @@ class Plans extends BaseController
                 'cancel'         => base_url('admin/plans/cancel'),
                 'resume'         => base_url('admin/plans/resume'),
                 'change'         => base_url('admin/plans/change'),
+                'withholding'    => base_url('admin/plans/withholding'),
+                'withdraw'       => base_url('admin/plans/withholding/withdraw'),
+                'certificate'    => base_url('admin/plans/certificate'),
+                'business'       => base_url('admin/business'),
             ],
         ];
         return view('admin_plans', $data);
@@ -164,6 +191,48 @@ class Plans extends BaseController
             'slip'              => new CURLFile($file->getTempName(), $file->getMimeType(), $file->getClientName()),
         ];
         return $this->forward('v1/client/subscription/pay', $payload, 'BusinessPlans.pay.sent', true);
+    }
+
+    /**
+     * Ask to withhold tax from what the business pays: { legal_name, tax_branch_code, wht_rule_code }, for the staff
+     * to approve
+     */
+    public function withholding(): ResponseInterface
+    {
+        return $this->forward('v1/client/subscription/withholding', $this->input(['legal_name', 'tax_branch_code', 'wht_rule_code']), 'BusinessPlans.withholding.requested');
+    }
+
+    /**
+     * Stop withholding tax, or take back the request
+     */
+    public function withdrawWithholding(): ResponseInterface
+    {
+        return $this->forward('v1/client/subscription/withholding/withdraw', $this->input([]), 'BusinessPlans.withholding.withdrawn');
+    }
+
+    /**
+     * Send the withholding tax certificate of a paid invoice, multipart { invoice_public_id, certificate_no, issued_on,
+     * base_amount, wht_amount, certificate }, for the staff to check
+     */
+    public function certificate(): ResponseInterface
+    {
+        $file = $this->request->getFile('certificate');
+        if (null === $file || ! $file->isValid()) {
+            $tooLarge = null !== $file && in_array($file->getError(), [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true);
+            $message  = lang($tooLarge ? 'BusinessPlans.pay.slip-too-large' : 'BusinessPlans.certificates.file-required');
+            return $this->response->setStatusCode($tooLarge ? 413 : 422)->setJSON([
+                'success'   => false,
+                'message'   => $message,
+                'errors'    => ['certificate' => $message],
+                'csrf_hash' => csrf_hash(),
+            ]);
+        }
+        $payload = ['business_slug' => (string) currentBusinessSlug()];
+        foreach (['invoice_public_id', 'certificate_no', 'issued_on', 'base_amount', 'wht_amount'] as $field) {
+            $payload[$field] = trim((string) $this->request->getPost($field));
+        }
+        $payload['certificate'] = new CURLFile($file->getTempName(), $file->getMimeType(), $file->getClientName());
+        return $this->forward('v1/client/subscription/certificate', $payload, 'BusinessPlans.certificates.sent', true);
     }
 
     /**
@@ -328,8 +397,26 @@ class Plans extends BaseController
     }
 
     /**
-     * An invoice as the page shows it: amounts formatted, whether a payment of it is being checked, and the payment
-     * that paid it
+     * The business's withholding as the page shows it; null when its country has no withholding rule
+     */
+    private function withholdingView(array $withholding): ?array
+    {
+        $rules = (array) ($withholding['rules'] ?? []);
+        if ([] === $rules) {
+            return null;
+        }
+        $byCode = array_column($rules, null, 'rule_code');
+        $rule   = $byCode[$withholding['wht_rule_code'] ?? ''] ?? (1 === count($rules) ? reset($rules) : null);
+        return $withholding + [
+            'rules'        => $rules,
+            'rule'         => $rule,
+            'min_base_text' => null === $rule || null === ($rule['min_base_amount'] ?? null) ? null : self::money($rule['min_base_amount'], (string) $rule['currency_code']),
+        ];
+    }
+
+    /**
+     * An invoice as the page shows it: amounts formatted, whether a payment of it is being checked, the payment
+     * that paid it, and its withholding tax and certificates
      */
     private function invoiceView(array $invoice): array
     {
@@ -344,15 +431,27 @@ class Plans extends BaseController
                 $paidBy = $payment;
             }
         }
-        $discount = (string) ($invoice['discount_amount'] ?? '0.00');
+        $discount     = (string) ($invoice['discount_amount'] ?? '0.00');
+        $withheld     = (string) ($invoice['wht_amount'] ?? '0.00');
+        $certificates = (array) ($invoice['certificates'] ?? []);
+        $lastCert     = [] === $certificates ? null : end($certificates);
+        $isTopUp      = self::TYPE_TOP_UP === ($invoice['invoice_type'] ?? '');
+        $certDue      = $invoice['wht_cert_due_at'] ?? null;
         return $invoice + [
-            'plan_name'            => self::planName((string) ($invoice['plan_code'] ?? '')),
+            'plan_name'            => $isTopUp ? lang('BusinessPlans.top-up.name', [$invoice['parent_invoice_no'] ?? '']) : self::planName((string) ($invoice['plan_code'] ?? '')),
+            'is_top_up'            => $isTopUp,
             'list_price_text'      => self::money($invoice['list_price'] ?? null, $currency),
             'discount_amount_text' => self::isZero($discount) ? null : self::money($discount, $currency),
             'amount_due_text'      => self::money($invoice['amount_due'] ?? null, $currency),
+            'wht_amount_text'      => self::isZero($withheld) ? null : self::money($withheld, $currency),
+            'amount_payable_text'  => self::money($invoice['amount_payable'] ?? $invoice['amount_due'] ?? null, $currency),
             'under_review'         => $underReview,
             'paid_by'              => $paidBy,
             'last_payment'         => [] === $payments ? null : end($payments),
+            'last_certificate'     => $lastCert,
+            'certificate_rejected' => null !== $lastCert && self::CERTIFICATE_REJECTED === ($lastCert['cert_status'] ?? '')
+                && self::CERT_UPLOADED !== ($invoice['wht_cert_status'] ?? ''),
+            'certificate_late'     => self::CERT_WAITING === ($invoice['wht_cert_status'] ?? '') && null !== $certDue && $certDue <= gmdate('Y-m-d H:i:s'),
         ];
     }
 

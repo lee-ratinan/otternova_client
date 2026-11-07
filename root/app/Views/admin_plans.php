@@ -9,6 +9,9 @@
  * @var array|null $pending      Plans::invoiceView() of the invoice waiting for payment
  * @var array      $methods      the ways to pay it: method_code, currency_code, payee
  * @var array|null $history      Plans::invoiceView() rows, newest first; null when they could not be loaded
+ * @var array|null $withholding  Plans::withholdingView(), null when the business's country has no withholding rule
+ * @var array      $certificates Plans::invoiceView() of the paid invoices whose certificate is wanted, oldest first
+ * @var bool       $certificateLate whether one of them is past its due date, which blocks the next invoice
  * @var array      $urls
  */
 $this->extend('_layout_admin');
@@ -18,6 +21,8 @@ $statuses     = lang('BusinessPlans.status');
 $statusClass  = ['P' => 'bg-warning text-dark', 'A' => 'bg-success', 'S' => 'bg-danger', 'C' => 'bg-secondary', 'X' => 'bg-secondary'];
 $invoiceState = lang('BusinessPlans.invoice-status');
 $invoiceClass = ['P' => 'bg-warning text-dark', 'D' => 'bg-success', 'V' => 'bg-secondary'];
+$certState    = lang('BusinessPlans.certificates.status');
+$certClass    = ['W' => 'bg-warning text-dark', 'U' => 'bg-info', 'A' => 'bg-success', 'T' => 'bg-danger'];
 $methodName   = static function (?string $code): string {
     $key  = 'BusinessPlans.methods.' . $code;
     $name = lang($key);
@@ -92,7 +97,7 @@ if (! $hasMonthly && $hasYearly) {
                             <dt class="col-sm-4"><?= lang('BusinessPlans.current.last-payment') ?></dt>
                             <dd class="col-sm-8">
                                 <?php if (null !== $subscription['last_payment']): $paid = $subscription['last_payment']; ?>
-                                    <?= esc($paid['amount_due_text']) ?>
+                                    <?= esc($paid['amount_payable_text']) ?>
                                     <?= lang('BusinessPlans.current.paid-on', [localTimeTag($paid['paid_at'] ?? null, 'date')]) ?>
                                     <?php if (null !== $paid['paid_by']): ?>
                                         <span class="text-muted">(<?= esc($methodName($paid['paid_by']['method_code'] ?? null)) ?>)</span>
@@ -155,21 +160,34 @@ if (! $hasMonthly && $hasYearly) {
                             <table class="table table-sm mb-0">
                                 <tbody>
                                 <tr><th scope="row"><?= lang('BusinessPlans.pay.plan') ?></th>
-                                    <td class="text-end"><?= esc($pending['plan_name']) ?> / <?= esc($cycles[$pending['billing_cycle'] ?? ''] ?? '') ?></td></tr>
+                                    <td class="text-end"><?= esc($pending['plan_name']) ?><?php if (! $pending['is_top_up']): ?> / <?= esc($cycles[$pending['billing_cycle'] ?? ''] ?? '') ?><?php endif ?></td></tr>
+                                <?php if (! $pending['is_top_up']): ?>
                                 <tr><th scope="row"><?= lang('BusinessPlans.pay.list-price') ?></th>
                                     <td class="text-end"><?= esc($pending['list_price_text']) ?></td></tr>
+                                <?php endif ?>
                                 <?php if (null !== $pending['discount_amount_text']): ?>
                                     <tr><th scope="row"><?= lang('BusinessPlans.pay.discount') ?> <span class="badge bg-info"><?= esc($pending['discount_code'] ?? '') ?></span></th>
                                         <td class="text-end">&minus;<?= esc($pending['discount_amount_text']) ?></td></tr>
                                 <?php endif ?>
-                                <tr class="fw-bold"><th scope="row"><?= lang('BusinessPlans.pay.amount-due') ?></th>
-                                    <td class="text-end fs-5" id="amount-due"><?= esc($pending['amount_due_text']) ?></td></tr>
+                                <?php if (null !== $pending['wht_amount_text']): ?>
+                                    <tr><th scope="row"><?= lang('BusinessPlans.pay.subtotal') ?></th>
+                                        <td class="text-end"><?= esc($pending['amount_due_text']) ?></td></tr>
+                                    <tr><th scope="row"><?= esc(lang('BusinessPlans.pay.withheld', [rtrim(rtrim((string) $pending['wht_rate'], '0'), '.')])) ?></th>
+                                        <td class="text-end" id="amount-withheld">&minus;<?= esc($pending['wht_amount_text']) ?></td></tr>
+                                <?php endif ?>
+                                <tr class="fw-bold"><th scope="row"><?= lang(null !== $pending['wht_amount_text'] ? 'BusinessPlans.pay.amount-to-pay' : 'BusinessPlans.pay.amount-due') ?></th>
+                                    <td class="text-end fs-5" id="amount-due"><?= esc($pending['amount_payable_text']) ?></td></tr>
                                 <tr><th scope="row"><?= lang('BusinessPlans.pay.due-at') ?></th>
                                     <td class="text-end"><?= localTimeTag($pending['due_at'] ?? null) ?></td></tr>
                                 </tbody>
                             </table>
+                            <?php if (null !== $pending['wht_amount_text']): ?>
+                                <p class="small text-muted mt-2 mb-0"><i class="bi bi-info-circle"></i> <?= lang('BusinessPlans.pay.withheld-note') ?></p>
+                            <?php elseif ($pending['is_top_up']): ?>
+                                <p class="small text-muted mt-2 mb-0"><i class="bi bi-info-circle"></i> <?= esc(lang('BusinessPlans.top-up.note', [$pending['parent_invoice_no'] ?? ''])) ?></p>
+                            <?php endif ?>
 
-                            <?php if (! $pending['under_review']): ?>
+                            <?php if (! $pending['under_review'] && ! $pending['is_top_up']): ?>
                             <form class="mt-3" id="apply-discount-form" novalidate>
                                 <input type="hidden" name="invoice_public_id" value="<?= esc($pending['public_id'], 'attr') ?>">
                                 <label class="form-label" for="apply-discount-code"><?= lang('BusinessPlans.pay.discount-label') ?></label>
@@ -183,7 +201,11 @@ if (! $hasMonthly && $hasYearly) {
                         </div>
 
                         <div class="col-lg-7">
-                            <?php if ($pending['under_review']): ?>
+                            <?php if ($certificateLate && ! $pending['is_top_up'] && ! $pending['under_review']): ?>
+                                <div class="alert alert-danger mb-0" id="certificate-late">
+                                    <i class="bi bi-exclamation-octagon"></i> <?= lang('BusinessPlans.certificates.late-blocks') ?>
+                                </div>
+                            <?php elseif ($pending['under_review']): ?>
                                 <div class="alert alert-info mb-0" id="payment-under-review">
                                     <i class="bi bi-hourglass-split"></i> <?= lang('BusinessPlans.pay.under-review') ?>
                                 </div>
@@ -231,6 +253,61 @@ if (! $hasMonthly && $hasYearly) {
                             <?php endif ?>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        <?php endif ?>
+
+        <?php // ---- the withholding tax certificates the business owes us ---- ?>
+        <?php if ([] !== $certificates): ?>
+        <div class="col-12">
+            <div class="card<?= $certificateLate ? ' border-danger' : '' ?>" id="certificates-card">
+                <div class="card-header">
+                    <h5 class="card-title"><?= lang('BusinessPlans.certificates.title') ?></h5>
+                    <p class="card-subtitle"><?= esc(lang('BusinessPlans.certificates.subtitle', [$withholding['rule']['certificate_name'] ?? '50 ทวิ'])) ?></p>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                            <tr>
+                                <th><?= lang('BusinessPlans.history.invoice') ?></th>
+                                <th class="text-end"><?= lang('BusinessPlans.certificates.base') ?></th>
+                                <th class="text-end"><?= lang('BusinessPlans.certificates.withheld') ?></th>
+                                <th><?= lang('BusinessPlans.certificates.due') ?></th>
+                                <th><?= lang('BusinessPlans.history.status') ?></th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php foreach ($certificates as $invoice): $cert = (string) ($invoice['wht_cert_status'] ?? ''); ?>
+                                <tr data-certificate-row="<?= esc($invoice['public_id'], 'attr') ?>">
+                                    <td class="text-nowrap"><?= esc($invoice['invoice_no'] ?? '') ?><span class="d-block small text-muted"><?= lang('BusinessPlans.certificates.paid-on', [localTimeTag($invoice['paid_at'] ?? null, 'date')]) ?></span></td>
+                                    <td class="text-end text-nowrap"><?= esc($invoice['amount_due_text']) ?></td>
+                                    <td class="text-end text-nowrap"><?= esc($invoice['wht_amount_text'] ?? '') ?></td>
+                                    <td class="text-nowrap<?= $invoice['certificate_late'] ? ' text-danger fw-semibold' : '' ?>"><?= localTimeTag($invoice['wht_cert_due_at'] ?? null, 'date') ?></td>
+                                    <td>
+                                        <span class="badge <?= $certClass[$cert] ?? 'bg-secondary' ?>"><?= esc($certState[$cert] ?? $cert) ?></span>
+                                        <?php if ($invoice['certificate_late']): ?><span class="d-block small text-danger"><?= lang('BusinessPlans.certificates.late') ?></span><?php endif ?>
+                                        <?php if ($invoice['certificate_rejected']): ?>
+                                            <span class="d-block small text-danger"><?= esc(lang('BusinessPlans.certificates.rejected', [$invoice['last_certificate']['rejection_reason'] ?? ''])) ?></span>
+                                        <?php endif ?>
+                                    </td>
+                                    <td class="text-end">
+                                        <?php if ('U' !== $cert): ?>
+                                            <button type="button" class="btn btn-sm btn-primary text-nowrap" data-certificate-upload
+                                                    data-invoice="<?= esc($invoice['public_id'], 'attr') ?>" data-invoice-no="<?= esc($invoice['invoice_no'] ?? '', 'attr') ?>"
+                                                    data-base="<?= esc((string) ($invoice['amount_due'] ?? ''), 'attr') ?>" data-withheld="<?= esc((string) ($invoice['wht_amount'] ?? ''), 'attr') ?>">
+                                                <i class="bi bi-upload"></i> <?= lang('BusinessPlans.certificates.upload') ?>
+                                            </button>
+                                        <?php endif ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="small text-muted mt-3 mb-0"><i class="bi bi-info-circle"></i> <?= lang('BusinessPlans.certificates.note') ?></p>
                 </div>
             </div>
         </div>
@@ -342,6 +419,84 @@ if (! $hasMonthly && $hasYearly) {
         </div>
         <?php endif ?>
 
+        <?php // ---- withholding tax: ask for it, or stop it ---- ?>
+        <?php if (null !== $withholding): $rule = $withholding['rule']; $whtStatus = (string) $withholding['wht_status']; ?>
+        <div class="col-12">
+            <div class="card" id="withholding-card">
+                <div class="card-header d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                        <h5 class="card-title"><?= lang('BusinessPlans.withholding.title') ?></h5>
+                        <p class="card-subtitle"><?= lang('BusinessPlans.withholding.subtitle') ?></p>
+                    </div>
+                    <?php if ('R' === $whtStatus): ?>
+                        <span class="badge bg-warning text-dark"><?= lang('BusinessPlans.withholding.status.R') ?></span>
+                    <?php elseif ('A' === $whtStatus): ?>
+                        <span class="badge bg-success"><?= lang('BusinessPlans.withholding.status.A') ?></span>
+                    <?php endif ?>
+                </div>
+                <div class="card-body">
+                    <?php if (null !== $rule): ?>
+                        <p class="mb-3"><?= esc(lang('BusinessPlans.withholding.explain', [rtrim(rtrim((string) $rule['rate'], '0'), '.'), $rule['certificate_name'] ?? '']))
+                            ?><?php if (null !== $withholding['min_base_text']): ?> <?= esc(lang('BusinessPlans.withholding.minimum', [$withholding['min_base_text']])) ?><?php endif ?></p>
+                    <?php endif ?>
+
+                    <?php if ('N' === $whtStatus): ?>
+                        <?php if (! $withholding['has_tax_id']): ?>
+                            <div class="alert alert-warning mb-0"><i class="bi bi-exclamation-triangle"></i>
+                                <?= lang('BusinessPlans.withholding.needs-tax-id') ?>
+                                <a href="<?= esc($urls['business'], 'attr') ?>" class="alert-link"><?= lang('BusinessPlans.withholding.edit-business') ?></a></div>
+                        <?php else: ?>
+                            <form id="withholding-form" class="row g-3" novalidate>
+                                <?php if (count($withholding['rules']) > 1): ?>
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="wht-rule"><?= lang('BusinessPlans.withholding.rule') ?></label>
+                                        <select class="form-select" id="wht-rule" name="wht_rule_code">
+                                            <?php foreach ($withholding['rules'] as $option): ?>
+                                                <option value="<?= esc($option['rule_code'], 'attr') ?>"><?= esc($option['rule_code'] . ' (' . rtrim(rtrim((string) $option['rate'], '0'), '.') . '%)') ?></option>
+                                            <?php endforeach ?>
+                                        </select>
+                                        <div class="invalid-feedback d-block" data-error-for="wht_rule_code"></div>
+                                    </div>
+                                <?php endif ?>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="wht-legal-name"><?= lang('BusinessPlans.withholding.legal-name') ?> <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="wht-legal-name" name="legal_name" maxlength="255" required value="<?= esc((string) ($withholding['legal_name'] ?? ''), 'attr') ?>">
+                                    <div class="form-text"><?= lang('BusinessPlans.withholding.legal-name-help') ?></div>
+                                    <div class="invalid-feedback d-block" data-error-for="legal_name"></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="wht-branch"><?= lang('BusinessPlans.withholding.branch') ?> <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control font-monospace" id="wht-branch" name="tax_branch_code" maxlength="10" inputmode="numeric" pattern="\d{1,10}" required
+                                           value="<?= esc((string) ($withholding['tax_branch_code'] ?? '00000'), 'attr') ?>">
+                                    <div class="form-text"><?= lang('BusinessPlans.withholding.branch-help') ?></div>
+                                    <div class="invalid-feedback d-block" data-error-for="tax_branch_code"></div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="invalid-feedback d-block" data-error-for="tax_id"></div>
+                                    <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> <?= lang('BusinessPlans.withholding.request') ?></button>
+                                </div>
+                            </form>
+                        <?php endif ?>
+                    <?php else: ?>
+                        <dl class="row mb-3">
+                            <dt class="col-sm-4"><?= lang('BusinessPlans.withholding.legal-name') ?></dt>
+                            <dd class="col-sm-8"><?= esc((string) ($withholding['legal_name'] ?? '')) ?></dd>
+                            <dt class="col-sm-4"><?= lang('BusinessPlans.withholding.branch') ?></dt>
+                            <dd class="col-sm-8 font-monospace"><?= esc((string) ($withholding['tax_branch_code'] ?? '')) ?></dd>
+                        </dl>
+                        <?php if ('R' === $whtStatus): ?>
+                            <p class="text-muted"><i class="bi bi-hourglass-split"></i> <?= lang('BusinessPlans.withholding.waiting') ?></p>
+                        <?php endif ?>
+                        <button type="button" class="btn btn-outline-danger" data-plan-action="withdraw" data-danger="1"
+                                data-confirm="<?= esc(lang('R' === $whtStatus ? 'BusinessPlans.withholding.confirm-withdraw' : 'BusinessPlans.withholding.confirm-stop'), 'attr') ?>">
+                            <i class="bi bi-x-circle"></i> <?= lang('R' === $whtStatus ? 'BusinessPlans.withholding.withdraw' : 'BusinessPlans.withholding.stop') ?>
+                        </button>
+                    <?php endif ?>
+                </div>
+            </div>
+        </div>
+        <?php endif ?>
+
         <?php // ---- every invoice the business has had ---- ?>
         <?php if (! empty($history)): ?>
         <div class="col-12">
@@ -366,12 +521,14 @@ if (! $hasMonthly && $hasYearly) {
                             <?php foreach ($history as $invoice): $state = (string) ($invoice['invoice_status'] ?? ''); ?>
                                 <tr>
                                     <td class="text-nowrap"><?= esc($invoice['invoice_no'] ?? '') ?><span class="d-block small text-muted"><?= localTimeTag($invoice['created_at'] ?? null, 'date') ?></span></td>
-                                    <td><?= esc($invoice['plan_name']) ?> / <?= esc($cycles[$invoice['billing_cycle'] ?? ''] ?? '') ?></td>
+                                    <td><?= esc($invoice['plan_name']) ?><?php if (! $invoice['is_top_up']): ?> / <?= esc($cycles[$invoice['billing_cycle'] ?? ''] ?? '') ?><?php endif ?></td>
                                     <td class="text-nowrap"><?php if (! empty($invoice['period_start'])): ?><?= localTimeTag($invoice['period_start'], 'date') ?> &ndash; <?= localTimeTag($invoice['period_end'], 'date') ?><?php else: ?>&mdash;<?php endif ?></td>
-                                    <td class="text-end text-nowrap"><?= esc($invoice['amount_due_text']) ?>
-                                        <?php if (null !== $invoice['discount_amount_text']): ?><span class="d-block small text-muted"><?= esc(lang('BusinessPlans.history.discounted', [$invoice['discount_code'] ?? ''])) ?></span><?php endif ?></td>
+                                    <td class="text-end text-nowrap"><?= esc($invoice['amount_payable_text']) ?>
+                                        <?php if (null !== $invoice['discount_amount_text']): ?><span class="d-block small text-muted"><?= esc(lang('BusinessPlans.history.discounted', [$invoice['discount_code'] ?? ''])) ?></span><?php endif ?>
+                                        <?php if (null !== $invoice['wht_amount_text']): ?><span class="d-block small text-muted"><?= esc(lang('BusinessPlans.history.withheld', [$invoice['wht_amount_text']])) ?></span><?php endif ?></td>
                                     <td><span class="badge <?= $invoiceClass[$state] ?? 'bg-secondary' ?>"><?= esc($invoiceState[$state] ?? $state) ?></span>
-                                        <?php if ($invoice['under_review']): ?><span class="d-block small text-muted"><?= lang('BusinessPlans.history.under-review') ?></span><?php endif ?></td>
+                                        <?php if ($invoice['under_review']): ?><span class="d-block small text-muted"><?= lang('BusinessPlans.history.under-review') ?></span><?php endif ?>
+                                        <?php $cert = (string) ($invoice['wht_cert_status'] ?? 'N'); if ('N' !== $cert): ?><span class="d-block small text-muted"><?= esc(lang('BusinessPlans.history.certificate', [$certState[$cert] ?? $cert])) ?></span><?php endif ?></td>
                                     <td class="text-nowrap"><?php if (! empty($invoice['paid_at'])): ?><?= localTimeTag($invoice['paid_at'], 'date') ?>
                                         <?php if (null !== $invoice['paid_by']): ?><span class="d-block small text-muted"><?= esc($methodName($invoice['paid_by']['method_code'] ?? null)) ?></span><?php endif ?>
                                         <?php else: ?>&mdash;<?php endif ?></td>
@@ -416,6 +573,56 @@ if (! $hasMonthly && $hasYearly) {
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= lang('BusinessPlans.checkout.cancel') ?></button>
                     <button type="submit" class="btn btn-primary"><?= lang('BusinessPlans.checkout.submit') ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <?php endif ?>
+
+    <?php // ---- the certificate of a paid invoice ---- ?>
+    <?php if ([] !== $certificates): ?>
+    <div class="modal fade" id="certificate-modal" tabindex="-1" aria-labelledby="certificate-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content" id="certificate-form" enctype="multipart/form-data" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="certificate-title"><?= lang('BusinessPlans.certificates.modal-title') ?> <span class="text-muted fs-6" data-certificate="invoice-no"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= esc(lang('BusinessPlans.checkout.close'), 'attr') ?>"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="invoice_public_id">
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="form-label" for="certificate-no"><?= lang('BusinessPlans.certificates.number') ?></label>
+                            <input type="text" class="form-control" id="certificate-no" name="certificate_no" maxlength="50" autocomplete="off">
+                            <div class="invalid-feedback d-block" data-error-for="certificate_no"></div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="certificate-issued"><?= lang('BusinessPlans.certificates.issued-on') ?> <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="certificate-issued" name="issued_on" required>
+                            <div class="invalid-feedback d-block" data-error-for="issued_on"></div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="certificate-base"><?= lang('BusinessPlans.certificates.base') ?> <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control text-end" id="certificate-base" name="base_amount" inputmode="decimal" required>
+                            <div class="invalid-feedback d-block" data-error-for="base_amount"></div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="certificate-withheld"><?= lang('BusinessPlans.certificates.withheld') ?> <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control text-end" id="certificate-withheld" name="wht_amount" inputmode="decimal" required>
+                            <div class="invalid-feedback d-block" data-error-for="wht_amount"></div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="certificate-file"><?= lang('BusinessPlans.certificates.file') ?> <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="certificate-file" name="certificate" accept="image/jpeg,image/png,image/webp,application/pdf" required>
+                            <div class="form-text"><?= lang('BusinessPlans.certificates.file-help') ?></div>
+                            <div class="invalid-feedback d-block" data-error-for="certificate"></div>
+                        </div>
+                    </div>
+                    <p class="small text-muted mt-3 mb-0"><i class="bi bi-info-circle"></i> <?= lang('BusinessPlans.certificates.amounts-help') ?></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= lang('BusinessPlans.checkout.cancel') ?></button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> <?= lang('BusinessPlans.certificates.submit') ?></button>
                 </div>
             </form>
         </div>
