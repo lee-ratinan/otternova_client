@@ -20,6 +20,8 @@ $cycles       = lang('BusinessPlans.cycle');
 $statuses     = lang('BusinessPlans.status');
 $statusClass  = ['P' => 'bg-warning text-dark', 'A' => 'bg-success', 'S' => 'bg-danger', 'C' => 'bg-secondary', 'X' => 'bg-secondary'];
 $invoiceState = lang('BusinessPlans.invoice-status');
+// the invoice or receipt as the API renders it, opened in a new tab; see Plans::document()
+$documentUrl  = static fn (string $kind, string $number): string => base_url('admin/plans/document/' . $kind . '/' . rawurlencode($number));
 $invoiceClass = ['P' => 'bg-warning text-dark', 'D' => 'bg-success', 'V' => 'bg-secondary'];
 $certState    = lang('BusinessPlans.certificates.status');
 $certClass    = ['W' => 'bg-warning text-dark', 'U' => 'bg-info', 'A' => 'bg-success', 'T' => 'bg-danger'];
@@ -102,7 +104,8 @@ if (! $hasMonthly && $hasYearly) {
                                     <?php if (null !== $paid['paid_by']): ?>
                                         <span class="text-muted">(<?= esc($methodName($paid['paid_by']['method_code'] ?? null)) ?>)</span>
                                     <?php endif ?>
-                                    <span class="text-muted small d-block"><?= esc($paid['invoice_no'] ?? '') ?></span>
+                                    <span class="text-muted small d-block"><?= esc($paid['invoice_no'] ?? '') ?>
+                                        <?php if (! empty($paid['receipt_no'])): ?>&middot; <a href="<?= esc($documentUrl('receipt', $paid['receipt_no']), 'attr') ?>" target="_blank" rel="noopener"><i class="bi bi-receipt"></i> <?= lang('BusinessPlans.history.receipt-doc') ?></a><?php endif ?></span>
                                 <?php else: ?>
                                     <span class="text-muted"><?= lang('BusinessPlans.current.no-payment') ?></span>
                                 <?php endif ?>
@@ -152,7 +155,8 @@ if (! $hasMonthly && $hasYearly) {
             <div class="card border-warning" id="payment-card">
                 <div class="card-header">
                     <h5 class="card-title"><?= lang('BusinessPlans.pay.title') ?></h5>
-                    <p class="card-subtitle"><?= esc(lang('BusinessPlans.pay.subtitle', [$pending['invoice_no'] ?? ''])) ?></p>
+                    <p class="card-subtitle"><?= esc(lang('BusinessPlans.pay.subtitle', [$pending['invoice_no'] ?? ''])) ?>
+                        <a class="btn btn-sm btn-outline-secondary ms-2" href="<?= esc($documentUrl('invoice', $pending['invoice_no'] ?? ''), 'attr') ?>" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> <?= lang('BusinessPlans.document.view') ?></a></p>
                 </div>
                 <div class="card-body">
                     <div class="row g-4">
@@ -515,6 +519,7 @@ if (! $hasMonthly && $hasYearly) {
                                 <th class="text-end"><?= lang('BusinessPlans.history.amount') ?></th>
                                 <th><?= lang('BusinessPlans.history.status') ?></th>
                                 <th><?= lang('BusinessPlans.history.paid') ?></th>
+                                <th><?= lang('BusinessPlans.history.documents') ?></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -532,6 +537,12 @@ if (! $hasMonthly && $hasYearly) {
                                     <td class="text-nowrap"><?php if (! empty($invoice['paid_at'])): ?><?= localTimeTag($invoice['paid_at'], 'date') ?>
                                         <?php if (null !== $invoice['paid_by']): ?><span class="d-block small text-muted"><?= esc($methodName($invoice['paid_by']['method_code'] ?? null)) ?></span><?php endif ?>
                                         <?php else: ?>&mdash;<?php endif ?></td>
+                                    <td class="text-nowrap">
+                                        <a class="btn btn-sm btn-outline-secondary" href="<?= esc($documentUrl('invoice', $invoice['invoice_no'] ?? ''), 'attr') ?>" target="_blank" rel="noopener"><i class="bi bi-file-earmark-text"></i> <?= lang('BusinessPlans.history.invoice-doc') ?></a>
+                                        <?php if (! empty($invoice['receipt_no'])): ?>
+                                            <a class="btn btn-sm btn-outline-success" href="<?= esc($documentUrl('receipt', $invoice['receipt_no']), 'attr') ?>" target="_blank" rel="noopener"><i class="bi bi-receipt"></i> <?= lang('BusinessPlans.history.receipt-doc') ?></a>
+                                        <?php endif ?>
+                                    </td>
                                 </tr>
                             <?php endforeach ?>
                             </tbody>

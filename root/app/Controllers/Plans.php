@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\ResponseInterface;
 use CURLFile;
 use RuntimeException;
@@ -53,6 +54,9 @@ class Plans extends BaseController
 
     /** How many invoices the billing history shows */
     private const HISTORY_LENGTH = 50;
+
+    /** An invoice number (INV-YYYYMM-000123) or a receipt number (RCT-...), by the document it names */
+    private const DOCUMENT_NUMBERS = ['invoice' => '/^INV-\d{6}-\d{6,}$/', 'receipt' => '/^RCT-\d{6}-\d{6,}$/'];
 
     public function index(): string
     {
@@ -412,6 +416,38 @@ class Plans extends BaseController
             'rule'         => $rule,
             'min_base_text' => null === $rule || null === ($rule['min_base_amount'] ?? null) ? null : self::money($rule['min_base_amount'], (string) $rule['currency_code']),
         ];
+    }
+
+    /**
+     * GET admin/plans/document/{invoice|receipt}/{number}
+     * The invoice or receipt as the API renders it (v1/client/documents/*), opened in a new tab, where it prints on A4
+     * or saves as PDF; it reads the same every time. The API checks that the invoice is the session business's and
+     * the client one of its owners.
+     */
+    public function document(string $kind, string $number): ResponseInterface
+    {
+        $number = strtoupper($number);
+        if (! isset(self::DOCUMENT_NUMBERS[$kind]) || ! preg_match(self::DOCUMENT_NUMBERS[$kind], $number)) {
+            throw PageNotFoundException::forPageNotFound(lang('BusinessPlans.document.not-found'));
+        }
+        [$code, $body, $type] = $this->fetchApiPage('v1/client/documents/' . $kind . '/' . $number);
+        if (in_array($code, [403, 404], true)) {
+            throw PageNotFoundException::forPageNotFound(lang('BusinessPlans.document.not-found'));
+        }
+        if (200 !== $code || ! str_starts_with(strtolower($type), 'text/html')) {
+            log_message('error', 'LINK_INTERNAL_API v1/client/documents/' . $kind . ' returned HTTP ' . $code);
+            throw new RuntimeException(lang('BusinessPlans.document.failed'));
+        }
+
+        // the page is the API's, so it keeps the API's policy: nothing but its own styles, fonts and embedded images
+        return $this->response
+            ->removeHeader('Cache-Control')
+            ->setHeader('Cache-Control', 'private, no-store')
+            ->setHeader('Content-Disposition', 'inline; filename="' . $number . '.html"')
+            ->setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:")
+            ->setHeader('X-Content-Type-Options', 'nosniff')
+            ->setContentType('text/html', 'UTF-8')
+            ->setBody($body);
     }
 
     /**

@@ -124,6 +124,14 @@ return [
         'under-review' => 'Payment being checked',
         'withheld'     => '{0} withheld',
         'certificate'  => 'Certificate: {0}',
+        'documents'    => 'Documents',
+        'invoice-doc'  => 'Invoice',
+        'receipt-doc'  => 'Receipt',
+    ],
+    'document'         => [
+        'not-found' => 'Document not found.',
+        'failed'    => 'Could not load the document. Please try again.',
+        'view'      => 'View invoice',
     ],
     'top-up'           => [
         'name' => 'Withholding tax of {0}',

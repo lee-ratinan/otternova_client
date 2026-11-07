@@ -54,6 +54,7 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('withholding', 'Plans::withholding');
         $routes->post('withholding/withdraw', 'Plans::withdrawWithholding');
         $routes->post('certificate', 'Plans::certificate');
+        $routes->get('document/(invoice|receipt)/(:segment)', 'Plans::document/$1/$2');
     });
     // the people of the session business and their accounts: its owners only, as the API allows
     $routes->group('employees', ['filter' => 'manager:owner'], static function ($routes) {

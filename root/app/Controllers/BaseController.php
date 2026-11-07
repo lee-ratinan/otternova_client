@@ -81,6 +81,28 @@ abstract class BaseController extends Controller
     }
 
     /**
+     * GET a page (not JSON) from LINK_INTERNAL_API with the signed-in client's JWT, such as an invoice document
+     * @return array{int, string, string} [http status, body, Content-Type]; 503 when the API could not be reached
+     */
+    protected function fetchApiPage(string $endpoint): array
+    {
+        try {
+            $response = service('curlrequest')->get(getenv('LINK_INTERNAL_API') . $endpoint, [
+                'headers'     => [
+                    'Accept'        => 'text/html',
+                    'Authorization' => 'Bearer ' . session()->get('access_token'),
+                ],
+                'timeout'     => 15,
+                'http_errors' => false,
+            ]);
+            return [$response->getStatusCode(), (string) $response->getBody(), $response->getHeaderLine('Content-Type')];
+        } catch (Throwable $e) {
+            log_message('error', 'LINK_INTERNAL_API ' . $endpoint . ' failed: ' . $e->getMessage());
+            return [503, '', ''];
+        }
+    }
+
+    /**
      * The DataTables search and order of rows the API sent in full (e.g. storesData())
      * @param array    $rows   rows keyed by column data key
      * @param array    $params lb_request()

@@ -39,13 +39,13 @@ final class PlansPageTest extends CIUnitTestCase
         'current_period_start' => '2026-11-10 05:00:00', 'current_period_end' => '2026-12-10 05:00:00', 'next_billing_at' => '2026-12-10 05:00:00',
         'cancel_at_period_end' => 'N', 'cancel_requested_at' => null, 'suspended_at' => null, 'cancelled_at' => null, 'ended_at' => null,
         'created_at' => '2026-10-10 04:00:00', 'updated_at' => '2026-11-10 05:00:00'];
-    private const PAID_INVOICE = ['public_id' => 'inv000000002', 'invoice_no' => 'INV-202611-000002', 'plan_code' => 'velocity', 'billing_cycle' => 'M',
+    private const PAID_INVOICE = ['public_id' => 'inv000000002', 'invoice_no' => 'INV-202611-000002', 'receipt_no' => 'RCT-202611-000002', 'plan_code' => 'velocity', 'billing_cycle' => 'M',
         'currency_code' => 'THB', 'list_price' => '599.00', 'discount_code' => null, 'discount_amount' => '0.00', 'amount_due' => '599.00',
         'invoice_status' => 'D', 'due_at' => '2026-11-13 05:00:00', 'paid_at' => '2026-11-08 02:00:00', 'voided_at' => null,
         'period_start' => '2026-11-10 05:00:00', 'period_end' => '2026-12-10 05:00:00', 'created_at' => '2026-11-03 05:00:00',
         'payments' => [['public_id' => 'pay000000002', 'method_code' => 'promptpay', 'currency_code' => 'THB', 'amount' => '599.00',
             'txn_status' => 'S', 'provider_ref' => null, 'failure_reason' => null, 'confirmed_at' => '2026-11-08 03:00:00', 'created_at' => '2026-11-08 02:00:00', 'has_slip' => true]]];
-    private const PENDING_INVOICE = ['public_id' => 'inv000000001', 'invoice_no' => 'INV-202611-000001', 'plan_code' => 'boost', 'billing_cycle' => 'M',
+    private const PENDING_INVOICE = ['public_id' => 'inv000000001', 'invoice_no' => 'INV-202611-000001', 'receipt_no' => null, 'plan_code' => 'boost', 'billing_cycle' => 'M',
         'currency_code' => 'THB', 'list_price' => '299.00', 'discount_code' => 'HELLO10', 'discount_amount' => '29.90', 'amount_due' => '269.10',
         'invoice_status' => 'P', 'due_at' => '2026-11-11 05:00:00', 'paid_at' => null, 'voided_at' => null,
         'period_start' => null, 'period_end' => null, 'created_at' => '2026-11-10 05:00:00', 'payments' => []];
@@ -72,6 +72,19 @@ final class PlansPageTest extends CIUnitTestCase
             $this->calls[] = [substr($url, strlen((string) getenv('LINK_INTERNAL_API'))), $options['json'] ?? $options['multipart'] ?? []];
             [$code, $body] = array_shift($replies) ?? [500, []];
             return (new Response(new App()))->setStatusCode($code)->setBody(json_encode($body));
+        });
+        Services::injectMock('curlrequest', $curl);
+    }
+
+    /**
+     * Stub the API's GET of a document page with one reply
+     */
+    private function stubDocument(int $code, string $body, string $type): void
+    {
+        $curl = $this->createMock(CURLRequest::class);
+        $curl->method('get')->willReturnCallback(function (string $url, array $options) use ($code, $body, $type) {
+            $this->calls[] = [substr($url, strlen((string) getenv('LINK_INTERNAL_API'))), $options['headers']['Authorization'] ?? null];
+            return (new Response(new App()))->setStatusCode($code)->setBody($body)->setContentType($type, '');
         });
         Services::injectMock('curlrequest', $curl);
     }
@@ -153,6 +166,8 @@ final class PlansPageTest extends CIUnitTestCase
         $result->assertSee('Current plan');
         $result->assertSee('Cancel your subscription to move to the free plan.');
         $result->assertSee('id="billing-history-card"');
+        $result->assertSee(base_url('admin/plans/document/invoice/INV-202611-000002') . '" target="_blank"');
+        $result->assertSee(base_url('admin/plans/document/receipt/RCT-202611-000002'));
         $result->assertDontSee('id="payment-card"');
         $result->assertDontSee('id="checkout-modal"');
     }
@@ -204,6 +219,8 @@ final class PlansPageTest extends CIUnitTestCase
         $result->assertSee('Awaiting Payment');
         $result->assertSee('This subscription starts once its first invoice is paid.');
         $result->assertSee('id="payment-card"');
+        $result->assertSee(base_url('admin/plans/document/invoice/INV-202611-000001'));
+        $result->assertDontSee('admin/plans/document/receipt/');
         $result->assertSee('269.10บ.');
         $result->assertSee('HELLO10');
         $result->assertSee('0105555555555');
@@ -276,6 +293,42 @@ final class PlansPageTest extends CIUnitTestCase
 
         $result->assertStatus(422);
         $this->assertSame(['slip' => 'Please attach the payment slip.'], $this->json($result)['errors']);
+        $this->assertSame([], $this->calls);
+    }
+
+    public function testADocumentOpensAsTheApiRendersIt(): void
+    {
+        $page = '<!DOCTYPE html><html lang="th"><body>ใบแจ้งหนี้ INV-202611-000001</body></html>';
+        $this->stubDocument(200, $page, 'text/html; charset=UTF-8');
+
+        $result = $this->withSession($this->session('O'))->get('admin/plans/document/invoice/inv-202611-000001');
+
+        $result->assertOK();
+        $this->assertSame([['v1/client/documents/invoice/INV-202611-000001', 'Bearer test-token']], $this->calls);
+        $this->assertSame($page, $result->response()->getBody());
+        $this->assertSame('text/html; charset=UTF-8', $result->response()->getHeaderLine('Content-Type'));
+        $this->assertSame('inline; filename="INV-202611-000001.html"', $result->response()->getHeaderLine('Content-Disposition'));
+        $this->assertSame('private, no-store', $result->response()->getHeaderLine('Cache-Control'));
+    }
+
+    public function testADocumentThatIsNotTheBusinesssIsNotFound(): void
+    {
+        $this->stubDocument(404, json_encode(['status' => 'error', 'message' => 'Receipt not found.']), 'application/json');
+        $this->expectException(\CodeIgniter\Exceptions\PageNotFoundException::class);
+        $this->withSession($this->session('O'))->get('admin/plans/document/receipt/RCT-202611-000009');
+    }
+
+    public function testADocumentNumberIsCheckedBeforeAsking(): void
+    {
+        $this->stubDocument(200, '<html></html>', 'text/html');
+        foreach (['invoice/RCT-202611-000001', 'receipt/INV-202611-000001', 'invoice/..%2F..%2Fstaff'] as $path) {
+            try {
+                $this->withSession($this->session('O'))->get('admin/plans/document/' . $path);
+                $this->fail($path . ' was asked for');
+            } catch (\CodeIgniter\Exceptions\PageNotFoundException) {
+            }
+        }
+        $this->withSession($this->session('M'))->get('admin/plans/document/invoice/INV-202611-000001')->assertRedirectTo(base_url('admin/dashboard'));
         $this->assertSame([], $this->calls);
     }
 }
