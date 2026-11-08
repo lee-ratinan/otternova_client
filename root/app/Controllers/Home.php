@@ -414,7 +414,7 @@ class Home extends BaseController
      */
     private function callPublicApi(string $endpoint, array $payload, ?string $token = null): array
     {
-        $headers = ['Accept' => 'application/json'];
+        $headers = ['Accept' => 'application/json', 'Accept-Language' => service('request')->getLocale()];
         if ($token !== null) {
             $headers['Authorization'] = 'Bearer ' . $token;
         }

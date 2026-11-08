@@ -121,7 +121,7 @@ if (!function_exists('userDepartmentCode')) {
         if (! array_key_exists('department_code', $user)) {
             try {
                 $response = service('curlrequest')->get(getenv('LINK_INTERNAL_API') . 'v1/staff/me', [
-                    'headers'     => ['Accept' => 'application/json', 'Authorization' => 'Bearer ' . session('access_token')],
+                    'headers'     => ['Accept' => 'application/json', 'Accept-Language' => service('request')->getLocale(), 'Authorization' => 'Bearer ' . session('access_token')],
                     'timeout'     => 15,
                     'http_errors' => false,
                 ]);

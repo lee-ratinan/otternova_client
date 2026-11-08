@@ -60,8 +60,9 @@ abstract class BaseController extends Controller
             $response = service('curlrequest')->post(getenv('LINK_INTERNAL_API') . $endpoint, [
                 ($multipart ? 'multipart' : 'json') => $payload,
                 'headers'     => [
-                    'Accept'        => 'application/json',
-                    'Authorization' => 'Bearer ' . session()->get('access_token'),
+                    'Accept'          => 'application/json',
+                    'Accept-Language' => service('request')->getLocale(),
+                    'Authorization'   => 'Bearer ' . session()->get('access_token'),
                 ],
                 'timeout'     => 15,
                 'http_errors' => false,
@@ -89,8 +90,9 @@ abstract class BaseController extends Controller
         try {
             $response = service('curlrequest')->get(getenv('LINK_INTERNAL_API') . $endpoint, [
                 'headers'     => [
-                    'Accept'        => 'text/html',
-                    'Authorization' => 'Bearer ' . session()->get('access_token'),
+                    'Accept'          => 'text/html',
+                    'Accept-Language' => service('request')->getLocale(),
+                    'Authorization'   => 'Bearer ' . session()->get('access_token'),
                 ],
                 'timeout'     => 15,
                 'http_errors' => false,
