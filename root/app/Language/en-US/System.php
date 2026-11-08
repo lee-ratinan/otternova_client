@@ -28,9 +28,10 @@ return [
         'artifact-attributes'       => 'Variant Options',
         'artifact-attribute-create' => 'Create Variant Option',
         'sales'                 => 'Sales',
-        'staff'                 => 'Staff',
+        'staff'                 => 'Staff Assignment',
         'commission'            => 'Commission',
-        'reviews'               => 'Reviews'
+        'reviews'               => 'Reviews',
+        'public-profiles'       => 'Public Profiles',
     ],
     'header'     => [
         'toggle-theme'           => 'Toggle Theme',

@@ -324,23 +324,6 @@ class Admin extends BaseController
     }
 
     /**
-     * Show user's public profile - the user must be the user of the same business.
-     * @param string $uid
-     * @return string
-     */
-    public function publicProfile(string $uid): string
-    {
-        $user = (array) session('user');
-        $data = [
-            'locale' => $this->request->getLocale(),
-            'slug'   => 'public-profile',
-            'user'   => $user,
-            'profile' => $user // actually, need to be the owner of uid
-        ];
-        return view('admin_public_profile', $data);
-    }
-
-    /**
      * The form to create a business, where a client active in no business lands after sign-in (see AuthFilter).
      * The type options come from LINK_INTERNAL_API v1/client/business-types (active types only).
      */

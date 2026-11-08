@@ -28,9 +28,10 @@ return [
         'artifact-attributes'       => 'คุณสมบัติของตัวเลือก',
         'artifact-attribute-create' => 'สร้างคุณสมบัติของตัวเลือก',
         'sales'                 => 'การขาย',
-        'staff'                 => 'พนักงานประจำร้าน',
+        'staff'                 => 'การจัดสรรพนักงาน',
         'commission'            => 'ค่าคอมมิชชัน',
-        'reviews'               => 'รีวิว'
+        'reviews'               => 'รีวิว',
+        'public-profiles'       => 'ประวัติสาธารณะ',
     ],
     'header'     => [
         'toggle-theme'           => 'สลับธีม',

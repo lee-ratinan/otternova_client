@@ -227,48 +227,55 @@
             </li>
             <!-- ONLY BUSINESS OWNER and MANAGER -->
             <?php if (canManageBusiness()): ?>
-            <li class="nav-heading"><span><?= lang('System.page.business') ?></span></li>
-            <li class="nav-item has-submenu ">
-                <a class="nav-link" href="#" aria-expanded="false">
-                    <span class="nav-icon"><i class="bi bi-shop"></i></span>
-                    <span class="nav-text"><?= lang('System.page.business') ?></span>
-                    <i class="ph ph-caret-right nav-arrow"></i>
-                </a>
-                <ul class="nav-submenu ">
-                    <li><a class="nav-link<?= ('business' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business') ?>"><?= lang('System.page.business') ?></a></li>
-                    <li><a class="nav-link<?= ('stores' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/stores') ?>"><?= lang('System.page.stores') ?></a></li>
-                    <li><a class="nav-link<?= ('commission' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/commission') ?>"><?= lang('System.page.commission') ?></a></li>
-                    <?php if (isBusinessOwner()): ?>
-                    <li><a class="nav-link<?= ('plans' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/plans') ?>"><?= lang('System.page.plans') ?></a></li>
-                    <?php endif ?>
-                </ul>
-            </li>
-            <?php if (isBusinessOwner()): ?>
-            <li class="nav-item">
-                <a class="nav-link<?= ('employees' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/employees') ?>">
-                    <span class="nav-icon"><i class="bi bi-people"></i></span>
-                    <span class="nav-text"><?= lang('System.page.employees') ?></span>
-                </a>
-            </li>
-            <?php endif ?>
-            <li class="nav-item">
-                <a class="nav-link<?= ('staff' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/staff') ?>">
-                    <span class="nav-icon"><i class="bi bi-person-badge"></i></span>
-                    <span class="nav-text"><?= lang('System.page.staff') ?></span>
-                </a>
-            </li>
-            <li class="nav-item has-submenu ">
-                <a class="nav-link" href="#" aria-expanded="false">
-                    <span class="nav-icon"><i class="bi bi-box"></i></span>
-                    <span class="nav-text"><?= lang('System.page.products-and-services') ?></span>
-                    <i class="ph ph-caret-right nav-arrow"></i>
-                </a>
-                <ul class="nav-submenu ">
-                    <li><a class="nav-link<?= ('artifacts' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts') ?>"><?= lang('System.page.artifacts') ?></a></li>
-                    <li><a class="nav-link<?= ('artifact-categories' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts/categories') ?>"><?= lang('System.page.artifact-categories') ?></a></li>
-                    <li><a class="nav-link<?= ('artifact-attributes' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts/attributes') ?>"><?= lang('System.page.artifact-attributes') ?></a></li>
-                </ul>
-            </li>
+                <li class="nav-heading"><span><?= lang('System.page.business') ?></span></li>
+                <li class="nav-item has-submenu">
+                    <a class="nav-link" href="#" aria-expanded="false">
+                        <span class="nav-icon"><i class="bi bi-shop"></i></span>
+                        <span class="nav-text"><?= lang('System.page.business') ?></span>
+                        <i class="ph ph-caret-right nav-arrow"></i>
+                    </a>
+                    <ul class="nav-submenu">
+                        <li><a class="nav-link<?= ('business' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business') ?>"><?= lang('System.page.business') ?></a></li>
+                        <li><a class="nav-link<?= ('stores' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/stores') ?>"><?= lang('System.page.stores') ?></a></li>
+                        <li><a class="nav-link<?= ('commission' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/commission') ?>"><?= lang('System.page.commission') ?></a></li>
+                        <?php if (isBusinessOwner()): ?>
+                            <li><a class="nav-link<?= ('plans' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/plans') ?>"><?= lang('System.page.plans') ?></a></li>
+                        <?php endif ?>
+                    </ul>
+                </li>
+                <li class="nav-item has-submenu">
+                    <a class="nav-link" href="#" aria-expanded="false">
+                        <span class="nav-icon"><i class="bi bi-people"></i></span>
+                        <span class="nav-text"><?= lang('System.page.employees') ?></span>
+                        <i class="ph ph-caret-right nav-arrow"></i>
+                    </a>
+                    <ul class="nav-submenu">
+                        <?php if (isBusinessOwner()): ?>
+                            <li><a class="nav-link<?= ('employees' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/employees') ?>"><?= lang('System.page.employees') ?></a></li>
+                        <?php endif ?>
+                        <li><a class="nav-link<?= ('staff' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/staff') ?>"><?= lang('System.page.staff') ?></a></li>
+                        <li><a class="nav-link<?= ('public-profiles' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/public-profiles') ?>"><?= lang('System.page.public-profiles') ?></a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-submenu ">
+                    <a class="nav-link" href="#" aria-expanded="false">
+                        <span class="nav-icon"><i class="bi bi-box"></i></span>
+                        <span class="nav-text"><?= lang('System.page.products-and-services') ?></span>
+                        <i class="ph ph-caret-right nav-arrow"></i>
+                    </a>
+                    <ul class="nav-submenu ">
+                        <li><a class="nav-link<?= ('artifacts' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts') ?>"><?= lang('System.page.artifacts') ?></a></li>
+                        <li><a class="nav-link<?= ('artifact-categories' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts/categories') ?>"><?= lang('System.page.artifact-categories') ?></a></li>
+                        <li><a class="nav-link<?= ('artifact-attributes' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts/attributes') ?>"><?= lang('System.page.artifact-attributes') ?></a></li>
+                    </ul>
+                </li>
+            <?php else: ?>
+                <li class="nav-item">
+                    <a class="nav-link<?= ('public-profiles' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/public-profiles') ?>">
+                        <span class="nav-icon"><i class="bi bi-people"></i></span>
+                        <span class="nav-text"><?= lang('System.page.public-profiles') ?></span>
+                    </a>
+                </li>
             <?php endif ?>
             <li class="nav-item">
                 <a class="nav-link<?= ('reviews' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/reviews') ?>">

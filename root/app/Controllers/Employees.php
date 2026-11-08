@@ -13,7 +13,8 @@ use RuntimeException;
 /**
  * The people of the session business: everyone in business_client_link, active and terminated, its owners included.
  * Its owners only (the routes' manager:owner filter, and v1/client/employee* in the API). A person comes in by their
- * auth_master.uid.
+ * auth_master.uid. The exception: publicProfiles() and publicProfile(), the read-only public profiles of the people
+ * active in the business, open to anyone active in it (v1/client/colleague* in the API).
  *
  * What an owner sees and changes of an account (the API keeps the same lists, AuthAccountModel::OWNER_*):
  * - auth_master: email_address, telephone_number (the account holder's own to set), password_expiry, avatar,
@@ -585,5 +586,161 @@ class Employees extends BaseController
             }
         }
         return $fields;
+    }
+
+    /**
+     * The people active in the session business, so colleagues can know each other (generic_list); each row opens
+     * their public profile. Anyone active in the business sees it, whatever their role.
+     */
+    public function publicProfiles(): string
+    {
+        return view('generic_list', [
+            'locale'     => $this->request->getLocale(),
+            'slug'       => 'public-profiles',
+            'user'       => (array) session('user'),
+            'listConfig' => $this->publicListConfig(),
+        ]);
+    }
+
+    /**
+     * DataTables data of publicProfiles(), from LINK_INTERNAL_API v1/client/colleagues { business_slug }: the people
+     * active in the business, all sent at once, so the search, order and paging are done here
+     */
+    public function publicProfilesData(): ResponseInterface
+    {
+        $config = $this->publicListConfig();
+        $params = lb_request($this->request, $config);
+        [$code, $body] = $this->callApi('v1/client/colleagues', ['business_slug' => (string) currentBusinessSlug()]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            $error = (string) ($body['message'] ?? lang('Employees.public.load-failed'));
+            return $this->response->setJSON(lb_response($params['draw'], 0, 0, []) + ['error' => $error, 'csrf_hash' => csrf_hash()]);
+        }
+
+        $roles = lang('BusinessClientLink.enum.client_role');
+        $rows  = [];
+        foreach ((array) ($body['data']['colleagues'] ?? []) as $colleague) {
+            $fullName = (string) ($colleague['full_name'] ?? '');
+            $rows[]   = [
+                'uid'         => (string) ($colleague['uid'] ?? ''),
+                'person'      => '', // searched through name, full_name and status (searchAndOrder() looks only at a row's columns)
+                'name'        =>trim((string) ($colleague['display_name'] ?? '')) ?: $fullName,
+                'full_name'   => $fullName,
+                'avatar'      => avatarUrl($colleague['avatar_path'] ?? null),
+                'status'      => trim(($colleague['status_emoji'] ?? '') . ' ' . ($colleague['status_message'] ?? '')),
+                'client_role' => (string) ($colleague['client_role'] ?? ''),
+                'start_date'  => (string) ($colleague['start_date'] ?? ''),
+            ];
+        }
+        $total = count($rows);
+        // search and order by what the viewer sees: the names and status, the role's label, the date (Y-m-d orders as a date)
+        $rows = $this->searchAndOrder($rows, $params, static fn (array $row, string $column) => match ($column) {
+            'person'      => $row['name'] . ' ' . $row['full_name'] . ' ' . $row['status'],
+            'client_role' => (string) ($roles[$row['client_role']] ?? $row['client_role']),
+            default       => (string) ($row[$column] ?? ''),
+        });
+        $filtered = count($rows);
+        $locale   = $this->request->getLocale();
+        $rows     = array_map(static fn (array $row) => [
+            'uid'         => $row['uid'],
+            'person'      => self::personCell($row),
+            'client_role' => $row['client_role'],
+            'start_date'  => '' === $row['start_date'] ? '' : (string) formatDate($row['start_date'], $locale),
+        ], array_slice($rows, $params['start'], $params['length']));
+
+        return $this->response->setJSON(lb_response($params['draw'], $total, $filtered, lb_rows($rows, $config)) + ['csrf_hash' => csrf_hash()]);
+    }
+
+    /**
+     * The public profile of someone active in the session business, from LINK_INTERNAL_API v1/client/colleague
+     * { business_slug, uid }; the API answers 404 for anyone not working there (never, or no longer). Read only.
+     * @param string $uid auth_master.uid
+     */
+    public function publicProfile(string $uid): string
+    {
+        [$code, $body] = $this->callApi('v1/client/colleague', ['business_slug' => (string) currentBusinessSlug(), 'uid' => $uid]);
+        if (404 === $code) {
+            throw PageNotFoundException::forPageNotFound(lang('Employees.public.not-found'));
+        }
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            throw new RuntimeException($body['message'] ?? lang('Employees.public.load-failed'));
+        }
+        $data     = (array) ($body['data'] ?? []);
+        $account  = (array) ($data['account'] ?? []);
+        $profile  = (array) ($data['profile'] ?? []);
+        $link     = (array) ($data['link'] ?? []);
+        $locale   = $this->request->getLocale();
+        $fullName = (string) ($account['full_name'] ?? '');
+        $phone    = (string) ($account['telephone_number'] ?? '');
+        $birth    = (string) ($profile['date_of_birth'] ?? '');
+        $start    = (string) ($link['start_date'] ?? '');
+
+        $person = [
+            'name'           => trim((string) ($profile['display_name'] ?? '')) ?: $fullName,
+            'full_name'      => $fullName,
+            'avatar'         => avatarUrl($account['avatar_path'] ?? null),
+            'status_emoji'   => (string) ($profile['status_emoji'] ?? ''),
+            'status_message' => (string) ($profile['status_message'] ?? ''),
+            'bio'            => (string) ($profile['bio'] ?? ''),
+            'role'           => (string) (lang('BusinessClientLink.enum.client_role')[$link['client_role'] ?? ''] ?? ''),
+            'start_date'     => '' === $start ? '' : (string) formatDate($start, $locale),
+            'email_address'  => (string) ($account['email_address'] ?? ''),
+            'telephone'      => '' === $phone ? '' : formatPhoneNumber($phone),
+            'telephone_e164' => $phone,
+            'gender'         => (string) (lang('ClientMaster.enum.gender')[$profile['gender'] ?? ''] ?? ''),
+            'date_of_birth'  => '' === $birth ? '' : (string) formatDate($birth, $locale),
+            'nationality'    => (string) (listCountries()[$profile['nationality_code'] ?? ''] ?? ''),
+            'language'       => (string) (listLanguages()[$profile['preferred_language'] ?? ''] ?? ''),
+            'is_self'        => (bool) ($data['is_self'] ?? false),
+        ];
+
+        return view('admin_public_profile', [
+            'locale'       => $locale,
+            'slug'         => 'public-profiles',
+            'user'         => (array) session('user'),
+            'page_title'   => esc($person['name']),
+            'breadcrumbs'  => [base_url('admin/public-profiles') => lang('System.page.public-profiles')],
+            'person'       => $person,
+            'businessName' => (string) currentBusinessName(),
+        ]);
+    }
+
+    /**
+     * Table Builder config of publicProfiles(): each row's button opens the person's public profile; no Add button
+     */
+    private function publicListConfig(): array
+    {
+        $link = (new BusinessClientLinkModel())->getConfiguration();
+        return [
+            'table_id' => 'public-profiles-table',
+            'title'    => lang('Employees.public.title'),
+            'subtitle' => lang('Employees.public.subtitle', [(string) currentBusinessName()]),
+            'id_field' => 'uid',
+            'urls'     => [
+                'data' => base_url('admin/public-profiles/data'),
+                'edit' => base_url('admin/public-profile/{uid}'),
+            ],
+            'labels'   => ['edit' => lang('Employees.public.view')],
+            'messages' => ['loadFailed' => lang('Employees.public.load-failed')],
+            'columns'  => [
+                ['data' => 'person', 'title' => lang('Employees.public.column.person'), 'type' => 'html'],
+                ['data' => 'client_role', 'title' => lang('Employees.public.column.client_role'), 'type' => 'badge', 'badges' => $link['client_role']['badges']],
+                ['data' => 'start_date', 'title' => lang('Employees.public.column.start_date'), 'searchable' => false],
+            ],
+            'order'    => [['person', 'asc']],
+        ];
+    }
+
+    /**
+     * The Name cell of publicProfiles(): photo, the name shown (display name, else full name), and under it the full
+     * name when it differs, and the status. Everything from the API is escaped, as the column is inserted as HTML.
+     */
+    private static function personCell(array $row): string
+    {
+        $under = array_filter([$row['name'] !== $row['full_name'] ? $row['full_name'] : '', $row['status']], static fn (string $text) => '' !== $text);
+        return '<div class="d-flex align-items-center gap-2">'
+            . '<img src="' . esc($row['avatar'], 'attr') . '" alt="" class="rounded-circle flex-shrink-0" width="40" height="40" style="object-fit: cover">'
+            . '<div><div class="fw-semibold">' . esc($row['name']) . '</div>'
+            . ([] === $under ? '' : '<small class="text-muted">' . esc(implode(' · ', $under)) . '</small>')
+            . '</div></div>';
     }
 }

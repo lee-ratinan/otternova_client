@@ -21,7 +21,6 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->get('dashboard', 'Admin::dashboard');
     $routes->get('create-business', 'Admin::createBusiness');
     $routes->post('create-business', 'Admin::createBusinessPost');
-    $routes->get('public-profile/(:any)', 'Admin::publicProfile/$1');
     $routes->get('profile', 'Admin::profile');
     $routes->post('profile/save', 'Admin::profileEditPost');
     $routes->post('profile/password', 'Admin::profilePasswordPost');
@@ -31,6 +30,10 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->post('my-businesses/data', 'Admin::myBusinessesData');
     $routes->post('my-businesses/make-default', 'Admin::myBusinessesMakeDefault');
     $routes->post('my-businesses/switch', 'Admin::myBusinessesSwitch');
+    // the public profiles of the people of the session business: anyone active in it
+    $routes->get('public-profiles', 'Employees::publicProfiles');
+    $routes->post('public-profiles/data', 'Employees::publicProfilesData');
+    $routes->get('public-profile/(:any)', 'Employees::publicProfile/$1');
     // the session business and its stores: its owners and managers only (see BusinessManagerFilter)
     $routes->group('business', ['filter' => 'manager'], static function ($routes) {
         $routes->get('/', 'Admin::business');
