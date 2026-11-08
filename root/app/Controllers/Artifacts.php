@@ -181,6 +181,12 @@ class Artifacts extends BaseController
             'max'        => (int) ($variantCap['max'] ?? 0),
             'planName'   => planName($plan),
         ];
+        $needsForm = null;
+        if (null !== $publicId && self::TYPE_SERVICE === $type) {
+            $resources = new Resources();
+            $resources->initController($this->request, $this->response, service('logger'));
+            $needsForm = $resources->needsFormConfig($publicId, $locale);
+        }
 
         return view('generic_form', [
             'locale'       => $locale,
@@ -208,6 +214,8 @@ class Artifacts extends BaseController
                 'fields'   => $this->fields($type, $typeCaps, $plan, (string) ($values['artifact_status'] ?? ''), $editor,
                     array_intersect_key((array) ($detail['artifact'] ?? []), array_flip(['rating_count', 'rating_average', 'rating_breakdown']))),
             ],
+            // a saved service: the resources it needs besides a person (see App\Controllers\Resources)
+            'extraForms'   => $needsForm === null ? [] : [$needsForm],
             'extraHtml'    => view('artifacts/images', [
                 'publicId' => $publicId,
                 'images'   => (array) ($detail['images'] ?? []),
@@ -230,7 +238,7 @@ class Artifacts extends BaseController
                         'reorder' => base_url('admin/artifacts/image-reorder'),
                     ],
                 ],
-            ]),
+            ]) . (null === $needsForm ? '' : "\n" . view('scripts/service_resources')),
         ]);
     }
 

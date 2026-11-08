@@ -48,6 +48,17 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('stores/hours/save', 'StoreHours::save');
         $routes->post('stores/hours/exception-save', 'StoreHours::exceptionSave');
         $routes->post('stores/hours/exception-delete', 'StoreHours::exceptionDelete');
+        // the kinds of resource the services need, and the real ones at each store; see App\Controllers\Resources
+        $routes->get('resource-types', 'Resources::types');
+        $routes->post('resource-types/data', 'Resources::typesData');
+        $routes->get('resource-types/create', 'Resources::typeForm');
+        $routes->get('resource-types/edit/(:segment)', 'Resources::typeForm/$1');
+        $routes->post('resource-types/save', 'Resources::typeSave');
+        $routes->get('resources', 'Resources::index');
+        $routes->post('resources/data', 'Resources::data');
+        $routes->get('resources/create', 'Resources::form');
+        $routes->get('resources/edit/(:segment)', 'Resources::form/$1');
+        $routes->post('resources/save', 'Resources::save');
         // how the business pays commission; see App\Controllers\Staff
         $routes->get('commission', 'Staff::commission');
         $routes->post('commission/save', 'Staff::commissionSave');
@@ -104,6 +115,8 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('image-upload', 'Artifacts::imageUpload');
         $routes->post('image-delete', 'Artifacts::imageDelete');
         $routes->post('image-reorder', 'Artifacts::imageReorder');
+        // the resources a service needs; see App\Controllers\Resources
+        $routes->post('resources/save', 'Resources::saveNeeds');
         // what the products and services are grouped by, and what their variants differ by
         $routes->get('categories', 'ArtifactCategories::index');
         $routes->post('categories/data', 'ArtifactCategories::data');
