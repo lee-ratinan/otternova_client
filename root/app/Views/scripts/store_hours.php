@@ -7,6 +7,8 @@
  *   as JSON, as the API takes the openings; Cancel brings back the saved ones.
  * - the special hours table (stores/hours_exceptions): Edit loads a date into the special-hours form, Delete removes
  *   it after asking, and the page reloads.
+ * A person's working hours page (Staff::hours()) uses it too, with $stores: each shift then has the store it is at,
+ * sent as store_public_id, and the other options below say what differs.
  *
  * @var string $publicId    business_store.public_id
  * @var array  $weekly      [{day_of_week, open_time, close_time}], as v1/client/store/hours sends them
@@ -15,6 +17,12 @@
  * @var array  $fields      ['weekly' => hidden field, 'special' => hidden field]
  * @var array  $kinds       ['closed' => ..., 'open' => ...], the values of the exception_kind radios
  * @var string $deleteUrl
+ * Optional, for other pages:
+ * @var array  $stores      [['public_id' => ..., 'label' => ...]]: a store dropdown on each opening
+ * @var array  $identity    what the delete request names the page by (default ['public_id' => $publicId])
+ * @var array  $forms       the forms' ids (default weekly-hours-form, special-hours-form)
+ * @var array  $labels      labels in place of the defaults below
+ * @var array  $fill        more fields Edit fills from an exception, field name => its key (e.g. exception_type)
  */
 $days = [];
 foreach (range(1, 7) as $day) {
@@ -29,8 +37,11 @@ $config = [
     'kinds'       => $kinds,
     'deleteUrl'   => $deleteUrl,
     'days'        => $days,
-    'forms'       => ['weekly' => 'weekly-hours-form', 'special' => 'special-hours-form'],
-    'labels'      => [
+    'stores'      => $stores ?? [],
+    'identity'    => $identity ?? ['public_id' => $publicId],
+    'fill'        => $fill ?? [],
+    'forms'       => ($forms ?? []) + ['weekly' => 'weekly-hours-form', 'special' => 'special-hours-form'],
+    'labels'      => ($labels ?? []) + [
         'closed'        => lang('StoreHours.editor.closed'),
         'add'           => lang('StoreHours.editor.add'),
         'opens'         => lang('StoreHours.editor.opens'),
@@ -41,6 +52,7 @@ $config = [
         'delete'        => lang('StoreHours.list.delete'),
         'cancel'        => lang('Form.button.cancel'),
         'failed'        => lang('StoreHours.save-failed'),
+        'store'         => lang('StoreHours.editor.store'),
     ],
     'csrf'        => ['header' => csrf_header(), 'hash' => csrf_hash()],
 ];
@@ -70,8 +82,17 @@ $config = [
     var box = root.querySelector('[data-openings-days]');
     var state = {};
 
+    function storeSelect(o) {
+      if (!cfg.stores.length) { return ''; }
+      return '<select class="form-select form-select-sm" style="width: auto; max-width: 14rem" data-store aria-label="' + esc(cfg.labels.store) + '">'
+        + cfg.stores.map(function (st) {
+          return '<option value="' + esc(st.public_id) + '"' + (st.public_id === o.store ? ' selected' : '') + '>' + esc(st.label) + '</option>';
+        }).join('') + '</select>';
+    }
+
     function slot(i, o) {
       return '<div class="d-flex flex-wrap align-items-center gap-2 mb-2" data-slot="' + i + '">'
+        + storeSelect(o)
         + '<input type="time" step="60" class="form-control form-control-sm" style="width: 8.5rem" data-open aria-label="' + esc(cfg.labels.opens) + '" value="' + esc(o.open) + '">'
         + '<span aria-hidden="true">–</span>'
         + '<input type="time" step="60" class="form-control form-control-sm" style="width: 8.5rem" data-close aria-label="' + esc(cfg.labels.closes) + '" value="' + esc(o.close) + '">'
@@ -98,8 +119,10 @@ $config = [
       var out = [];
       days.forEach(function (d) {
         state[d.key].forEach(function (o) {
-          var row = { open_time: o.open, close_time: o.close };
-          if (d.day) { row = { day_of_week: d.day, open_time: o.open, close_time: o.close }; }
+          var row = d.day ? { day_of_week: d.day } : {};
+          if (cfg.stores.length) { row.store_public_id = o.store; }
+          row.open_time = o.open;
+          row.close_time = o.close;
           out.push(row);
         });
       });
@@ -110,28 +133,33 @@ $config = [
     function load(byKey) {
       state = {};
       days.forEach(function (d) {
-        state[d.key] = (byKey[d.key] || []).map(function (o) { return { open: o.open_time || '', close: o.close_time || '' }; });
+        state[d.key] = (byKey[d.key] || []).map(function (o) { return { open: o.open_time || '', close: o.close_time || '', store: o.store_public_id || firstStore() }; });
       });
       render();
     }
 
-    box.addEventListener('input', function (e) {
+    function onEdit(e) {
       var row = e.target.closest('[data-slot]');
       var day = e.target.closest('[data-day]');
       if (!row || !day) { return; }
       var o = state[day.getAttribute('data-day')][+row.getAttribute('data-slot')];
       o.open = row.querySelector('[data-open]').value;
       o.close = row.querySelector('[data-close]').value;
+      var store = row.querySelector('[data-store]');
+      if (store) { o.store = store.value; }
       row.querySelector('[data-next-day]').hidden = !nextDay(o.open, o.close);
       sync();
-    });
+    }
+    box.addEventListener('input', onEdit);
+    box.addEventListener('change', onEdit);
     box.addEventListener('click', function (e) {
       var day = e.target.closest('[data-day]');
       if (!day) { return; }
       var list = state[day.getAttribute('data-day')];
       if (e.target.closest('[data-add]')) {
         if (list.length >= cfg.maxOpenings) { return; }
-        list.push({ open: '', close: '' });
+        // a new shift is at the store of the one before it, the first store otherwise
+        list.push({ open: '', close: '', store: list.length ? list[list.length - 1].store : firstStore() });
         render();
         var inputs = box.querySelectorAll('[data-day="' + CSS.escape(day.getAttribute('data-day')) + '"] [data-open]');
         if (inputs.length) { inputs[inputs.length - 1].focus(); }
@@ -141,8 +169,10 @@ $config = [
       }
     });
 
-    return { load: load, count: function (key) { return state[key].length; }, add: function (key) { state[key].push({ open: '', close: '' }); render(); } };
+    return { load: load, count: function (key) { return state[key].length; }, add: function (key) { state[key].push({ open: '', close: '', store: firstStore() }); render(); } };
   }
+
+  function firstStore() { return cfg.stores.length ? cfg.stores[0].public_id : ''; }
 
   function init() {
     // ---- the weekly hours ----------------------------------------------------------------
@@ -195,7 +225,8 @@ $config = [
         var exception = cfg.exceptions.filter(function (x) { return x.exception_date === date; })[0];
         if (!exception) { return; }
         setValue('exception_date', exception.exception_date);
-        setValue('exception_reason', exception.exception_reason);
+        setValue('exception_reason', exception.exception_reason || '');
+        Object.keys(cfg.fill).forEach(function (name) { setValue(name, exception[cfg.fill[name]] || ''); });
         specialForm.querySelectorAll('input[name="exception_kind"]').forEach(function (radio) {
           radio.checked = radio.value === (exception.closed ? cfg.kinds.closed : cfg.kinds.open);
         });
@@ -222,7 +253,7 @@ $config = [
     headers[cfg.csrf.header] = csrfHash;
     fetch(cfg.deleteUrl, {
       method: 'POST', headers: headers, credentials: 'same-origin',
-      body: JSON.stringify({ public_id: cfg.publicId, exception_date: button.getAttribute('data-exception-delete') })
+      body: JSON.stringify(Object.assign({ exception_date: button.getAttribute('data-exception-delete') }, cfg.identity))
     })
       .then(function (response) {
         return response.json().catch(function () { return {}; }).then(function (json) { return { ok: response.ok, json: json }; });

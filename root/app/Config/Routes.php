@@ -58,6 +58,10 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('services/save', 'Staff::saveServices');
         $routes->post('salary/add', 'Staff::addSalary');
         $routes->post('salary/edit', 'Staff::editSalary');
+        $routes->get('hours/(:segment)', 'Staff::hours/$1');
+        $routes->post('hours/save', 'Staff::hoursSave');
+        $routes->post('hours/exception-save', 'Staff::hoursExceptionSave');
+        $routes->post('hours/exception-delete', 'Staff::hoursExceptionDelete');
     });
     // the session business's subscription: its owners only, as the API allows
     $routes->group('plans', ['filter' => 'manager:owner'], static function ($routes) {

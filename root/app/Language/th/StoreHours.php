@@ -34,6 +34,7 @@ return [
         'closes'         => 'เวลาปิด',
         'next-day'       => 'วันถัดไป',
         'next-day-short' => '(+1 วัน)',
+        'store'          => 'สาขา',
         'remove'         => 'ลบช่วงเวลานี้',
     ],
     'list'          => [

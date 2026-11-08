@@ -25,6 +25,14 @@ class Staff extends BaseController
     /** The fields of the commission settings, as v1/client/commission-policy/save takes them */
     private const POLICY_FIELDS = ['commission_status', 'commission_period', 'commission_threshold'];
 
+    /** Hidden fields of the working hours forms: their editors' shifts, as JSON */
+    private const WEEKLY_FIELD = 'weekly_json';
+    private const SHIFTS_FIELD = 'shifts_json';
+
+    /** day_kind of the day form: a day off, or working other shifts */
+    private const KIND_OFF     = 'off';
+    private const KIND_WORKING = 'working';
+
     /** salary_period and commission_period */
     private const PERIODS = ['W', 'S', 'M'];
 
@@ -201,6 +209,7 @@ class Staff extends BaseController
                 ],
             ],
             'extraForms'   => $forms,
+            'extraHtml'    => view('staff/hours_link', ['url' => base_url('admin/staff/hours/' . rawurlencode($uid))]),
             'customScript' => view('scripts/staff_form', ['field' => self::SERVICES_FIELD]),
         ]);
     }
@@ -322,6 +331,228 @@ class Staff extends BaseController
             'success'   => true,
             'message'   => $body['message'] ?? lang('Staff.commission.saved'),
             'redirect'  => base_url('admin/business/commission'),
+            'csrf_hash' => csrf_hash(),
+        ]);
+    }
+
+    /**
+     * A person's working hours page: their regular week (a form with an editor of each day's shifts, each at one of
+     * the stores they work in), the days that differ from today on (a table; each row can be edited or removed), and
+     * the form to change a day: a vacation, a sick day or another change, off or at other shifts
+     * @param string $uid auth_master.uid
+     */
+    public function hours(string $uid): string
+    {
+        [$code, $body] = $this->callApi('v1/client/staff/hours', ['business_slug' => (string) currentBusinessSlug(), 'uid' => $uid]);
+        if ($code === 404) {
+            throw PageNotFoundException::forPageNotFound((string) ($body['message'] ?? lang('Staff.form.not-found')));
+        }
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            throw new RuntimeException((string) ($body['message'] ?? lang('StaffHours.load-failed')));
+        }
+        $data   = (array) $body['data'];
+        $locale = $this->request->getLocale();
+        $name   = (string) $data['person']['full_name'];
+        $stores = [];
+        $zones  = [];
+        foreach ((array) $data['stores'] as $store) {
+            $stores[(string) $store['public_id']] = (string) (($store['translations'] ?? [])[$locale] ?? $store['store_name']);
+            $zones[(string) $store['store_timezone']] = true;
+        }
+        // the editor's openings are open_time and close_time; the API's shifts start_time and end_time
+        $shiftOut   = static fn (array $s): array => ['store_public_id' => $s['store_public_id'], 'open_time' => $s['start_time'], 'close_time' => $s['end_time']];
+        $weekly     = array_map(static fn (array $s): array => ['day_of_week' => $s['day_of_week']] + $shiftOut($s), (array) $data['weekly']);
+        $exceptions = array_map(static fn (array $e): array => [
+            'exception_date'   => $e['exception_date'],
+            'exception_type'   => $e['exception_type'],
+            'exception_reason' => $e['exception_reason'],
+            'closed'           => (bool) $e['off'],
+            'hours'            => array_map($shiftOut, (array) $e['shifts']),
+        ], (array) $data['exceptions']);
+        $types  = lang('StaffHours.type');
+        $editor = static fn (string $kind, string $field, string $help): array => ['type' => 'html',
+            'html' => view('stores/openings_editor', ['kind' => $kind, 'field' => $field, 'help' => $help])];
+        $hidden = ['name' => 'uid', 'type' => 'hidden', 'default' => $uid];
+        $zoneNote = count($zones) > 1 ? ' ' . lang('StaffHours.weekly.zones') : '';
+
+        return view('generic_form', [
+            'locale'       => $locale,
+            'slug'         => 'staff',
+            'page_title'   => lang('StaffHours.page-title', [$name]),
+            'breadcrumbs'  => [
+                base_url('admin/staff')                             => lang('System.page.staff'),
+                base_url('admin/staff/edit/' . rawurlencode($uid)) => $name,
+            ],
+            'user'         => (array) session('user'),
+            'formConfig'   => [
+                'form_id'   => 'staff-weekly-form',
+                'title'     => lang('StaffHours.weekly.title'),
+                'subtitle'  => lang('StaffHours.weekly.subtitle') . $zoneNote,
+                'mode'      => 'edit',
+                'locale'    => $locale,
+                'urls'      => ['submit' => base_url('admin/staff/hours/save')],
+                'messages'  => ['saved' => lang('StaffHours.weekly.saved'), 'saveFailed' => lang('StaffHours.save-failed')],
+                'values'    => ['uid' => $uid],
+                'fields'    => [] === $stores
+                    ? [['type' => 'html', 'html' => '<p class="text-muted">' . esc(lang('StaffHours.no-stores')) . '</p>'], $hidden]
+                    : [$editor('weekly', self::WEEKLY_FIELD, lang('StaffHours.editor.help-weekly')), $hidden],
+                'editable'  => [] !== $stores,
+            ],
+            'extraForms'   => [] === $stores ? [] : [[
+                'form_id'   => 'staff-day-form',
+                'title'     => lang('StaffHours.day.title'),
+                'subtitle'  => lang('StaffHours.day.subtitle'),
+                'mode'      => 'create',
+                'id_prefix' => 'day-',
+                'locale'    => $locale,
+                'urls'      => ['submit' => base_url('admin/staff/hours/exception-save')],
+                'labels'    => ['save' => lang('StaffHours.day.submit')],
+                'messages'  => ['saved' => lang('StaffHours.day.saved'), 'saveFailed' => lang('StaffHours.save-failed')],
+                'fields'    => [
+                    ['name' => 'exception_date', 'type' => 'date', 'label' => lang('StaffHours.day.date'), 'rules' => 'required',
+                        'min' => (string) ($data['today'] ?? ''), 'help' => lang('StaffHours.day.date-help')],
+                    ['name' => 'exception_type', 'type' => 'select', 'label' => lang('StaffHours.day.type'), 'options' => $types, 'rules' => 'required',
+                        'default' => 'V'],
+                    ['name' => 'exception_reason', 'type' => 'text', 'label' => lang('StaffHours.day.note'), 'optional' => true, 'rules' => 'max_length[255]',
+                        'placeholder' => lang('StaffHours.day.note-placeholder')],
+                    ['name' => 'exception_kind', 'type' => 'radio', 'label' => lang('StaffHours.day.kind'), 'inline' => true,
+                        'options' => [self::KIND_OFF => lang('StaffHours.day.off'), self::KIND_WORKING => lang('StaffHours.day.working')],
+                        'default' => self::KIND_OFF, 'rules' => 'required'],
+                    $editor('special', self::SHIFTS_FIELD, lang('StaffHours.editor.help-day')),
+                    $hidden,
+                ],
+            ]],
+            'extraHtml'    => [] === $stores ? '' : view('staff/hours_exceptions', ['exceptions' => $exceptions, 'stores' => $stores, 'locale' => $locale]),
+            'customScript' => [] === $stores ? '' : view('scripts/store_hours', [
+                'publicId'    => '',
+                'identity'    => ['uid' => $uid],
+                'weekly'      => $weekly,
+                'exceptions'  => $exceptions,
+                'maxOpenings' => (int) ($data['max_shifts'] ?? 6),
+                'fields'      => ['weekly' => self::WEEKLY_FIELD, 'special' => self::SHIFTS_FIELD],
+                'kinds'       => ['closed' => self::KIND_OFF, 'open' => self::KIND_WORKING],
+                'deleteUrl'   => base_url('admin/staff/hours/exception-delete'),
+                'stores'      => array_map(static fn ($id, $label) => ['public_id' => $id, 'label' => $label], array_keys($stores), $stores),
+                'forms'       => ['weekly' => 'staff-weekly-form', 'special' => 'staff-day-form'],
+                'fill'        => ['exception_type' => 'exception_type'],
+                'labels'      => [
+                    'closed'        => lang('StaffHours.editor.off'),
+                    'add'           => lang('StaffHours.editor.add'),
+                    'opens'         => lang('StaffHours.editor.starts'),
+                    'closes'        => lang('StaffHours.editor.ends'),
+                    'remove'        => lang('StaffHours.editor.remove'),
+                    'confirmDelete' => lang('StaffHours.list.confirm-delete'),
+                    'failed'        => lang('StaffHours.save-failed'),
+                ],
+            ]),
+        ]);
+    }
+
+    /**
+     * Save a person's regular shifts through LINK_INTERNAL_API v1/client/staff/hours/save { business_slug, uid, weekly }
+     */
+    public function hoursSave(): ResponseInterface
+    {
+        $post   = (array) $this->request->getPost();
+        $uid    = trim((string) ($post['uid'] ?? ''));
+        $shifts = $this->shiftsIn((string) ($post[self::WEEKLY_FIELD] ?? ''), true);
+        if (null === $shifts) {
+            return $this->saveFailed(422, ['message' => lang('StaffHours.invalid-hours')], lang('StaffHours.save-failed'));
+        }
+        [$code, $body] = $this->callApi('v1/client/staff/hours/save', ['business_slug' => (string) currentBusinessSlug(), 'uid' => $uid, 'weekly' => $shifts]);
+        return $this->hoursAnswer($code, $body, $uid, 'weekly', self::WEEKLY_FIELD, 'StaffHours.weekly.saved');
+    }
+
+    /**
+     * Change a day of a person through LINK_INTERNAL_API v1/client/staff/hours-exception/save { business_slug, uid,
+     * exception_date, exception_type, exception_reason, shifts }: none when the form says a day off
+     */
+    public function hoursExceptionSave(): ResponseInterface
+    {
+        $post    = (array) $this->request->getPost();
+        $uid     = trim((string) ($post['uid'] ?? ''));
+        $shifts  = $this->shiftsIn((string) ($post[self::SHIFTS_FIELD] ?? '[]'), false);
+        $working = self::KIND_WORKING === ($post['exception_kind'] ?? self::KIND_OFF);
+        if (null === $shifts) {
+            return $this->saveFailed(422, ['message' => lang('StaffHours.invalid-hours')], lang('StaffHours.save-failed'));
+        }
+        if ($working && [] === $shifts) {
+            return $this->saveFailed(422, ['message' => lang('StaffHours.day.needs-shift'), 'errors' => [self::SHIFTS_FIELD => lang('StaffHours.day.needs-shift')]],
+                lang('StaffHours.save-failed'));
+        }
+        [$code, $body] = $this->callApi('v1/client/staff/hours-exception/save', [
+            'business_slug'    => (string) currentBusinessSlug(),
+            'uid'              => $uid,
+            'exception_date'   => trim((string) ($post['exception_date'] ?? '')),
+            'exception_type'   => trim((string) ($post['exception_type'] ?? '')),
+            'exception_reason' => trim((string) ($post['exception_reason'] ?? '')),
+            'shifts'           => $working ? $shifts : [],
+        ]);
+        return $this->hoursAnswer($code, $body, $uid, 'shifts', self::SHIFTS_FIELD, 'StaffHours.day.saved');
+    }
+
+    /**
+     * Give a day of a person back their regular shifts through LINK_INTERNAL_API v1/client/staff/hours-exception/delete
+     * { business_slug, uid, exception_date }; the page's script posts it as JSON
+     */
+    public function hoursExceptionDelete(): ResponseInterface
+    {
+        $input = (array) ($this->request->getJSON(true) ?? []);
+        [$code, $body] = $this->callApi('v1/client/staff/hours-exception/delete', [
+            'business_slug'  => (string) currentBusinessSlug(),
+            'uid'            => trim((string) ($input['uid'] ?? '')),
+            'exception_date' => trim((string) ($input['exception_date'] ?? '')),
+        ]);
+        $ok = $code === 200 && ($body['status'] ?? '') === 'success';
+        return $this->response->setStatusCode($ok ? 200 : ($code === 200 ? 502 : $code))->setJSON([
+            'success'   => $ok,
+            'message'   => $body['message'] ?? lang($ok ? 'StaffHours.day.deleted' : 'StaffHours.save-failed'),
+            'csrf_hash' => csrf_hash(),
+        ]);
+    }
+
+    /**
+     * An editor's shifts as the API takes them: its open_time and close_time are their start_time and end_time
+     * @param string $json   the editor's hidden field
+     * @param bool   $weekly with day_of_week
+     * @return list<array>|null null when it is not a list
+     */
+    private function shiftsIn(string $json, bool $weekly): ?array
+    {
+        $rows = json_decode($json, true);
+        if (! is_array($rows) || ! array_is_list($rows)) {
+            return null;
+        }
+        return array_map(static fn ($row): array => ($weekly ? ['day_of_week' => $row['day_of_week'] ?? null] : []) + [
+            'store_public_id' => $row['store_public_id'] ?? null,
+            'start_time'      => $row['open_time'] ?? null,
+            'end_time'        => $row['close_time'] ?? null,
+        ], array_filter($rows, 'is_array'));
+    }
+
+    /**
+     * The working hours forms' answer: back to the page on success; on failure, the errors of the editor's shifts
+     * (weekly.0.start_time, shifts, ...) put on its hidden field
+     */
+    private function hoursAnswer(int $code, array $body, string $uid, string $prefix, string $field, string $saved): ResponseInterface
+    {
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            $errors = [];
+            foreach ((array) ($body['errors'] ?? []) as $key => $message) {
+                $key = (string) $key;
+                if ($key === $prefix || str_starts_with($key, $prefix . '.')) {
+                    $errors[$field] ??= $message;
+                } else {
+                    $errors[$key] = $message;
+                }
+            }
+            $body['errors'] = $errors;
+            return $this->saveFailed($code, $body, lang('StaffHours.save-failed'));
+        }
+        return $this->response->setJSON([
+            'success'   => true,
+            'message'   => $body['message'] ?? lang($saved),
+            'redirect'  => base_url('admin/staff/hours/' . rawurlencode($uid)),
             'csrf_hash' => csrf_hash(),
         ]);
     }

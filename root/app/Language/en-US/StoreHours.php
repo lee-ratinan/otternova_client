@@ -34,6 +34,7 @@ return [
         'closes'         => 'Closes',
         'next-day'       => 'next day',
         'next-day-short' => '(+1 day)',
+        'store'          => 'Store',
         'remove'         => 'Remove this opening',
     ],
     'list'          => [
