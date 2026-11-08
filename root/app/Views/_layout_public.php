@@ -81,6 +81,14 @@
         </footer>
     </div>
 </div>
+<!-- Ribbon -->
+<?php $env = getenv('CI_ENVIRONMENT'); ?>
+<?php if (in_array($env, ['beta', 'development'])): ?>
+    <?php if ('development' == $env) { $env = 'dev'; } ?>
+    <div class="corner-ribbon">
+        <span><?= esc($env) ?></span>
+    </div>
+<?php endif; ?>
 <!-- Vendor JS Files -->
 <script src="<?= base_url('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/apexcharts/apexcharts.min.js') ?>"></script>

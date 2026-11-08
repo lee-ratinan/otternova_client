@@ -347,6 +347,14 @@
 <a href="#" class="back-to-top">
     <i class="bi bi-arrow-up"></i>
 </a>
+<!-- Ribbon -->
+<?php $env = getenv('CI_ENVIRONMENT'); ?>
+<?php if (in_array($env, ['beta', 'development'])): ?>
+    <?php if ('development' == $env) { $env = 'dev'; } ?>
+    <div class="corner-ribbon">
+        <span><?= esc($env) ?></span>
+    </div>
+<?php endif; ?>
 <!-- Vendor JS Files -->
 <script src="<?= base_url('assets/vendor/jquery/jquery-4.0.0.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>

@@ -42703,3 +42703,6 @@ textarea.form-control {
 #toast-container > .toast-info    { background-color: #2f96b4 !important; }
 #toast-container > .toast-warning { background-color: #f89406 !important; }
 #toast-container .toast-message, #toast-container .toast-title { color: #fff !important; }
+/* RIBBON */
+.corner-ribbon {position: fixed;bottom: 25px;right: -45px;width: 150px;z-index: 100001;transform: rotate(-45deg);text-align: center;background: #e63946;color: #ffffff;font-size: 12px;font-weight: 700;letter-spacing: 1px;text-transform: uppercase;padding: 8px 0;box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);pointer-events: none;}
+.corner-ribbon span {display: block;}
