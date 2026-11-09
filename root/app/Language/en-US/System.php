@@ -27,6 +27,8 @@ return [
         'products-and-services' => 'Products and Services',
         'artifacts'             => 'Products and Services',
         'artifact-create'       => 'Create Product or Service',
+        'sessions'              => 'Sessions',
+        'session-create'        => 'Create Session',
         'artifact-categories'       => 'Categories',
         'artifact-category-create'  => 'Create Category',
         'artifact-attributes'       => 'Variant Options',

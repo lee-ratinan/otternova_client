@@ -27,6 +27,8 @@ return [
         'products-and-services' => 'สินค้าและบริการ',
         'artifacts'             => 'สินค้าและบริการ',
         'artifact-create'       => 'สร้างสินค้าหรือบริการ',
+        'sessions'              => 'รอบ',
+        'session-create'        => 'สร้างรอบ',
         'artifact-categories'       => 'หมวดหมู่',
         'artifact-category-create'  => 'สร้างหมวดหมู่',
         'artifact-attributes'       => 'คุณสมบัติของตัวเลือก',

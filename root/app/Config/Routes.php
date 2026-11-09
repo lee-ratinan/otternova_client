@@ -105,6 +105,15 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('add', 'Employees::add');
         $routes->post('invite', 'Employees::invite');
     });
+    // the sessions of the session business's group services: its owners and managers only (see BusinessManagerFilter)
+    $routes->group('sessions', ['filter' => 'manager'], static function ($routes) {
+        $routes->get('/', 'ServiceSessions::index');
+        $routes->post('data', 'ServiceSessions::data');
+        $routes->get('create', 'ServiceSessions::form');
+        $routes->get('edit/(:segment)', 'ServiceSessions::form/$1');
+        $routes->post('save', 'ServiceSessions::save');
+        $routes->post('options', 'ServiceSessions::options');
+    });
     // the products and services of the session business: its owners and managers only (see BusinessManagerFilter)
     $routes->group('artifacts', ['filter' => 'manager'], static function ($routes) {
         $routes->get('/', 'Artifacts::index');

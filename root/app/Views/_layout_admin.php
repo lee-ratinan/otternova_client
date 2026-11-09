@@ -278,6 +278,7 @@
                     </a>
                     <ul class="nav-submenu ">
                         <li><a class="nav-link<?= ('artifacts' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts') ?>"><?= lang('System.page.artifacts') ?></a></li>
+                        <li><a class="nav-link<?= ('sessions' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/sessions') ?>"><?= lang('System.page.sessions') ?></a></li>
                         <li><a class="nav-link<?= ('artifact-categories' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts/categories') ?>"><?= lang('System.page.artifact-categories') ?></a></li>
                         <li><a class="nav-link<?= ('artifact-attributes' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts/attributes') ?>"><?= lang('System.page.artifact-attributes') ?></a></li>
                     </ul>
