@@ -4484,12 +4484,12 @@ a.header-action:hover {
 # Responsive
 --------------------------------------------------------------*/
 @media (max-width: 575px) {
-  .auth-card {
-    padding: var(--spacing-lg);
-    border: none;
-    box-shadow: none;
-    background: transparent;
-  }
+  /*.auth-card {*/
+  /*  padding: var(--spacing-lg);*/
+  /*  border: none;*/
+  /*  box-shadow: none;*/
+  /*  background: transparent;*/
+  /*}*/
 
   .auth-content {
     padding: var(--spacing-md);
