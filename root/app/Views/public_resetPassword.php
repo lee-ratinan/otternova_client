@@ -34,6 +34,7 @@
                 <button type="submit" class="auth-submit"><?= lang('Login.reset-password.submit-btn') ?> <i class="bi bi-arrow-right"></i></button>
             </form>
         <?php endif; ?>
+        <a id="reset-request-new" href="<?= base_url('forgot-password') ?>" class="auth-submit text-decoration-none<?= $valid ? ' d-none' : '' ?>"><?= lang('Login.reset-password.request-new') ?> <i class="bi bi-arrow-right"></i></a>
         <p class="auth-footer-text">
             <a href="<?= base_url() ?>" class="auth-back"><i class="bi bi-arrow-left"></i> <?= lang('Login.forgot-password.back') ?></a>
         </p>
