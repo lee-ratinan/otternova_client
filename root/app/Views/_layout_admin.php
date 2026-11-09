@@ -72,32 +72,43 @@
                     <i class="bi bi-chat-left-dots"></i>
                     <span class="badge">##</span>
                 </a>
-                <div class="header-action dropdown notification-dropdown">
+                <!-- NOTIFICATIONS: filled by assets/js/notification-center.js; see App\Controllers\Notifications -->
+                <?php
+                $notificationCenter = [
+                    'layout' => 'client',
+                    'poll'   => 60,
+                    'urls'   => [
+                        'latest'     => base_url('admin/notifications/latest'),
+                        'list'       => base_url('admin/notifications/list'),
+                        'open'       => base_url('admin/notifications/open'),
+                        'readAll'    => base_url('admin/notifications/read-all'),
+                        'delete'     => base_url('admin/notifications/delete'),
+                        'deleteRead' => base_url('admin/notifications/delete-read'),
+                    ],
+                    'text'   => [
+                        'unread'        => lang('Notifications.unread'),
+                        'allCaughtUp'   => lang('Notifications.all-caught-up'),
+                        'empty'         => lang('Notifications.empty'),
+                        'loadFailed'    => lang('Notifications.load-failed'),
+                        'delete'        => lang('Notifications.delete'),
+                        'deleteConfirm' => lang('Notifications.delete-confirm'),
+                    ],
+                ];
+                ?>
+                <div class="header-action dropdown notification-dropdown" data-notification-center="<?= esc(json_encode($notificationCenter, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), 'attr') ?>">
                     <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="<?= lang('System.page.notifications') ?>">
                         <i class="bi bi-bell"></i>
-                        <span class="badge">##</span>
+                        <span class="badge d-none" data-notification-badge>0</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end">
                         <div class="notification-header">
-                            <h6><?= lang('System.header.you-have-notifications', [3]) ?></h6>
+                            <h6 data-notification-count><?= lang('System.page.notifications') ?></h6>
                             <a href="#" class="notification-mark-read" data-notification-action="mark-all-read"
                                title="<?= lang('System.header.mark-all-read') ?>">
                                 <i class="bi bi-check2-all"></i>
                             </a>
                         </div>
-                        <div class="notification-list">
-                            <div class="notification-item unread">
-                                <span class="notification-icon success"><i class="bi bi-check-circle"></i></span>
-                                <span class="notification-content">
-                                    <span class="notification-title">#######</span>
-                                    <span class="notification-text">#########</span>
-                                </span>
-                                <span class="notification-meta">
-                                    <span class="notification-time">###</span>
-                                    <span class="notification-dot"></span>
-                                </span>
-                            </div>
-                        </div>
+                        <div class="notification-list" data-notification-list></div>
                         <div class="notification-footer">
                             <a href="<?= base_url('admin/notifications') ?>"><?= lang('System.header.notifications-view-all') ?></a>
                         </div>
@@ -378,5 +389,6 @@
 <script src="<?= base_url('assets/js/local-time.js') ?>"></script>
 <!-- App Sidebar Toggle (for app pages with sidebars) -->
 <script src="<?= base_url('assets/js/apps-sidebar-toggle.js') ?>"></script>
+<script src="<?= base_url('assets/js/notification-center.js') ?>"></script>
 </body>
 </html>

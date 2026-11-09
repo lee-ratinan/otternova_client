@@ -790,16 +790,6 @@ class Admin extends BaseController
         ]);
     }
 
-    public function notifications(): string
-    {
-        $locale = $this->request->getLocale();
-        $data   = [
-            'locale' => $locale,
-            'slug'   => 'notifications',
-            'user'   => session()->get('user') ?? [],
-        ];
-        return view('admin_dashboard', $data);
-    }
     public function messages(): string
     {
         $locale = $this->request->getLocale();

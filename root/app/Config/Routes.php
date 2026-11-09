@@ -134,7 +134,14 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->post('reviews/data', 'Reviews::data');
     $routes->post('reviews/approve', 'Reviews::approve');
     $routes->post('reviews/hide', 'Reviews::hide');
-    $routes->get('notifications', 'Admin::notifications');
+    // the signed-in client's notifications, by public_id; see App\Controllers\Notifications
+    $routes->get('notifications', 'Notifications::index');
+    $routes->post('notifications/latest', 'Notifications::latest');
+    $routes->post('notifications/list', 'Notifications::list');
+    $routes->get('notifications/open/(:segment)', 'Notifications::open/$1');
+    $routes->post('notifications/read-all', 'Notifications::readAll');
+    $routes->post('notifications/delete', 'Notifications::delete');
+    $routes->post('notifications/delete-read', 'Notifications::deleteRead');
     $routes->get('messages', 'Admin::messages');
 
     // JSON lookups for the pages' scripts; see App\Controllers\ApiList
