@@ -37,6 +37,7 @@ return [
         'artifact_label'  => ['N' => 'New', 'P' => 'Popular', 'R' => 'Recommended', 'L' => 'Limited'],
         'tax_calculation' => ['I' => 'Included in the price', 'E' => 'Added on top of the price', 'X' => 'No tax'],
         'variant_status'  => ['A' => 'On Sale', 'I' => 'Off Sale'],
+        'booking_type'    => ['A' => 'Appointment', 'G' => 'Group'],
     ],
     'form'                    => [
         'create-title'      => 'Add a Product or Service',
@@ -82,6 +83,7 @@ return [
         'stock'         => 'Stock',
         'stock-help'    => 'The quantity at each store; leave a store empty when it does not stock this variant.',
         'error'         => 'Variant {0}: {1}',
+        'capacity-help' => 'For a group: the most customers in one session. It can be fewer than the room holds.',
         'column'        => [
             'sku'              => 'SKU',
             'barcode'          => 'Barcode',
@@ -89,6 +91,9 @@ return [
             'price_compare'    => 'Compare-at Price',
             'weight_grams'     => 'Weight (g)',
             'duration_minutes' => 'Duration (min)',
+            'booking_type'     => 'Booking',
+            'staff_required'   => 'Staff',
+            'capacity'         => 'Capacity',
             'variant_status'   => 'Status',
         ],
     ],

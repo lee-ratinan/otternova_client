@@ -21,7 +21,7 @@ class Resources extends BaseController
 
     /** The fields of the forms that go to the API as "resource_type" and "resource" */
     private const TYPE_FIELDS     = ['type_name', 'type_description', 'buffer_minutes', 'type_status'];
-    private const RESOURCE_FIELDS = ['resource_name', 'resource_status', 'sort_order'];
+    private const RESOURCE_FIELDS = ['resource_name', 'capacity', 'resource_status', 'sort_order'];
 
     /** Form field names of a type's name and description in a language: translation_name_<language_code> */
     private const NAME_PREFIX        = 'translation_name_';
@@ -222,6 +222,7 @@ class Resources extends BaseController
             $rows[] = [
                 'public_id'       => (string) ($resource['public_id'] ?? ''),
                 'resource_name'   => (string) ($resource['resource_name'] ?? ''),
+                'capacity'        => (int) ($resource['capacity'] ?? 1),
                 'store_name'      => $storeName[(string) ($store['public_id'] ?? '')] ?? (string) ($store['store_name'] ?? ''),
                 'type_name'       => $typeName[(string) ($type['public_id'] ?? '')] ?? (string) ($type['type_name'] ?? ''),
                 'resource_status' => (string) ($resource['resource_status'] ?? ''),
@@ -255,6 +256,7 @@ class Resources extends BaseController
             $values = [
                 'public_id'       => (string) $resource['public_id'],
                 'resource_name'   => (string) $resource['resource_name'],
+                'capacity'        => (int) ($resource['capacity'] ?? 1),
                 'resource_status' => (string) $resource['resource_status'],
                 'sort_order'      => (int) $resource['sort_order'],
                 'store_public_id' => (string) ($resource['store']['public_id'] ?? ''),
@@ -478,6 +480,9 @@ class Resources extends BaseController
                 }, 'help' => lang([] === $types ? 'Resources.help.no-type' : 'Resources.help.type')],
             ['name' => 'resource_name', 'type' => 'text', 'label' => lang('Resources.fields.resource_name'), 'rules' => 'required|max_length[255]',
                 'help' => lang('Resources.help.resource-name')],
+            ['name' => 'capacity', 'type' => 'number', 'label' => lang('Resources.fields.capacity'), 'default' => 1,
+                'rules' => 'required|is_natural_no_zero|less_than_equal_to[65535]', 'attrs' => ['min' => 1, 'max' => 65535, 'step' => 1],
+                'help' => lang('Resources.help.capacity')],
             ['name' => 'resource_status', 'type' => 'select', 'label' => lang('Resources.fields.resource_status'), 'options' => $statuses,
                 'default' => self::STATUS_ACTIVE, 'rules' => 'required|in_list[' . self::STATUS_ACTIVE . ',' . self::STATUS_INACTIVE . ']',
                 'help' => lang('Resources.help.resource-status')],
@@ -538,6 +543,7 @@ class Resources extends BaseController
                 ['data' => 'store_name', 'title' => lang('Resources.fields.store')],
                 ['data' => 'type_name', 'title' => lang('Resources.fields.type')],
                 ['data' => 'resource_name', 'title' => lang('Resources.fields.resource_name')],
+                ['data' => 'capacity', 'title' => lang('Resources.fields.capacity'), 'type' => 'number', 'decimals' => 0, 'class' => 'text-end', 'searchable' => false],
                 ['data' => 'resource_status', 'title' => lang('Resources.fields.resource_status'), 'type' => 'badge', 'badges' => $this->statusBadges()],
                 ['data' => 'sort_order', 'title' => lang('Resources.fields.sort_order'), 'type' => 'number', 'decimals' => 0, 'class' => 'text-end', 'searchable' => false],
             ],

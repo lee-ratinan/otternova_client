@@ -3,7 +3,8 @@
  * customScript of the artifact form (see generic_form.php):
  * - the tax rate shows only when tax is included in the price or added on top
  * - the variants editor (artifacts/variants_editor): the options the variants differ by, one row per variant with
- *   its price and, for a product, its stock per store, kept as JSON in the hidden field the form submits. Saved
+ *   its price and, for a product, its stock per store, or, for a service, how it is booked (an appointment, or a
+ *   group whose sessions take up to its capacity of customers) and the staff it needs, kept as JSON in the hidden field the form submits. Saved
  *   variants cannot be removed (the API never deletes one; it is taken off sale instead). Add Variant stops at the
  *   plan's cap of variants per artifact.
  * - the images card (artifacts/images): upload, delete and reorder, each posted at once; Upload stops at the plan's
@@ -36,6 +37,8 @@ $config = [
         'stockHelp'     => lang('Artifacts.variants.stock-help'),
         'column'        => lang('Artifacts.variants.column'),
         'statuses'      => lang('Artifacts.enum.variant_status'),
+        'bookingTypes'  => lang('Artifacts.enum.booking_type'),
+        'capacityHelp'  => lang('Artifacts.variants.capacity-help'),
         'cover'         => lang('Artifacts.images.cover'),
         'moveEarlier'   => lang('Artifacts.images.move-earlier'),
         'moveLater'     => lang('Artifacts.images.move-later'),
@@ -102,7 +105,8 @@ $config = [
     var used, rows;
 
     function blank() {
-      return { public_id: '', sku: '', barcode: '', price_active: '', price_compare: '', variant_status: 'A', weight_grams: '', duration_minutes: '', values: {}, stock: {} };
+      return { public_id: '', sku: '', barcode: '', price_active: '', price_compare: '', variant_status: 'A', weight_grams: '', duration_minutes: '',
+        booking_type: 'A', staff_required: '1', capacity: '', values: {}, stock: {} };
     }
     function text(v) { return v === null || v === undefined ? '' : String(v); }
     // the variants as saved, and the options they use
@@ -115,7 +119,8 @@ $config = [
         (v.inventory || []).forEach(function (s) { stock[s.store_public_id] = text(s.quantity); });
         return {
           public_id: v.public_id, sku: text(v.sku), barcode: text(v.barcode), price_active: text(v.price_active), price_compare: text(v.price_compare),
-          variant_status: v.variant_status || 'A', weight_grams: text(v.weight_grams), duration_minutes: text(v.duration_minutes), values: values, stock: stock
+          variant_status: v.variant_status || 'A', weight_grams: text(v.weight_grams), duration_minutes: text(v.duration_minutes),
+          booking_type: v.booking_type || 'A', staff_required: text(v.staff_required || 1), capacity: text(v.capacity), values: values, stock: stock
         };
       });
       if (!rows.length) { rows.push(blank()); }
@@ -140,12 +145,16 @@ $config = [
     function renderTable() {
       var product = type() === 'P';
       var columns = usedAttributes();
-      var width = 8 + columns.length; // #, options, sku, barcode or nothing, price, compare, weight or duration, status, remove
-      if (!product) { width--; }
+      // #, options, sku, barcode, price, compare, weight, status, remove; a service has duration, booking type, staff
+      // and capacity in place of barcode and weight
+      var width = (product ? 8 : 10) + columns.length;
       var head = '<thead><tr><th>#</th>' + columns.map(function (a) { return '<th>' + esc(a.name) + '</th>'; }).join('')
         + '<th>' + esc(L.column.sku) + '</th>' + (product ? '<th>' + esc(L.column.barcode) + '</th>' : '')
         + '<th>' + esc(L.column.price_active) + ' <span class="text-danger">*</span></th><th>' + esc(L.column.price_compare) + '</th>'
-        + '<th>' + esc(L.column[product ? 'weight_grams' : 'duration_minutes']) + '</th><th>' + esc(L.column.variant_status) + '</th><th></th></tr></thead>';
+        + '<th>' + esc(L.column[product ? 'weight_grams' : 'duration_minutes']) + '</th>'
+        + (product ? '' : '<th>' + esc(L.column.booking_type) + '</th><th>' + esc(L.column.staff_required) + '</th>'
+          + '<th title="' + esc(L.capacityHelp) + '">' + esc(L.column.capacity) + '</th>')
+        + '<th>' + esc(L.column.variant_status) + '</th><th></th></tr></thead>';
       var body = rows.map(function (r, i) {
         var html = '<tr><td class="text-muted text-nowrap">' + (i + 1) + (r.public_id ? '' : ' <span class="badge bg-info">' + esc(L.new) + '</span>') + '</td>';
         columns.forEach(function (a) {
@@ -160,6 +169,16 @@ $config = [
         html += field(i, 'price_compare', r.price_compare, 'number', ' min="0" step="0.01" style="min-width: 6rem;"');
         html += product ? field(i, 'weight_grams', r.weight_grams, 'number', ' min="0" step="1" style="min-width: 5rem;"')
                         : field(i, 'duration_minutes', r.duration_minutes, 'number', ' min="1" step="1" style="min-width: 5rem;"');
+        if (!product) {
+          var group = r.booking_type === 'G';
+          html += '<td><select class="form-select form-select-sm" style="min-width: 7rem;" data-row="' + i + '" data-key="booking_type" aria-label="' + esc(L.column.booking_type) + '">'
+            + ['A', 'G'].map(function (b) { return '<option value="' + b + '"' + (r.booking_type === b ? ' selected' : '') + '>' + esc(L.bookingTypes[b]) + '</option>'; }).join('')
+            + '</select></td>';
+          html += field(i, 'staff_required', r.staff_required, 'number', ' min="1" max="255" step="1" required style="min-width: 4.5rem;"');
+          // only a group has a capacity; an appointment is one customer's
+          html += field(i, 'capacity', group ? r.capacity : '', 'number', ' min="1" max="65535" step="1" style="min-width: 5rem;"'
+            + (group ? ' required' : ' disabled') + ' title="' + esc(L.capacityHelp) + '"');
+        }
         html += '<td><select class="form-select form-select-sm" style="min-width: 6rem;" data-row="' + i + '" data-key="variant_status" aria-label="' + esc(L.column.variant_status) + '">'
           + ['A', 'I'].map(function (s) { return '<option value="' + s + '"' + (r.variant_status === s ? ' selected' : '') + '>' + esc(L.statuses[s]) + '</option>'; }).join('')
           + '</select></td>';
@@ -208,6 +227,9 @@ $config = [
             .filter(function (s) { return s.quantity !== ''; });
         } else {
           v.duration_minutes = r.duration_minutes;
+          v.booking_type = r.booking_type;
+          v.staff_required = r.staff_required;
+          v.capacity = r.booking_type === 'G' ? r.capacity : '';
         }
         return v;
       }));
@@ -223,7 +245,11 @@ $config = [
       if (!t.hasAttribute('data-row') || !r) { return; }
       if (t.hasAttribute('data-attr')) { r.values[t.getAttribute('data-attr')] = t.value; }
       else if (t.hasAttribute('data-store')) { r.stock[t.getAttribute('data-store')] = t.value.trim(); }
-      else if (t.hasAttribute('data-key')) { r[t.getAttribute('data-key')] = t.value.trim(); }
+      else if (t.hasAttribute('data-key')) {
+        r[t.getAttribute('data-key')] = t.value.trim();
+        // the capacity is for a group only
+        if (t.getAttribute('data-key') === 'booking_type' && e.type === 'change') { renderTable(); return; }
+      }
       write();
     }
     root.addEventListener('input', onEdit);

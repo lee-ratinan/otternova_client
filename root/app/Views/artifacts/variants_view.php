@@ -2,7 +2,7 @@
 /**
  * The variants of an artifact in the view pane of its form, read only
  *
- * @var string $type       artifact_type: P has barcode, weight and stock; S has duration
+ * @var string $type       artifact_type: P has barcode, weight and stock; S has duration, booking type, staff and capacity
  * @var array  $variants   as v1/client/artifact sends them
  * @var array  $attributes Artifacts::loadAttributes()
  * @var array  $stores     [['public_id', 'name'], ...]
@@ -14,6 +14,7 @@
 $product  = 'P' === $type;
 $column   = lang('Artifacts.variants.column');
 $statuses = lang('Artifacts.enum.variant_status');
+$bookings = lang('Artifacts.enum.booking_type');
 $values   = [];
 foreach ($attributes as $attribute) {
     foreach ($attribute['values'] as $value) {
@@ -38,6 +39,11 @@ $storeNames = array_column($stores, 'name', 'public_id');
                         <th class="text-end"><?= esc($column['price_active']) ?></th>
                         <th class="text-end"><?= esc($column['price_compare']) ?></th>
                         <th class="text-end"><?= esc($column[$product ? 'weight_grams' : 'duration_minutes']) ?></th>
+                        <?php if (! $product): ?>
+                            <th><?= esc($column['booking_type']) ?></th>
+                            <th class="text-end"><?= esc($column['staff_required']) ?></th>
+                            <th class="text-end"><?= esc($column['capacity']) ?></th>
+                        <?php endif ?>
                         <th><?= esc($column['variant_status']) ?></th>
                         <?php if ($product): ?><th><?= esc(lang('Artifacts.variants.stock')) ?></th><?php endif ?>
                     </tr>
@@ -57,6 +63,11 @@ $storeNames = array_column($stores, 'name', 'public_id');
                             <td class="text-end text-nowrap"><?= esc(formatMoney($variant['price_active'] ?? null, $currency)) ?></td>
                             <td class="text-end text-nowrap"><?= null === ($variant['price_compare'] ?? null) ? '' : '<del class="text-muted">' . esc(formatMoney($variant['price_compare'], $currency)) . '</del>' ?></td>
                             <td class="text-end"><?= null === $amount ? '' : (int) $amount ?></td>
+                            <?php if (! $product): ?>
+                                <td><?= esc($bookings[$variant['booking_type'] ?? ''] ?? '') ?></td>
+                                <td class="text-end"><?= null === ($variant['staff_required'] ?? null) ? '' : (int) $variant['staff_required'] ?></td>
+                                <td class="text-end"><?= null === ($variant['capacity'] ?? null) ? '' : (int) $variant['capacity'] ?></td>
+                            <?php endif ?>
                             <td>
                                 <span class="badge <?= 'A' === ($variant['variant_status'] ?? '') ? 'bg-success' : 'bg-secondary' ?>"><?= esc($statuses[$variant['variant_status'] ?? ''] ?? '') ?></span>
                             </td>

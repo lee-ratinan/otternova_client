@@ -39,7 +39,7 @@ class Artifacts extends BaseController
 
     /** The fields of a variant the variants editor sends, as the API takes them */
     private const VARIANT_FIELDS = ['public_id', 'sku', 'barcode', 'price_active', 'price_compare', 'variant_status', 'weight_grams',
-        'duration_minutes', 'attribute_values', 'inventory'];
+        'duration_minutes', 'booking_type', 'staff_required', 'capacity', 'attribute_values', 'inventory'];
 
     /** Form field names of the name and description in a language: translation_name_<language_code> */
     private const NAME_PREFIX        = 'translation_name_';
