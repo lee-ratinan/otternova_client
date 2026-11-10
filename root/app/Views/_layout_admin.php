@@ -283,6 +283,12 @@
                         <li><a class="nav-link<?= ('artifact-attributes' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts/attributes') ?>"><?= lang('System.page.artifact-attributes') ?></a></li>
                     </ul>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link<?= ('traffic' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/traffic') ?>">
+                        <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                        <span class="nav-text"><?= lang('System.page.traffic') ?></span>
+                    </a>
+                </li>
             <?php else: ?>
                 <li class="nav-item">
                     <a class="nav-link<?= ('public-profiles' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/public-profiles') ?>">

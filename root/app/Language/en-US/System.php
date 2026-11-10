@@ -38,6 +38,7 @@ return [
         'commission'            => 'Commission',
         'reviews'               => 'Reviews',
         'public-profiles'       => 'Public Profiles',
+        'traffic'               => 'Traffic',
     ],
     'header'     => [
         'toggle-theme'           => 'Toggle Theme',

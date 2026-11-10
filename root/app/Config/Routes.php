@@ -138,6 +138,12 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->get('attributes/edit/(:segment)', 'ArtifactAttributes::form/$1');
         $routes->post('attributes/save', 'ArtifactAttributes::save');
     });
+    // who visited the session business's marketplace pages, and how many ordered: its owners and managers only,
+    // as the API allows; see App\Controllers\Traffic
+    $routes->group('traffic', ['filter' => 'manager'], static function ($routes) {
+        $routes->get('/', 'Traffic::index');
+        $routes->post('data/(overview|breakdown|visits)', 'Traffic::data/$1');
+    });
     // the reviews of the session business's products and services: anyone working in it, as the API allows
     $routes->get('reviews', 'Reviews::index');
     $routes->post('reviews/data', 'Reviews::data');

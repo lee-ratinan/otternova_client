@@ -38,6 +38,7 @@ return [
         'commission'            => 'ค่าคอมมิชชัน',
         'reviews'               => 'รีวิว',
         'public-profiles'       => 'ประวัติสาธารณะ',
+        'traffic'               => 'ผู้เข้าชม',
     ],
     'header'     => [
         'toggle-theme'           => 'สลับธีม',
