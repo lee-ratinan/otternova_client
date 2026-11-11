@@ -138,27 +138,28 @@
 --------------------------------------------------------------*/
 [data-theme=dark] {
   /* Core palette */
-  --background-color: #1f0a0e;
-  --default-color: #e4e0f5;
-  --heading-color: #f4f1ff;
-  --surface-color: #3e1800;
+  --background-color: #08141a;
+  --default-color: #d2e1e7;
+  --heading-color: #f3f7ff;
+  --accent-color: #c97232;
+  --surface-color: #11222c;
   --contrast-color: #ffffff;
   /* Extended text colors */
-  --muted-color: #bd949d;
-  --light-color: #95676f;
+  --muted-color: #95aebe;
+  --light-color: #6f8a9d;
   /* Borders */
-  --border-color: #50232c;
-  --border-color-light: #3e1800;
-  --border-color-dark: #66303b;
+  --border-color: #2a4458;
+  --border-color-light: #1d3141;
+  --border-color-dark: #3b5e77;
   /* Status colors (adjusted for dark mode) */
-  --success-color: #34d399;
-  --success-color-light: rgba(52, 211, 153, 0.15);
-  --warning-color: #fbbf24;
-  --warning-color-light: rgba(251, 191, 36, 0.15);
+  --success-color: #4ade80;
+  --success-color-light: rgba(74, 222, 128, 0.16);
+  --warning-color: #f59e0b;
+  --warning-color-light: rgba(245, 158, 11, 0.16);
   --danger-color: #fb7185;
-  --danger-color-light: rgba(251, 113, 133, 0.15);
+  --danger-color-light: rgba(251, 113, 133, 0.16);
   --info-color: #38bdf8;
-  --info-color-light: rgba(56, 189, 248, 0.15);
+  --info-color-light: rgba(56, 189, 248, 0.16);
   /* Navigation colors */
   --nav-color: var(--default-color);
   --nav-hover-color: var(--accent-color);
@@ -167,30 +168,30 @@
   --nav-dropdown-color: var(--default-color);
   --nav-dropdown-hover-color: var(--accent-color);
   /* Header */
-  --header-bg: #3e1800;
-  --header-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.35);
+  --header-bg: rgba(17, 34, 44, 0.9);
+  --header-shadow: 0 1px 0 rgb(129 161 185 / 0.16);
   --header-border: var(--border-color);
   /* Sidebar */
-  --sidebar-bg: #3e1800;
-  --sidebar-border: #2e0800;
-  --sidebar-color: #cfc7e8;
-  --sidebar-muted-color: #8c81b3;
-  --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
-  --sidebar-active-bg: #c97232;
+  --sidebar-bg: #081018;
+  --sidebar-border: var(--border-color);
+  --sidebar-color: #b9cde0;
+  --sidebar-muted-color: #7b92a8;
+  --sidebar-hover-bg: rgba(34, 211, 206, 0.14);
+  --sidebar-active-bg: rgba(34, 211, 206, 0.2);
   --sidebar-active-color: #ffffff;
   /* Cards */
-  --card-bg: #3e1800;
-  --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.35);
+  --card-bg: #11222c;
+  --card-shadow: 0 14px 36px -20px rgb(0 0 0 / 0.75), 0 8px 16px -12px rgb(6 14 21 / 0.82);
   --card-border: var(--border-color);
   /* Tables */
-  --table-header-bg: #0e0a1f;
-  --table-hover-bg: #241c42;
-  --table-stripe-bg: #150f2b;
+  --table-header-bg: #0d1a24;
+  --table-hover-bg: #173042;
+  --table-stripe-bg: #142836;
   /* Forms */
-  --input-bg: #0e0a1f;
+  --input-bg: #0c1822;
   --input-border: var(--border-color);
   --input-focus-border: var(--accent-color);
-  --input-focus-ring: rgb(167 139 250 / 0.25);
+  --input-focus-ring: rgb(34 211 206 / 0.25);
   /* Bootstrap overrides */
   --bs-body-color: var(--default-color);
   --bs-body-bg: var(--background-color);
@@ -2418,6 +2419,7 @@ a.header-action:hover {
   flex-shrink: 0;
   display: block;
   border: 2px solid color-mix(in srgb, var(--accent-color), transparent 40%);
+  background-color: #ffffff !important;
 }
 
 .user-dropdown .user-name {
@@ -2472,18 +2474,21 @@ a.header-action:hover {
   -o-object-fit: cover;
   object-fit: cover;
   border: 2px solid var(--surface-color);
+  background-color: #ffffff;
 }
 
 .user-menu-name {
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--heading-color);
+  text-align: center;
 }
 
 .user-menu-mail {
   font-size: 0.75rem;
   color: var(--muted-color);
   margin-bottom: var(--spacing-sm);
+  text-align: center;
 }
 
 .user-menu-role {
@@ -2495,6 +2500,7 @@ a.header-action:hover {
   color: var(--accent-color);
   background: color-mix(in srgb, var(--accent-color), transparent 88%);
   border-radius: var(--radius-full);
+  text-align: center;
 }
 
 .user-menu-body {
@@ -3292,6 +3298,7 @@ a.header-action:hover {
   -o-object-fit: cover;
   object-fit: cover;
   border: 2px solid color-mix(in srgb, var(--accent-color), transparent 30%);
+  background-color: #ffffff;
 }
 
 .sidebar-user-status {
@@ -6766,7 +6773,6 @@ textarea.form-control {
 /* Dropdown Item with Icon */
 .dropdown-item i {
   width: 20px;
-  margin-right: var(--spacing-sm);
   color: var(--muted-color);
   text-align: center;
 }
