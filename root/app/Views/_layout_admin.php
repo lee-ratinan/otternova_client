@@ -247,6 +247,7 @@
                     </a>
                     <ul class="nav-submenu">
                         <li><a class="nav-link<?= ('business' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business') ?>"><?= lang('System.page.business') ?></a></li>
+                        <li><a class="nav-link<?= ('website' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/website') ?>"><?= lang('System.page.website') ?></a></li>
                         <li><a class="nav-link<?= ('stores' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/stores') ?>"><?= lang('System.page.stores') ?></a></li>
                         <li><a class="nav-link<?= ('resource-types' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/resource-types') ?>"><?= lang('System.page.resource-types') ?></a></li>
                         <li><a class="nav-link<?= ('resources' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/resources') ?>"><?= lang('System.page.resources') ?></a></li>

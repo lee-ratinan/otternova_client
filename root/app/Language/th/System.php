@@ -36,6 +36,7 @@ return [
         'sales'                 => 'การขาย',
         'staff'                 => 'การจัดสรรพนักงาน',
         'commission'            => 'ค่าคอมมิชชัน',
+        'website'               => 'เว็บไซต์',
         'reviews'               => 'รีวิว',
         'public-profiles'       => 'ประวัติสาธารณะ',
         'traffic'               => 'ผู้เข้าชม',

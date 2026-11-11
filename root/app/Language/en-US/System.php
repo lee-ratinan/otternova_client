@@ -36,6 +36,7 @@ return [
         'sales'                 => 'Sales',
         'staff'                 => 'Staff Assignment',
         'commission'            => 'Commission',
+        'website'               => 'Website',
         'reviews'               => 'Reviews',
         'public-profiles'       => 'Public Profiles',
         'traffic'               => 'Traffic',

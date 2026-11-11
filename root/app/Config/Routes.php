@@ -59,6 +59,11 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->get('resources/create', 'Resources::form');
         $routes->get('resources/edit/(:segment)', 'Resources::form/$1');
         $routes->post('resources/save', 'Resources::save');
+        // how the business's web pages look; see App\Controllers\Website
+        $routes->get('website', 'Website::index');
+        $routes->post('website/save', 'Website::save');
+        $routes->post('website/logo-upload', 'Website::logoUpload');
+        $routes->post('website/logo-delete', 'Website::logoDelete');
         // how the business pays commission; see App\Controllers\Staff
         $routes->get('commission', 'Staff::commission');
         $routes->post('commission/save', 'Staff::commissionSave');
