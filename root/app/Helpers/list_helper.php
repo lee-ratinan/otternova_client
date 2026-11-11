@@ -54,20 +54,20 @@ if (!function_exists("listLanguages")) {
     {
         return [
             "en-US" => "English (US)",
-//            "en-GB" => "English (GB)",
-//            "en-AU" => "English (AU)",
+            //            "en-GB" => "English (GB)",
+            //            "en-AU" => "English (AU)",
             "id"    => "Bahasa Indonesia",
             "ms"    => "Bahasa Malaysia",
-//            "vi"    => "tiếng Việt (Vietnamese)",
+            //            "vi"    => "tiếng Việt (Vietnamese)",
             "th"    => "ภาษาไทย (Thai)",
             "zh-SG" => "华语 (Huayu)",
             "ja"    => "日本語 (Japanese)",
-//            "ko"    => "한국어 (Korean)",
+            //            "ko"    => "한국어 (Korean)",
             "zh-TW" => "國語 (Mandarin)",
-//            "nan-TW" => "台語 (Taiwanese)",
-//            "ta"    => "தமிழ் (Tamil)",
-//            "su"    => "ᮘᮞ ᮞᮥᮔ᮪ᮓ / Basa Sunda (Sundanese)",
-//            "jv"    => "ꦧꦱꦗꦮ / Basa Jawa (Javanese)"
+            //            "nan-TW" => "台語 (Taiwanese)",
+            //            "ta"    => "தமிழ் (Tamil)",
+            //            "su"    => "ᮘᮞ ᮞᮥᮔ᮪ᮓ / Basa Sunda (Sundanese)",
+            //            "jv"    => "ꦧꦱꦗꦮ / Basa Jawa (Javanese)"
         ];
     }
 }
@@ -944,5 +944,40 @@ if (!function_exists('listSupportedTypefacesNameOnly')) {
             $allNames = array_merge($allNames, array_keys($localeGroup));
         }
         return array_values(array_unique($allNames));
+    }
+}
+
+
+if (!function_exists('listDefaultThemeVariables')) {
+    /**
+     * @param string|null $locale
+     * @return array
+     */
+    function listDefaultThemeVariables(?string $locale = null): array
+    {
+        $fonts = [
+            'en-US' => [
+                '--default-font' => 'Raleway, system-ui, -apple-system, "Noto Sans", sans-serif',
+                '--heading-font' => 'Oswald, sans-serif',
+                '--nav-font'     => 'Oswald, sans-serif'
+            ],
+            'th'    => [
+                '--default-font' => '"Noto Serif Thai", Sarabun, system-ui, -apple-system, "Noto Sans", sans-serif',
+                '--heading-font' => 'Prompt, sans-serif',
+                '--nav-font'     => 'Prompt, sans-serif'
+            ]
+        ];
+        $usedFonts = $fonts[$locale] ?? $fonts['en-US'];
+        return [
+            'fonts'  => $usedFonts,
+            'colors' => [
+                '--background-color' => '#ffffff', /* Background color for the entire website, including individual sections */
+                '--default-color'    => '#5a6577', /* Default color used for the majority of the text content across the entire website */
+                '--heading-color'    => '#10243d', /* Color for headings, subheadings and title throughout the website */
+                '--accent-color'     => '#ff7533', /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
+                '--surface-color'    => '#ffffff', /* The surface color is used as a background of boxed elements within sections, such as cards, icon boxes, or other elements that require a visual separation from the global background. */
+                '--contrast-color'   => '#ffffff' /* Contrast color for text, ensuring readability against backgrounds of accent, heading, or default colors. */
+            ]
+        ];
     }
 }
