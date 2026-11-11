@@ -135,6 +135,41 @@ abstract class BaseController extends Controller
         return $rows;
     }
 
+    /** websiteLanguages() of this request, fetched once */
+    private ?array $websiteLanguages = null;
+
+    /**
+     * The languages the session business's web pages are in (business_website_language, through
+     * v1/client/website), the default first, as language_code => name of listLanguages(). The forms ask for the
+     * translations of a business, store, product or service, category, option or resource type in these only, and
+     * leave the translations out while there are none; an API failure counts as none, so the stored translations
+     * are kept as they are.
+     */
+    protected function websiteLanguages(): array
+    {
+        if (null !== $this->websiteLanguages) {
+            return $this->websiteLanguages;
+        }
+        $this->websiteLanguages = [];
+        $slug = (string) currentBusinessSlug();
+        if ('' === $slug) {
+            return $this->websiteLanguages;
+        }
+        [$code, $body] = $this->callApi('v1/client/website', ['business_slug' => $slug]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            return $this->websiteLanguages;
+        }
+        helper('list');
+        $names = listLanguages();
+        foreach ((array) ($body['data']['languages'] ?? []) as $language) {
+            $languageCode = (string) ($language['language_code'] ?? '');
+            if ('' !== $languageCode) {
+                $this->websiteLanguages[$languageCode] = $names[$languageCode] ?? $languageCode;
+            }
+        }
+        return $this->websiteLanguages;
+    }
+
     /**
      * A failed API body with its translation errors renamed for the form: the API names them
      * translations.<language>, the form translation_<language>

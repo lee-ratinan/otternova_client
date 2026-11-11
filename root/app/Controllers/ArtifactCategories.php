@@ -127,7 +127,7 @@ class ArtifactCategories extends BaseController
     /**
      * Create or save a category through LINK_INTERNAL_API: v1/client/artifact-category/create { business_slug,
      * category, translations }, or, with public_id, v1/client/artifact-category/edit { public_id, category,
-     * translations }. The form has the names in the UI languages only; on an edit, the names in other languages are
+     * translations }. The form has the names in the web pages' languages only; on an edit, the names in other languages are
      * kept, as the API replaces them all.
      */
     public function save(): ResponseInterface
@@ -143,7 +143,7 @@ class ArtifactCategories extends BaseController
             }
             $names = (array) ($stored['translations'] ?? []);
         }
-        foreach (array_keys(listSupportedLanguages()) as $language) {
+        foreach (array_keys($this->websiteLanguages()) as $language) {
             $names[$language] = (string) ($post[self::TRANSLATION_PREFIX . $language] ?? '');
         }
 
@@ -163,7 +163,8 @@ class ArtifactCategories extends BaseController
     }
 
     /**
-     * Fields of the category form: the category, then its name in each UI language (optional, sent as translations)
+     * Fields of the category form: the category, then its name in each language of the business's web pages
+     * (optional, sent as translations; none while it has no languages)
      */
     private function fields(): array
     {
@@ -176,9 +177,12 @@ class ArtifactCategories extends BaseController
             ['name' => 'sort_order', 'type' => 'number', 'label' => lang('ArtifactCategories.fields.sort_order'), 'default' => 0,
                 'rules' => 'required|is_natural|less_than_equal_to[65535]', 'attrs' => ['min' => 0, 'max' => 65535, 'step' => 1],
                 'help' => lang('ArtifactCategories.help.sort-order')],
-            ['type' => 'heading', 'label' => lang('ArtifactCategories.heading.translations')],
         ];
-        foreach (listSupportedLanguages() as $language => $label) {
+        $languages = $this->websiteLanguages();
+        if ([] !== $languages) {
+            $fields[] = ['type' => 'heading', 'label' => lang('ArtifactCategories.heading.translations')];
+        }
+        foreach ($languages as $language => $label) {
             $fields[] = ['name' => self::TRANSLATION_PREFIX . $language, 'type' => 'text', 'label' => lang('ArtifactCategories.translation-label', [$label]),
                 'rules' => 'max_length[255]', 'optional' => true];
         }

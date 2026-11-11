@@ -201,7 +201,7 @@ class ServiceSessions extends BaseController
     /**
      * Create or save a session of the session business through LINK_INTERNAL_API:
      * v1/client/session/create { business_slug, session, translations, slots }, or, with public_id,
-     * v1/client/session/edit { public_id, session, translations, slots }. The form has the texts in the UI languages
+     * v1/client/session/edit { public_id, session, translations, slots }. The form has the texts in the web pages' languages
      * only; on an edit, the other languages' are kept, as the API replaces them all.
      */
     public function save(): ResponseInterface
@@ -232,7 +232,7 @@ class ServiceSessions extends BaseController
             }
             $names = (array) ($body['data']['session']['translations'] ?? []);
         }
-        foreach (array_keys(listSupportedLanguages()) as $language) {
+        foreach (array_keys($this->websiteLanguages()) as $language) {
             $names[$language] = [
                 'session_name'        => (string) ($post[self::NAME_PREFIX . $language] ?? ''),
                 'session_description' => (string) ($post[self::DESCRIPTION_PREFIX . $language] ?? ''),
@@ -328,8 +328,11 @@ class ServiceSessions extends BaseController
         $fields[] = ['type' => 'heading', 'label' => lang('ServiceSessions.heading.slots')];
         $fields[] = ['type' => 'html', 'show_in' => ['create', 'edit'], 'html' => view('sessions/slots_editor', ['field' => self::SLOTS_FIELD])];
         $fields[] = ['type' => 'html', 'show_in' => ['view'], 'html' => view('sessions/slots_view', ['slots' => $editor['slots']])];
-        $fields[] = ['type' => 'heading', 'label' => lang('ServiceSessions.heading.translations')];
-        foreach (listSupportedLanguages() as $language => $label) {
+        $languages = $this->websiteLanguages();
+        if ([] !== $languages) {
+            $fields[] = ['type' => 'heading', 'label' => lang('ServiceSessions.heading.translations')];
+        }
+        foreach ($languages as $language => $label) {
             $fields[] = ['name' => self::NAME_PREFIX . $language, 'type' => 'text', 'label' => lang('ServiceSessions.translation-name', [$label]),
                 'rules' => 'max_length[255]', 'optional' => true];
             $fields[] = ['name' => self::DESCRIPTION_PREFIX . $language, 'type' => 'textarea', 'label' => lang('ServiceSessions.translation-description', [$label]),

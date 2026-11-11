@@ -274,7 +274,7 @@ class Artifacts extends BaseController
             }
             $names = (array) ($stored['artifact']['translations'] ?? []);
         }
-        foreach (array_keys(listSupportedLanguages()) as $language) {
+        foreach (array_keys($this->websiteLanguages()) as $language) {
             $names[$language] = [
                 'artifact_name'        => (string) ($post[self::NAME_PREFIX . $language] ?? ''),
                 'artifact_description' => (string) ($post[self::DESCRIPTION_PREFIX . $language] ?? ''),
@@ -441,7 +441,8 @@ class Artifacts extends BaseController
 
     /**
      * Fields of the artifact form: the artifact, its tax, the variants editor (a view of its own in view mode) and
-     * the name and description in each UI language (optional, sent as translations)
+     * the name and description in each language of the business's web pages (optional, sent as translations;
+     * none while it has no languages)
      * @param string $type     artifact_type of the artifact being edited; '' for a new one
      * @param array  $typeCaps a new one: caps of v1/client/artifacts, by type; a type at its cap cannot be picked
      * @param string $plan     plan_code of the business
@@ -498,9 +499,12 @@ class Artifacts extends BaseController
             ['type' => 'heading', 'label' => lang('Reviews.summary.heading'), 'show_in' => ['view']],
             ['type' => 'html', 'show_in' => ['view'], 'html' => '<div class="row mb-3"><div class="col-12">'
                 . view('partials/rating_summary', ['rating' => $rating]) . '</div></div>'],
-            ['type' => 'heading', 'label' => lang('Artifacts.heading.translations')],
         ];
-        foreach (listSupportedLanguages() as $language => $name) {
+        $languages = $this->websiteLanguages();
+        if ([] !== $languages) {
+            $fields[] = ['type' => 'heading', 'label' => lang('Artifacts.heading.translations')];
+        }
+        foreach ($languages as $language => $name) {
             $fields[] = ['name' => self::NAME_PREFIX . $language, 'type' => 'text', 'label' => lang('Artifacts.translation-name', [$name]),
                 'rules' => 'max_length[255]', 'optional' => true];
             $fields[] = ['name' => self::DESCRIPTION_PREFIX . $language, 'type' => 'textarea', 'label' => lang('Artifacts.translation-description', [$name]),

@@ -3,7 +3,7 @@
  * The choices of an option in the view pane of its form, read only, in their order
  *
  * @var array $values    as v1/client/artifact-attributes sends them: public_id, attribute_value, sort_order, translations
- * @var array $languages listSupportedLanguages()
+ * @var array $languages websiteLanguages(), the languages of the business's web pages
  */
 ?>
 <div class="row mb-3">

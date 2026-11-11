@@ -7,7 +7,7 @@
  * @var string $formId      the option form's DOM id
  * @var string $valuesField the hidden field of the choices
  * @var array  $values      the saved choices, as v1/client/artifact-attributes sends them
- * @var array  $languages   listSupportedLanguages()
+ * @var array  $languages   websiteLanguages(), the languages of the business's web pages (none: no name columns)
  * @var int    $max         the most choices the API takes at a time
  */
 $config = [

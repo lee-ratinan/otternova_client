@@ -139,7 +139,7 @@ class Resources extends BaseController
     /**
      * Create or save a resource type through LINK_INTERNAL_API: v1/client/resource-type/create { business_slug,
      * resource_type, translations }, or, with public_id, v1/client/resource-type/edit { public_id, resource_type,
-     * translations }. The form has the texts in the UI languages only; on an edit, the other languages' are kept, as
+     * translations }. The form has the texts in the web pages' languages only; on an edit, the other languages' are kept, as
      * the API replaces them all.
      */
     public function typeSave(): ResponseInterface
@@ -155,7 +155,7 @@ class Resources extends BaseController
             }
             $names = (array) ($stored['translations'] ?? []);
         }
-        foreach (array_keys(listSupportedLanguages()) as $language) {
+        foreach (array_keys($this->websiteLanguages()) as $language) {
             $names[$language] = [
                 'type_name'        => (string) ($post[self::NAME_PREFIX . $language] ?? ''),
                 'type_description' => (string) ($post[self::DESCRIPTION_PREFIX . $language] ?? ''),
@@ -428,7 +428,8 @@ class Resources extends BaseController
     // ---------------------------------------------------------------- configs
 
     /**
-     * Fields of the resource type form: the type, then its name and description in each UI language
+     * Fields of the resource type form: the type, then its name and description in each language of the
+     * business's web pages (none while it has no languages)
      */
     private function typeFields(): array
     {
@@ -445,9 +446,12 @@ class Resources extends BaseController
             ['name' => 'type_status', 'type' => 'select', 'label' => lang('Resources.fields.type_status'), 'options' => $statuses,
                 'default' => self::STATUS_ACTIVE, 'rules' => 'required|in_list[' . self::STATUS_ACTIVE . ',' . self::STATUS_INACTIVE . ']',
                 'help' => lang('Resources.help.type-status')],
-            ['type' => 'heading', 'label' => lang('Resources.heading.translations')],
         ];
-        foreach (listSupportedLanguages() as $language => $label) {
+        $languages = $this->websiteLanguages();
+        if ([] !== $languages) {
+            $fields[] = ['type' => 'heading', 'label' => lang('Resources.heading.translations')];
+        }
+        foreach ($languages as $language => $label) {
             $fields[] = ['name' => self::NAME_PREFIX . $language, 'type' => 'text', 'label' => lang('Resources.translation-name', [$label]),
                 'rules' => 'max_length[255]', 'optional' => true];
             $fields[] = ['name' => self::DESCRIPTION_PREFIX . $language, 'type' => 'textarea', 'label' => lang('Resources.translation-description', [$label]),

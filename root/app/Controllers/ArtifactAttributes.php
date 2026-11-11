@@ -89,7 +89,7 @@ class ArtifactAttributes extends BaseController
             }
         }
         $locale    = $this->request->getLocale();
-        $languages = listSupportedLanguages();
+        $languages = $this->websiteLanguages();
         $choices   = (array) ($attribute['values'] ?? []);
 
         return view('generic_form', [
@@ -132,7 +132,7 @@ class ArtifactAttributes extends BaseController
     /**
      * Create or save an option through LINK_INTERNAL_API: v1/client/artifact-attribute/create { business_slug,
      * attribute, translations, values }, or, with public_id, v1/client/artifact-attribute/edit { public_id,
-     * attribute, translations, values }. The form has the names in the UI languages only; on an edit, the names in
+     * attribute, translations, values }. The form has the names in the web pages' languages only; on an edit, the names in
      * other languages are kept, of the option and of each saved choice, as the API replaces them all.
      */
     public function save(): ResponseInterface
@@ -155,7 +155,7 @@ class ArtifactAttributes extends BaseController
                 $storedNames[(string) $value['public_id']] = (array) ($value['translations'] ?? []);
             }
         }
-        $languages = array_keys(listSupportedLanguages());
+        $languages = array_keys($this->websiteLanguages());
         foreach ($languages as $language) {
             $names[$language] = (string) ($post[self::TRANSLATION_PREFIX . $language] ?? '');
         }
@@ -195,9 +195,9 @@ class ArtifactAttributes extends BaseController
 
     /**
      * Fields of the option form: its name, the choices editor (a table of its own in view mode), then its name in
-     * each UI language (optional, sent as translations)
+     * each language of the business's web pages (optional, sent as translations; none while it has no languages)
      * @param array $choices   the saved choices, as v1/client/artifact-attributes sends them
-     * @param array $languages listSupportedLanguages()
+     * @param array $languages websiteLanguages()
      */
     private function fields(array $choices, array $languages): array
     {
@@ -208,8 +208,10 @@ class ArtifactAttributes extends BaseController
             ['type' => 'heading', 'label' => lang('ArtifactAttributes.heading.values')],
             ['type' => 'html', 'show_in' => ['create', 'edit'], 'html' => view('artifacts/attribute_values_editor', ['field' => self::VALUES_FIELD])],
             ['type' => 'html', 'show_in' => ['view'], 'html' => view('artifacts/attribute_values_view', ['values' => $choices, 'languages' => $languages])],
-            ['type' => 'heading', 'label' => lang('ArtifactAttributes.heading.translations')],
         ];
+        if ([] !== $languages) {
+            $fields[] = ['type' => 'heading', 'label' => lang('ArtifactAttributes.heading.translations')];
+        }
         foreach ($languages as $language => $label) {
             $fields[] = ['name' => self::TRANSLATION_PREFIX . $language, 'type' => 'text', 'label' => lang('ArtifactAttributes.translation-label', [$label]),
                 'rules' => 'max_length[64]', 'optional' => true];
@@ -224,7 +226,7 @@ class ArtifactAttributes extends BaseController
      */
     private function attributeFailed(int $code, array $body): ResponseInterface
     {
-        $languages = listSupportedLanguages();
+        $languages = $this->websiteLanguages();
         $errors    = [];
         foreach ((array) ($body['errors'] ?? []) as $key => $message) {
             $key = (string) $key;

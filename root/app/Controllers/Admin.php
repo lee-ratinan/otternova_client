@@ -368,10 +368,8 @@ class Admin extends BaseController
     {
         $post     = (array) $this->request->getPost();
         $business = array_intersect_key($post, array_flip(self::BUSINESS_FIELDS));
+        // a new business has no web pages, so no languages to name it in yet
         $names    = [];
-        foreach (array_keys(listSupportedLanguages()) as $language) {
-            $names[$language] = (string) ($post[self::TRANSLATION_PREFIX . $language] ?? '');
-        }
 
         [$code, $body] = $this->callApi('v1/client/business/create', ['business' => $business, 'translations' => (object) $names]);
         if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
@@ -607,7 +605,7 @@ class Admin extends BaseController
         $post     = (array) $this->request->getPost();
         $business = array_intersect_key($post, array_flip(self::BUSINESS_EDIT_FIELDS));
         $payload  = ['business_slug' => $current, 'business' => $business];
-        $posted   = array_filter(array_keys(listSupportedLanguages()), static fn (string $language) => array_key_exists(self::TRANSLATION_PREFIX . $language, $post));
+        $posted   = array_filter(array_keys($this->websiteLanguages()), static fn (string $language) => array_key_exists(self::TRANSLATION_PREFIX . $language, $post));
         if ([] !== $posted) {
             // the API replaces all the names, so the names in other languages than the form's are sent as they are
             if (null === $this->refreshSessionBusiness($current, $names)) {
@@ -755,7 +753,7 @@ class Admin extends BaseController
     /**
      * Create or save a store of the session business through LINK_INTERNAL_API: v1/client/store/create
      * { business_slug, store, translations }, or, with public_id, v1/client/store/edit { public_id, store, translations }.
-     * The form has the names in the UI languages only; on an edit, the names in other languages are kept, as the
+     * The form has the names in the web pages' languages only; on an edit, the names in other languages are kept, as the
      * API replaces them all.
      */
     public function storeSavePost(): ResponseInterface
@@ -771,7 +769,7 @@ class Admin extends BaseController
             }
             $names = (array) ($stored['translations'] ?? []);
         }
-        foreach (array_keys(listSupportedLanguages()) as $language) {
+        foreach (array_keys($this->websiteLanguages()) as $language) {
             $names[$language] = (string) ($post[self::TRANSLATION_PREFIX . $language] ?? '');
         }
 
@@ -836,8 +834,8 @@ class Admin extends BaseController
     }
 
     /**
-     * Fields of the create-business form, grouped under the BUSINESS_SECTIONS headings, then the business name in
-     * each UI language (optional, sent as translations)
+     * Fields of the create-business form, grouped under the BUSINESS_SECTIONS headings; no names in other
+     * languages, as a new business has no web pages yet
      * @param array $types public_id => type name, for the Business Type dropdown
      * @param array $user  the session user, whose name and email start as the contact
      */
@@ -876,7 +874,7 @@ class Admin extends BaseController
                 $fields[] = $config[$name];
             }
         }
-        return [...$fields, ...$this->businessNameFields()];
+        return $fields;
     }
 
     /**
@@ -906,13 +904,17 @@ class Admin extends BaseController
     }
 
     /**
-     * The business name in each UI language (listSupportedLanguages()), optional, under their own heading: sent as
-     * translations, kept in business_master_translation
+     * The business name in each language of its web pages (websiteLanguages()), optional, under their own heading:
+     * sent as translations, kept in business_master_translation; none while the web pages have no languages
      */
     private function businessNameFields(): array
     {
+        $languages = $this->websiteLanguages();
+        if ([] === $languages) {
+            return [];
+        }
         $fields = [['type' => 'heading', 'label' => lang('CreateBusiness.heading.translations')]];
-        foreach (listSupportedLanguages() as $language => $label) {
+        foreach ($languages as $language => $label) {
             $fields[] = [
                 'name'     => self::TRANSLATION_PREFIX . $language,
                 'type'     => 'text',
@@ -1048,7 +1050,7 @@ class Admin extends BaseController
      * @param array  $types   public_id => type name, for the Business Type dropdown
      * @param string $country business_master.country_code, for the subdivisions and the telephone number
      * @param string $slug      the business slug now, for the store address in its help
-     * @param bool   $withNames with the business name in each UI language (left out when they could not be fetched,
+     * @param bool   $withNames with the business name in each language of its web pages (left out when they could not be fetched,
      *                          so the names are not saved as empty)
      * @param bool   $withTaxId with the tax ID under the postal code (left out when it could not be fetched, likewise)
      */
@@ -1092,8 +1094,8 @@ class Admin extends BaseController
     }
 
     /**
-     * Fields of the store form, grouped under the STORE_SECTIONS headings, then the store name in each UI language
-     * (optional, sent as translations). The address heading is marked, so the form's script hides it with the
+     * Fields of the store form, grouped under the STORE_SECTIONS headings, then the store name in each language of
+     * the business's web pages (optional, sent as translations; none while it has no languages). The address heading is marked, so the form's script hides it with the
      * address fields for an online store.
      * @param string $country business_master.country_code of the session business
      */
@@ -1124,8 +1126,11 @@ class Admin extends BaseController
                 $fields[] = $config[$name];
             }
         }
-        $fields[] = ['type' => 'heading', 'label' => lang('Stores.heading.translations')];
-        foreach (listSupportedLanguages() as $language => $label) {
+        $languages = $this->websiteLanguages();
+        if ([] !== $languages) {
+            $fields[] = ['type' => 'heading', 'label' => lang('Stores.heading.translations')];
+        }
+        foreach ($languages as $language => $label) {
             $fields[] = [
                 'name'     => self::TRANSLATION_PREFIX . $language,
                 'type'     => 'text',
