@@ -172,12 +172,12 @@
   --header-shadow: 0 1px 0 rgb(129 161 185 / 0.16);
   --header-border: var(--border-color);
   /* Sidebar */
-  --sidebar-bg: #081018;
+  --sidebar-bg: #3e1800;
   --sidebar-border: var(--border-color);
   --sidebar-color: #b9cde0;
   --sidebar-muted-color: #7b92a8;
-  --sidebar-hover-bg: rgba(34, 211, 206, 0.14);
-  --sidebar-active-bg: rgba(34, 211, 206, 0.2);
+  --sidebar-hover-bg: rgba(201, 114, 50, 0.14);
+  --sidebar-active-bg: rgba(62, 24, 0, 0.2);
   --sidebar-active-color: #ffffff;
   /* Cards */
   --card-bg: #11222c;
@@ -2881,7 +2881,7 @@ a.header-action:hover {
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--contrast-color);
-  white-space: nowrap;
+  overflow-wrap: break-word;
   transition: opacity var(--transition-fast), width var(--transition-fast);
 }
 
@@ -6413,6 +6413,9 @@ textarea.form-control {
   cursor: not-allowed;
 }
 
+[data-theme=dark] .table td {
+  color: var(--muted-color);
+}
 /*--------------------------------------------------------------
 # Modals
 --------------------------------------------------------------*/
