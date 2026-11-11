@@ -32,7 +32,6 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->post('my-businesses/switch', 'Admin::myBusinessesSwitch');
     // the public profiles of the people of the session business: anyone active in it
     $routes->get('public-profiles', 'Employees::publicProfiles');
-    $routes->post('public-profiles/data', 'Employees::publicProfilesData');
     $routes->get('public-profile/(:any)', 'Employees::publicProfile/$1');
     // the session business and its stores: its owners and managers only (see BusinessManagerFilter)
     $routes->group('business', ['filter' => 'manager'], static function ($routes) {

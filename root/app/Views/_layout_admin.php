@@ -209,7 +209,9 @@
 <aside class="sidebar">
     <div class="sidebar-header">
         <a href="<?= base_url('admin/dashboard') ?>" class="sidebar-logo">
-            <span class="sidebar-logo-mark"><img src="<?= base_url('assets/img/logo.webp') ?>" alt="<?= lang('System.site-title') ?>" /></span>
+            <?php if (!currentBusinessName()) : ?>
+                <span class="sidebar-logo-mark"><img src="<?= base_url('assets/img/logo.webp') ?>" alt="<?= lang('System.site-title') ?>" /></span>
+            <?php endif; ?>
             <span class="sidebar-logo-text">
                 <?= esc(currentBusinessName() ?? lang('System.site-title')) ?>
             </span>
