@@ -99,7 +99,7 @@ class ClientMasterModel extends Model
             'national_id_type'   => ['type' => 'select'],
             'national_id_number' => ['type' => 'text'],
             'status_message'     => ['type' => 'text'],
-            'status_emoji'       => ['type' => 'text'],
+            'status_emoji'       => ['type' => 'emoji'],
             'gender'             => ['type' => 'select'],
             'date_of_birth'      => ['type' => 'date', 'max' => date('Y-m-d'), 'searchable' => false],
             'nationality_code'   => ['type' => 'select', 'options' => listCountries(), 'searchable' => false],

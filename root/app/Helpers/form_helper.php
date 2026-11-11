@@ -38,6 +38,9 @@
  *   'messages' => ['saved'=>..., 'saveFailed'=>..., 'deleted'=>..., 'deleteFailed'=>..., 'confirmDelete'=>..., 'fixErrors'=>...,
  *                  'uploaded'=>..., 'uploadFailed'=>..., 'converting'=>..., 'convertFailed'=>..., 'confirmDeleteImage'=>...],
  *   'heic_decoder' => base_url('assets/vendor/heic2any/heic2any.min.js'),  // loaded only when a HEIC file is picked
+ *   'emoji_picker' => base_url('assets/vendor/emoji-picker-element/index.js'),  // loaded when an emoji picker first opens
+ *   'emoji_data'   => base_url('assets/vendor/emoji-picker-element-data/{lang}/cldr/data.json'),  // {lang} = picker language
+ *   'emoji_languages' => ['en', 'th'],   // languages emoji_data has; the locale's language when listed, else the first
  *   'values'   => ['name' => 'Foo', 'tags' => ['a','b'], 'is_active' => 1],   // saved values (edit/view)
  *   'fields'   => [ <field>, <field>, ... ],
  * ]
@@ -46,7 +49,7 @@
  * [
  *   'name'  => 'category_id',            // required (not for heading/divider/html)
  *   'type'  => 'text' | 'email' | 'password' | 'number' | 'range' | 'date' | 'datetime-local' | 'time'
- *            | 'month' | 'week' | 'color' | 'tel' | 'url' | 'search' | 'hidden'
+ *            | 'month' | 'week' | 'color' | 'tel' | 'url' | 'search' | 'emoji' | 'hidden'
  *            | 'textarea' | 'select' | 'radio' | 'checkbox' | 'switch' | 'file'
  *            | 'heading' (label) | 'divider' | 'html' (html => raw markup)
  *   'id'          => 'category_id',      // default: id_prefix + name
@@ -66,6 +69,7 @@
  *                 or [['value'=>1,'label'=>'Electronics','disabled'=>true], ...]
  *   'multiple'    => true,               // select multiple (checkbox with options is always multi-value)
  *   'country'     => 'TH',               // tel only: country picked at first when the value has none
+ *   'append'      => true,               // emoji only: a picked emoji is added at the caret instead of replacing the value
  *
  *   'inline'      => true,               // radio/checkbox groups on one line
  *   'text'        => 'Enable',           // text beside a single checkbox / switch
@@ -91,6 +95,11 @@
  * dials it. Once both are filled in, urls.telephone_format turns them into E.164 (+66812345678), which goes into a
  * hidden input of the field's name: that is the value submitted and saved. A saved E.164 value is split back into
  * the country and the number (splitPhoneNumber()) when the form opens.
+ *
+ * EMOJI FIELDS ('emoji'): a text input with a button that opens an emoji picker (emoji-picker-element, loaded from
+ * emoji_picker the first time it opens) and a button that clears the value. Picking an emoji replaces the value
+ * (or, with 'append', adds it at the caret); the input can still be typed in, and the usual rules check it.
+ * The picker's labels come from Language/{locale}/Form.php (emoji.picker), its emoji names from emoji_data.
  *
  * UPLOAD FORMS: a form with a 'file' field is a stand-alone upload form. It always opens in edit mode
  * (no view pane), is sent as multipart/form-data with its hidden fields (e.g. used-for, image-name and the
@@ -529,10 +538,15 @@ if (! function_exists('fb_defaults')) {
                 'confirmDeleteImage' => lang('Form.message.confirm-delete-image'),
             ],
             'heic_decoder'  => function_exists('base_url') ? base_url('assets/vendor/heic2any/heic2any.min.js') : '',
+            'emoji_picker'  => function_exists('base_url') ? base_url('assets/vendor/emoji-picker-element/index.js') : '',
+            'emoji_data'    => function_exists('base_url') ? base_url('assets/vendor/emoji-picker-element-data/{lang}/cldr/data.json') : '',
+            'emoji_languages' => null,
             'values'        => [],
             'fields'        => [],
         ], $form);
 
+        // a list, so it is set here rather than merged into a caller's shorter list
+        $form['emoji_languages'] = array_values((array) ($form['emoji_languages'] ?? ['en', 'th']));
         $form['mode']      = in_array($form['mode'], ['create', 'edit', 'view'], true) ? $form['mode'] : 'create';
         // a form with a file field is a stand-alone upload form: always edit mode, nothing to view
         $form['upload']    = in_array('file', array_map(static fn ($f) => strtolower((string) ($f['type'] ?? 'text')), (array) $form['fields']), true);
@@ -630,7 +644,7 @@ if (! function_exists('fb_field')) {
 
         // Rules <-> attributes (rules also become native attributes, attributes also become rules)
         $rules  = fb_parse_rules($f['rules'] ?? []);
-        $isText = in_array($type, ['text', 'email', 'password', 'search', 'tel', 'url', 'textarea'], true);
+        $isText = in_array($type, ['text', 'email', 'password', 'search', 'tel', 'url', 'textarea', 'emoji'], true);
         $isNum  = in_array($type, ['number', 'range'], true);
         if (! empty($a['required'])) {
             $rules['required'] = true;
@@ -824,6 +838,31 @@ if (! function_exists('fb_tel')) {
     }
 }
 
+if (! function_exists('fb_emoji')) {
+    /**
+     * An emoji field: the text input of the field's name, a button that opens the emoji picker below it and one
+     * that clears the value (see EMOJI FIELDS). The picker itself is made by the script when it first opens.
+     */
+    function fb_emoji(array $f): string
+    {
+        $attrs = ['type' => 'text', 'value' => fb_input_value($f)] + fb_control_attrs($f, 'form-control')
+            + ['autocomplete' => 'off', 'data-fb-emoji-input' => $f['name']];
+        $off  = ! empty($f['attrs']['disabled']) || ! empty($f['attrs']['readonly']);
+        $data = ['type' => 'button', 'class' => 'btn btn-outline-secondary', 'disabled' => $off, 'aria-controls' => $f['id'] . '__emoji'];
+
+        return '<div class="position-relative" data-fb-emoji="' . fb_esc($f['name'], 'attr') . '">'
+            . '<div class="input-group"><input' . fb_attrs($attrs) . '>'
+            . '<button' . fb_attrs($data + ['data-fb-emoji-open' => $f['name'], 'aria-expanded' => 'false', 'aria-haspopup' => 'dialog',
+                'title' => lang('Form.emoji.choose'), 'aria-label' => lang('Form.emoji.choose')]) . '><i class="bi bi-emoji-smile"></i></button>'
+            . '<button' . fb_attrs($data + ['data-fb-emoji-clear' => $f['name'],
+                'title' => lang('Form.emoji.clear'), 'aria-label' => lang('Form.emoji.clear')]) . '><i class="bi bi-x-lg"></i></button>'
+            . '</div>'
+            . '<div class="position-absolute end-0 mt-1 shadow rounded-2 overflow-hidden d-none" style="z-index: 1060;" role="dialog" aria-label="'
+            . fb_esc(lang('Form.emoji.choose'), 'attr') . '" id="' . fb_esc($f['id'] . '__emoji', 'attr') . '" data-fb-emoji-panel="' . fb_esc($f['name'], 'attr') . '"></div>'
+            . '</div>';
+    }
+}
+
 if (! function_exists('fb_choice_group')) {
     /** A group of radios or checkboxes. Submitted value = option value, shown text = option label. */
     function fb_choice_group(array $f): string
@@ -899,6 +938,8 @@ if (! function_exists('fb_control')) {
                 return fb_single_check($f);
             case 'tel':
                 return fb_tel($f);
+            case 'emoji':
+                return fb_emoji($f);
             default:
                 return fb_input($f);
         }
@@ -1234,8 +1275,22 @@ if (! function_exists('fb_script')) {
                 'maxSize'      => $f['max_size'],
                 'maxSizeLabel' => $f['max_size_label'],
                 'defaultPreview' => $f['default_preview'],
+            ] : []) + ($f['type'] === 'emoji' ? [
+                'append'       => ! empty($f['append']),
             ] : []);
         }
+
+        // the picker's emoji names and search follow the page's language when emoji_data has it
+        $emojiLang = strtolower((string) strtok((string) $form['locale'], '-_'));
+        if (! in_array($emojiLang, $form['emoji_languages'], true)) {
+            $emojiLang = (string) ($form['emoji_languages'][0] ?? 'en');
+        }
+        $emoji = in_array('emoji', array_column($fields, 'type'), true) ? [
+            'picker' => $form['emoji_picker'],
+            'data'   => str_replace('%7Blang%7D', $emojiLang, (string) $form['emoji_data']),
+            'locale' => $emojiLang,
+            'i18n'   => lang('Form.emoji.picker'),
+        ] : null;
 
         $cfg = [
             'formId'       => $form['form_id'],
@@ -1258,6 +1313,7 @@ if (! function_exists('fb_script')) {
             'validation'   => lang('Form.validation'),
             'upload'       => $form['upload'],
             'heicDecoder'  => $form['heic_decoder'],
+            'emoji'        => $emoji,
             'fields'       => $fields,
         ];
 
@@ -1426,6 +1482,122 @@ if (! function_exists('fb_script')) {
       if (f.type !== 'tel') { return els(f); }
       var t = telParts(f);
       return [t.country, t.local].filter(Boolean);
+    }
+
+    // ---- emoji fields: a picker below the input, made the first time it opens --------------
+    var emojiPickers = {};
+
+    function emojiParts(name) {
+      var part = function (a) { return form.querySelector('[' + a + '="' + CSS.escape(name) + '"]'); };
+      return { input: part('data-fb-emoji-input'), open: part('data-fb-emoji-open'), panel: part('data-fb-emoji-panel') };
+    }
+
+    function emojiFields() {
+      return cfg.fields.filter(function (f) { return f.type === 'emoji'; });
+    }
+
+    // as if the user had typed it, so the field is checked like any other
+    function setEmoji(input, text) {
+      input.value = text;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function pickEmoji(f, input, unicode) {
+      if (!f.append) { setEmoji(input, unicode); return; }
+      var end = input.value.length;
+      var from = input.selectionStart === null ? end : input.selectionStart;
+      var to = input.selectionEnd === null ? end : input.selectionEnd;
+      setEmoji(input, input.value.slice(0, from) + unicode + input.value.slice(to));
+      try { input.setSelectionRange(from + unicode.length, from + unicode.length); } catch (e) {}
+    }
+
+    function closeEmoji(f, refocus) {
+      var p = emojiParts(f.name);
+      if (!p.panel || p.panel.classList.contains('d-none')) { return; }
+      p.panel.classList.add('d-none');
+      if (p.open) {
+        p.open.setAttribute('aria-expanded', 'false');
+        if (refocus) { p.open.focus(); }
+      }
+    }
+
+    function closeAllEmoji(except) {
+      emojiFields().forEach(function (f) { if (f !== except) { closeEmoji(f); } });
+    }
+
+    function emojiPicker(f, p) {
+      if (!emojiPickers[f.name]) {
+        emojiPickers[f.name] = import(cfg.emoji.picker).then(function () {
+          var picker = document.createElement('emoji-picker');
+          picker.className = 'light'; // the admin pages are light whatever the system theme is
+          picker.locale = cfg.emoji.locale;
+          picker.dataSource = cfg.emoji.data;
+          picker.i18n = cfg.emoji.i18n;
+          picker.addEventListener('emoji-click', function (e) {
+            if (!e.detail || !e.detail.unicode) { return; }
+            pickEmoji(f, p.input, e.detail.unicode);
+            closeEmoji(f);
+            p.input.focus();
+          });
+          p.panel.appendChild(picker);
+          return picker;
+        }).catch(function (err) {
+          delete emojiPickers[f.name];
+          throw err;
+        });
+      }
+      return emojiPickers[f.name];
+    }
+
+    async function toggleEmoji(f) {
+      var p = emojiParts(f.name);
+      if (!p.panel || !p.input || p.input.disabled || p.input.readOnly) { return; }
+      if (!p.panel.classList.contains('d-none')) { closeEmoji(f); return; }
+      closeAllEmoji(f);
+      var picker;
+      try { picker = await emojiPicker(f, p); } catch (err) {
+        if (window.console) { console.warn('The emoji picker could not be loaded', err); }
+        notify('error', esc(cfg.emoji.i18n.networkErrorMessage));
+        return;
+      }
+      p.panel.classList.remove('d-none');
+      p.open.setAttribute('aria-expanded', 'true');
+      var search = picker.shadowRoot && picker.shadowRoot.querySelector('input');
+      if (search) { search.focus(); }
+    }
+
+    if (cfg.emoji) {
+      form.addEventListener('click', function (e) {
+        var open = e.target.closest('[data-fb-emoji-open]');
+        var clear = e.target.closest('[data-fb-emoji-clear]');
+        var btn = open || clear;
+        var f = btn ? fields[btn.getAttribute(open ? 'data-fb-emoji-open' : 'data-fb-emoji-clear')] : null;
+        if (!f || mode !== 'edit') { return; }
+        e.preventDefault();
+        if (open) { toggleEmoji(f); return; }
+        var input = emojiParts(f.name).input;
+        if (input && !input.disabled && !input.readOnly) {
+          closeEmoji(f);
+          setEmoji(input, '');
+          input.focus();
+        }
+      });
+      // a click anywhere else closes the picker (a click inside its shadow DOM reaches here as the picker itself)
+      document.addEventListener('click', function (e) {
+        var box = e.target.closest && e.target.closest('[data-fb-emoji]');
+        closeAllEmoji(box ? fields[box.getAttribute('data-fb-emoji')] : null);
+      });
+      form.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') { return; }
+        var box = e.target.closest && e.target.closest('[data-fb-emoji]');
+        var f = box ? fields[box.getAttribute('data-fb-emoji')] : null;
+        var p = f ? emojiParts(f.name) : null;
+        if (p && p.panel && !p.panel.classList.contains('d-none')) {
+          e.preventDefault();
+          closeEmoji(f, true);
+        }
+      });
     }
 
     // ---- reading values ----------------------------------------------------------------
@@ -1820,6 +1992,7 @@ if (! function_exists('fb_script')) {
     // ---- 5. reset: restore the original values (native reset uses the rendered defaults) ----
     form.addEventListener('reset', function () {
       fileFields().forEach(function (f) { delete prepared[f.name]; setPreview(f, previews[f.name]); });
+      closeAllEmoji();
       // a hidden input keeps what the script set, so the telephone values are put back by hand
       setTimeout(function () {
         telFields().forEach(function (f) {
