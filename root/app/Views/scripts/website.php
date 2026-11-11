@@ -2,7 +2,7 @@
 /**
  * The script of website/index.php. It keeps the settings in one state object, draws the language list, a tab of
  * fonts, meta tags and main-page text for each language, and the featured pickers from it, updates the preview as
- * anything changes, and saves colours, languages and featured products together with one button. The logo is
+ * anything changes, and saves colors, languages and featured products together with one button. The logo is
  * uploaded and removed straight away. Errors come back by the API's field names (languages.0.heading_font), which
  * the fields carry in data-error-for.
  *
@@ -149,8 +149,8 @@ $config = [
       for (var i = 0; i < wanted.length; i++) { if (names.indexOf(wanted[i]) !== -1) { return wanted[i]; } }
       return names[0] || '';
     }
-    var heading = pick(['Prompt', 'Montserrat', 'Noto Sans']);
-    return { heading_font: heading, nav_font: heading, default_font: pick(['Sarabun', 'Open Sans', 'Noto Sans']) };
+    var heading = pick(['Prompt', 'M PLUS Rounded 1c', 'Zen Old Mincho', 'Montserrat', 'Noto Sans']);
+    return { heading_font: heading, nav_font: heading, default_font: pick(['Sarabun', 'Noto Sans JP', 'Noto Sans TC', 'Open Sans', 'Noto Sans']) };
   }
 
   /** The state of the settings from the API's response; featured artifacts that are no longer active are dropped */

@@ -892,7 +892,7 @@ if (!function_exists('listSupportedTypefaces')) {
                 'M PLUS Rounded 1c' => 'family=M+PLUS+Rounded+1c:wght@400;700',
                 'Noto Sans JP'      => 'family=Noto+Sans+JP:wght@400;700',
                 'Noto Serif JP'     => 'family=Noto+Serif+JP:wght@400;700',
-                'Shippori Mincho'   => 'family=Shippori+Mincho:wght@400;700,'
+                'Shippori Mincho'   => 'family=Shippori+Mincho:wght@400;700'
             ],
             'th'    => [
                 'Athiti'                => 'family=Athiti:wght@400;700',
@@ -968,6 +968,7 @@ if (!function_exists('listSupportedTypefacesNameOnly')) {
 
 if (!function_exists('listDefaultThemeVariables')) {
     /**
+     * Note: need to fix website.php startingFonts() in Views/scripts when update the typefaces here
      * @param string|null $locale
      * @return array
      */
@@ -979,12 +980,27 @@ if (!function_exists('listDefaultThemeVariables')) {
                 '--heading-font' => 'Oswald, sans-serif',
                 '--nav-font'     => 'Oswald, sans-serif'
             ],
+            'ja'    => [
+                '--default-font' => '"Noto Sans JP", system-ui, -apple-system, "Noto Sans", sans-serif',
+                '--heading-font' => '"M PLUS Rounded 1c", sans-serif',
+                '--nav-font'     => '"M PLUS Rounded 1c", sans-serif'
+            ],
             'th'    => [
                 '--default-font' => '"Noto Serif Thai", Sarabun, system-ui, -apple-system, "Noto Sans", sans-serif',
                 '--heading-font' => 'Prompt, sans-serif',
                 '--nav-font'     => 'Prompt, sans-serif'
+            ],
+            'zh-TW' => [
+                '--default-font' => '"Noto Sans TC", system-ui, -apple-system, "Noto Sans", sans-serif',
+                '--heading-font' => '"Zen Old Mincho", sans-serif',
+                '--nav-font'     => '"Zen Old Mincho", sans-serif'
             ]
         ];
+        if (in_array($locale, ['id', 'ms'])) {
+            $locale = 'en-US';
+        } else if ('zh-SG' === $locale) {
+            $locale = 'zh-TW';
+        }
         $usedFonts = $fonts[$locale] ?? $fonts['en-US'];
         return [
             'fonts'  => $usedFonts,
