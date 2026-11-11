@@ -25,7 +25,6 @@ return [
         'subtitle'              => 'Each language has its own fonts, main-page text and search engine details.',
         'none-yet'              => 'Add a language above to set its fonts and text.',
         'fonts'                 => 'Fonts',
-        'font-sample'           => 'The quick brown fox · สวัสดี · 你好',
         'heading_font'          => 'Headings',
         'heading_font-help'     => 'Titles and headings.',
         'nav_font'              => 'Menu',

@@ -38,7 +38,15 @@ $config = [
         'metaHelp'         => lang('Website.content.meta-help'),
         'hero'             => lang('Website.content.hero'),
         'heroHelp'         => lang('Website.content.hero-help'),
-        'fontSample'       => lang('Website.content.font-sample'),
+        'fontSamples'      => [
+            'en-US' => 'At OtterNova, we help your business grow.',
+            'th'    => 'ที่ OtterNova เราช่วยให้ธุรกิจของคุณเติบโต',
+            'ms'    => 'Di OtterNova, kami membantu perniagaan berkembang.',
+            'id'    => 'Di OtterNova, kami membantu bisnis berkembang.',
+            'zh-TW' => '在 OtterNova，我們協助企業成長。',
+            'zh-SG' => '在 OtterNova，我们协助企业成长。',
+            'ja'    => 'OtterNovaは、ビジネスの成長をサポートします。',
+        ],
         'none'             => lang('Website.featured.none-option'),
         'inactive'         => lang('Website.featured.inactive-removed'),
         'artifactTypes'    => ['P' => lang('Website.featured.type-P'), 'S' => lang('Website.featured.type-S')],
@@ -321,7 +329,7 @@ $config = [
     if (language[field] && names.indexOf(language[field]) === -1) { names.unshift(language[field]); } // kept so the API can say why
     names.forEach(function (name) { select.appendChild(el('option', { value: name, text: name })); });
     select.value = language[field] || '';
-    var sample = el('div', { class: 'border rounded px-2 py-1 mt-1 text-truncate', text: M.fontSample });
+    var sample = el('div', { class: 'border rounded px-2 py-1 mt-1 text-truncate', lang: code, text: M.fontSamples[code] || M.fontSamples['en-US'] });
     function update() {
       loadFont(code, select.value);
       sample.style.fontFamily = fontStack(select.value);
