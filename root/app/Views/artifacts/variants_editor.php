@@ -9,7 +9,7 @@
 ?>
 <div class="row mb-3">
     <div class="col-12" data-variants-editor>
-        <p class="form-text mt-0"><?= esc(lang('Artifacts.variants.help')) ?></p>
+        <p class="form-text mt-0" data-variants-help><?= esc(lang('Artifacts.variants.help')) ?></p>
         <div class="mb-3" data-variants-options></div>
         <div class="table-responsive">
             <table class="table table-sm align-middle mb-2" data-variants-table></table>

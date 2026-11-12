@@ -177,7 +177,7 @@ class Artifacts extends BaseController
             'variants'   => $variants,
             'attributes' => $attributes,
             'stores'     => $stores,
-            'labels'     => $this->variantLabels($variants, $attributes),
+            'labels'     => $this->variantLabels($variants, $attributes, $type),
             'max'        => (int) ($variantCap['max'] ?? 0),
             'planName'   => planName($plan),
         ];
@@ -583,13 +583,16 @@ class Artifacts extends BaseController
     }
 
     /**
-     * How each variant is named where one is picked or listed: "Variant 2 · Blue / M · TS-BLUE"
-     * @param array $variants   as v1/client/artifact sends them
-     * @param array $attributes loadAttributes()
+     * How each variant is named where one is picked or listed: "Variant 2 · Blue / M · TS-BLUE"; a service's also
+     * has its length and booking type, which tell its variants apart too: "Variant 2 · 90 min · Group · JP-90G"
+     * @param array  $variants   as v1/client/artifact sends them
+     * @param array  $attributes loadAttributes()
+     * @param string $type       artifact_type
      * @return array public_id => label
      */
-    private function variantLabels(array $variants, array $attributes): array
+    private function variantLabels(array $variants, array $attributes, string $type): array
     {
+        $bookings = lang('Artifacts.enum.booking_type');
         $names = [];
         foreach ($attributes as $attribute) {
             foreach ($attribute['values'] as $value) {
@@ -602,6 +605,8 @@ class Artifacts extends BaseController
             $labels[(string) $variant['public_id']] = implode(' · ', array_filter([
                 lang('Artifacts.variants.variant-n', [$i + 1]),
                 implode(' / ', array_filter($values)),
+                self::TYPE_SERVICE === $type && null !== ($variant['duration_minutes'] ?? null) ? lang('Artifacts.variants.minutes', [(int) $variant['duration_minutes']]) : '',
+                self::TYPE_SERVICE === $type ? (string) ($bookings[$variant['booking_type'] ?? ''] ?? '') : '',
                 (string) ($variant['sku'] ?? ''),
             ]));
         }

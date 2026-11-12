@@ -24,6 +24,9 @@ $config = [
     'images'        => $images,
     'csrf'          => ['header' => csrf_header()],
     'labels'        => [
+        'help'          => lang('Artifacts.variants.help'),
+        'helpService'   => lang('Artifacts.variants.help-service'),
+        'duplicate'     => lang('Artifacts.variants.duplicate'),
         'options'       => lang('Artifacts.variants.options'),
         'optionsHelp'   => lang('Artifacts.variants.options-help'),
         'noAttributes'  => lang('Artifacts.variants.no-attributes'),
@@ -33,6 +36,7 @@ $config = [
         'count'         => lang('Artifacts.variants.count'),
         'limitReached'  => lang('Artifacts.variants.limit-reached'),
         'needsOption'   => lang('Artifacts.variants.needs-option'),
+        'needsAttributes' => lang('Artifacts.variants.needs-attributes'),
         'stock'         => lang('Artifacts.variants.stock'),
         'stockHelp'     => lang('Artifacts.variants.stock-help'),
         'column'        => lang('Artifacts.variants.column'),
@@ -151,7 +155,7 @@ $config = [
       var head = '<thead><tr><th>#</th>' + columns.map(function (a) { return '<th>' + esc(a.name) + '</th>'; }).join('')
         + '<th>' + esc(L.column.sku) + '</th>' + (product ? '<th>' + esc(L.column.barcode) + '</th>' : '')
         + '<th>' + esc(L.column.price_active) + ' <span class="text-danger">*</span></th><th>' + esc(L.column.price_compare) + '</th>'
-        + '<th>' + esc(L.column[product ? 'weight_grams' : 'duration_minutes']) + '</th>'
+        + '<th>' + esc(L.column[product ? 'weight_grams' : 'duration_minutes']) + (product ? '' : ' <span class="text-danger">*</span>') + '</th>'
         + (product ? '' : '<th>' + esc(L.column.booking_type) + '</th><th>' + esc(L.column.staff_required) + '</th>'
           + '<th title="' + esc(L.capacityHelp) + '">' + esc(L.column.capacity) + '</th>')
         + '<th>' + esc(L.column.variant_status) + '</th><th></th></tr></thead>';
@@ -168,7 +172,7 @@ $config = [
         html += field(i, 'price_active', r.price_active, 'number', ' min="0" step="0.01" required style="min-width: 6rem;"');
         html += field(i, 'price_compare', r.price_compare, 'number', ' min="0" step="0.01" style="min-width: 6rem;"');
         html += product ? field(i, 'weight_grams', r.weight_grams, 'number', ' min="0" step="1" style="min-width: 5rem;"')
-                        : field(i, 'duration_minutes', r.duration_minutes, 'number', ' min="1" step="1" style="min-width: 5rem;"');
+                        : field(i, 'duration_minutes', r.duration_minutes, 'number', ' min="1" max="65535" step="1" required style="min-width: 5rem;"');
         if (!product) {
           var group = r.booking_type === 'G';
           html += '<td><select class="form-select form-select-sm" style="min-width: 7rem;" data-row="' + i + '" data-key="booking_type" aria-label="' + esc(L.column.booking_type) + '">'
@@ -194,19 +198,40 @@ $config = [
         return html;
       }).join('');
       root.querySelector('[data-variants-table]').innerHTML = head + '<tbody>' + body + '</tbody>';
+      root.querySelector('[data-variants-help]').textContent = product ? L.help : L.helpService;
       renderCount();
+      markDuplicates();
       write();
     }
 
-    // Add Variant stops at the plan's cap (one over it after moving to a smaller plan keeps its variants), and
-    // needs an option to tell the variants apart: with none, every variant would have the same (empty) choices
+    // a service's variants differ by their length and booking type as well as their options: flag the rows that
+    // repeat another (the API refuses them too), once their length is filled in
+    function markDuplicates() {
+      var service = type() !== 'P';
+      var columns = usedAttributes();
+      var seen = {};
+      rows.forEach(function (r, i) {
+        var input = root.querySelector('input[data-row="' + i + '"][data-key="duration_minutes"]');
+        if (!input) { return; }
+        var key = JSON.stringify([columns.map(function (a) { return r.values[a.public_id] || ''; }), r.duration_minutes, r.booking_type]);
+        var taken = service && r.duration_minutes !== '' && seen[key];
+        seen[key] = true;
+        input.classList.toggle('is-invalid', !!taken);
+        input.setCustomValidity(taken ? L.duplicate : '');
+        input.title = taken ? L.duplicate : '';
+      });
+    }
+
+    // Add Variant stops at the plan's cap (one over it after moving to a smaller plan keeps its variants), and, for
+    // a product, needs an option to tell the variants apart: with none, every variant would have the same (empty)
+    // choices. A service's variants can differ by their length and booking type instead.
     function renderCount() {
       var full = rows.length >= ed.max;
-      var alike = rows.length >= 1 && !usedAttributes().length;
+      var alike = type() === 'P' && rows.length >= 1 && !usedAttributes().length;
       var count = root.querySelector('[data-variants-count]');
       root.querySelector('[data-variants-add]').disabled = full || alike;
       count.textContent = full ? fmt(L.limitReached, [ed.max, ed.planName])
-        : fmt(L.count, [rows.length, ed.max, ed.planName]) + (alike && attributes.length ? ' ' + L.needsOption : '');
+        : fmt(L.count, [rows.length, ed.max, ed.planName]) + (alike ? ' ' + (attributes.length ? L.needsOption : L.needsAttributes) : '');
       count.classList.toggle('text-warning', full);
     }
 
@@ -250,6 +275,7 @@ $config = [
         // the capacity is for a group only
         if (t.getAttribute('data-key') === 'booking_type' && e.type === 'change') { renderTable(); return; }
       }
+      markDuplicates();
       write();
     }
     root.addEventListener('input', onEdit);
@@ -263,7 +289,15 @@ $config = [
         return;
       }
       if (e.target.closest('[data-variants-add]') && !root.querySelector('[data-variants-add]').disabled) {
-        rows.push(blank());
+        var row = blank();
+        var last = rows[rows.length - 1];
+        // a new service variant: the booking of the last one, its length left to fill in
+        if (type() !== 'P' && last) {
+          row.booking_type = last.booking_type;
+          row.staff_required = last.staff_required;
+          row.capacity = last.capacity;
+        }
+        rows.push(row);
         renderTable();
       }
     });

@@ -273,8 +273,8 @@ class ServiceSessions extends BaseController
     }
 
     /**
-     * The group variants as select options: "Muay Thai · Beginners" (a variant with no attribute values is just its
-     * service's name); one off sale or of an inactive service says so
+     * The group variants as select options: "Muay Thai · Beginners · 90 min" (a variant with no attribute values is
+     * its service's name and length); one off sale or of an inactive service says so
      * @param list<array> $variants
      * @return array<string, string> public_id => label
      */
@@ -282,7 +282,11 @@ class ServiceSessions extends BaseController
     {
         $options = [];
         foreach ($variants as $variant) {
-            $label = implode(' · ', array_filter([(string) ($variant['artifact']['artifact_name'] ?? ''), implode(' / ', (array) ($variant['attribute_values'] ?? []))]));
+            $label = implode(' · ', array_filter([
+                (string) ($variant['artifact']['artifact_name'] ?? ''),
+                implode(' / ', (array) ($variant['attribute_values'] ?? [])),
+                null === ($variant['duration_minutes'] ?? null) ? '' : lang('Artifacts.variants.minutes', [(int) $variant['duration_minutes']]),
+            ]));
             if ('A' !== ($variant['variant_status'] ?? 'A') || 'A' !== ($variant['artifact']['artifact_status'] ?? 'A')) {
                 $label .= ' (' . lang('ServiceSessions.form.not-on-sale') . ')';
             }
