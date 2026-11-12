@@ -175,7 +175,8 @@ class Admin extends BaseController
                 'values'   => $values,
                 'fields'   => $this->profileFields(),
             ],
-            // a stand-alone upload form: the API saves the picture to avatar_path of auth_master row 'id'
+            // a stand-alone upload form: the API saves the picture to avatar_path of auth_master row 'id', in a file
+            // named after the account's public_id (pictures uploaded before are named after the uid until replaced)
             'extraForms' => [[
                 'form_id'   => 'profile-picture-form',
                 'title'     => lang('Profile.picture.title'),
@@ -184,7 +185,7 @@ class Admin extends BaseController
                 'id_field'  => 'id',
                 'id'        => (int) ($user['id'] ?? 0),
                 'urls'      => ['submit' => base_url('admin/image-upload'), 'delete' => base_url('admin/image-delete')],
-                'values'    => ['used-for' => 'profile-picture', 'image-name' => $uid],
+                'values'    => ['used-for' => 'profile-picture', 'image-name' => (string) ($values['public_id'] ?? '')],
                 'fields'    => [
                     ['name' => 'used-for', 'type' => 'hidden'],
                     ['name' => 'image-name', 'type' => 'hidden'],

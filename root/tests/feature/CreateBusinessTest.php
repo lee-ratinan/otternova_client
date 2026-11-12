@@ -69,6 +69,21 @@ final class CreateBusinessTest extends CIUnitTestCase
         $this->withSession($this->session(['business' => ['business_slug' => 'otter-cafe-sg']]))->get('admin/dashboard')->assertOK();
     }
 
+    public function testProfilePictureIsNamedAfterPublicId(): void
+    {
+        $this->stubApi([200, ['status' => 'success', 'data' => [
+            'account' => ['uid' => 'test-uid', 'public_id' => 'Pub1-d_2xYz9', 'full_name' => 'Test Client', 'avatar_path' => null],
+            'profile' => [],
+        ]]]);
+
+        $result = $this->withSession($this->session(['business_slug' => 'otter-cafe-sg']))->get('admin/profile');
+
+        $result->assertOK();
+        $this->assertSame('v1/client/account', $this->calls[0][0]);
+        $this->assertMatchesRegularExpression('/name="image-name"[^>]*value="Pub1-d_2xYz9"|value="Pub1-d_2xYz9"[^>]*name="image-name"/', $result->getBody());
+        $this->assertDoesNotMatchRegularExpression('/name="image-name"[^>]*value="test-uid"/', $result->getBody());
+    }
+
     public function testFormShowsActiveTypesAndPrefillsContact(): void
     {
         $this->stubApi([200, ['status' => 'success', 'data' => self::TYPES]]);
