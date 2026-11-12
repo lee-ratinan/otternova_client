@@ -194,6 +194,32 @@ if (!function_exists('formatDate')) {
     }
 }
 
+if (!function_exists('formatTime')) {
+    /**
+     * Format date according to the locale
+     * @param $time (accepts only HH:MM)
+     * @param $locale
+     * @return false|string
+     */
+    function formatTime($time, $locale): false|string
+    {
+        $locale = match ($locale) {
+            'th' => 'th_TH',
+            default => 'en_US',
+        };
+        // dummy date
+        $dt   = '2026-01-01 ' . $time . ':00';
+        $time = strtotime($dt);
+        if (false === $time) {
+            return $time;
+        }
+        if ('th_TH' == $locale) {
+            return date('H:i', $time) . ' น.';
+        }
+        return date('g:i a', $time);
+    }
+}
+
 if (!function_exists('localTime')) {
     /**
      * <time> tag for a UTC datetime from the API; main.js rewrites its text in the viewer's timezone.
