@@ -636,7 +636,7 @@ class Resources extends BaseController
     {
         $out = [];
         foreach ($this->loadStores() as $store) {
-            $out[(string) $store['public_id']] = (string) (($store['translations'] ?? [])[$locale] ?? $store['store_name'] ?? '');
+            $out[(string) $store['public_id']] = self::storeName($store, $locale);
         }
         return $out;
     }
@@ -651,7 +651,7 @@ class Resources extends BaseController
         foreach ($this->loadStores() as $store) {
             $id = (string) $store['public_id'];
             if (self::STORE_PHYSICAL === ($store['store_type'] ?? '') || $id === $keep) {
-                $out[$id] = (string) (($store['translations'] ?? [])[$locale] ?? $store['store_name'] ?? '');
+                $out[$id] = self::storeName($store, $locale);
             }
         }
         return $out;

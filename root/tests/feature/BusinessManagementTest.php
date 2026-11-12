@@ -26,7 +26,9 @@ final class BusinessManagementTest extends CIUnitTestCase
     private const STORES = ['stores' => [
         ['public_id' => 'st0re1', 'store_name' => 'Bangkok', 'store_type' => 'P', 'store_phone_number' => '+66812345678',
             'store_address_line_1' => '1 Rama Rd', 'store_address_line_2' => null, 'store_city' => 'Pathum Wan',
-            'store_subdivision_code' => 'TH-10', 'store_postal_code' => '10330', 'translations' => ['th' => 'กรุงเทพ', 'ja' => 'バンコク']],
+            'store_subdivision_code' => 'TH-10', 'store_postal_code' => '10330', 'translations' => [
+                'th' => ['store_name' => 'กรุงเทพ', 'store_address_line_1' => '1 ถนนพระราม', 'store_address_line_2' => null, 'store_city' => 'ปทุมวัน'],
+                'ja' => ['store_name' => 'バンコク', 'store_address_line_1' => null, 'store_address_line_2' => null, 'store_city' => null]]],
         ['public_id' => 'st0re2', 'store_name' => 'Online Store', 'store_type' => 'O', 'store_phone_number' => null,
             'store_address_line_1' => null, 'store_address_line_2' => null, 'store_city' => null,
             'store_subdivision_code' => null, 'store_postal_code' => null, 'translations' => []],
@@ -45,7 +47,13 @@ final class BusinessManagementTest extends CIUnitTestCase
     {
         $curl = $this->createMock(CURLRequest::class);
         $curl->method('post')->willReturnCallback(function (string $url, array $options) use (&$replies) {
-            $this->calls[] = [substr($url, strlen((string) getenv('LINK_INTERNAL_API'))), $options['json'] ?? []];
+            $endpoint = substr($url, strlen((string) getenv('LINK_INTERNAL_API')));
+            // the languages of the web pages, which the forms ask for (websiteLanguages()), answered here and not recorded
+            if ('v1/client/website' === $endpoint) {
+                return (new Response(new App()))->setStatusCode(200)->setBody(json_encode(['status' => 'success',
+                    'data' => ['languages' => [['language_code' => 'en-US'], ['language_code' => 'th']]]]));
+            }
+            $this->calls[] = [$endpoint, $options['json'] ?? []];
             [$code, $body] = array_shift($replies);
             return (new Response(new App()))->setStatusCode($code)->setBody(json_encode($body));
         });
@@ -246,7 +254,7 @@ final class BusinessManagementTest extends CIUnitTestCase
         $this->assertSame(base_url('admin/business/stores/edit/st0re2'), $body['data'][0]['edit_url']);
     }
 
-    public function testStoreFormOpensAStoreWithItsNames(): void
+    public function testStoreFormOpensAStoreWithItsNamesAndAddresses(): void
     {
         $this->stubApi([200, ['status' => 'success', 'data' => self::STORES]]);
 
@@ -255,9 +263,14 @@ final class BusinessManagementTest extends CIUnitTestCase
         $result->assertOK();
         $result->assertSee('name="public_id" value="st0re1"');
         $result->assertSee('value="Bangkok"');
-        $result->assertSee('value="กรุงเทพ"');
+        $result->assertSee('name="translation_th" class="form-control" maxlength="255" value="' . esc('กรุงเทพ') . '"');
+        $result->assertSee('name="translation_address_line_1_th" class="form-control" maxlength="255" value="' . esc('1 ถนนพระราม') . '"');
+        $result->assertSee('name="translation_city_th" class="form-control" maxlength="128" value="' . esc('ปทุมวัน') . '"');
+        $result->assertSee('name="translation_address_line_2_en-US"');
+        $result->assertDontSee('name="translation_ja"');
         $result->assertSee('data-store-address');
         $result->assertSee('"online":"O"');
+        $result->assertSee('"translation_city_th"'); // hides with the address for an online store
     }
 
     public function testUnknownStoreIsNotFound(): void
@@ -272,30 +285,36 @@ final class BusinessManagementTest extends CIUnitTestCase
         $this->stubApi([200, ['status' => 'success', 'data' => ['public_id' => 'new1'], 'message' => 'Store created.']]);
 
         $result = $this->withSession($this->session('M'))->post('admin/business/stores/save', ['store_name' => 'Pattaya',
-            'store_type' => 'P', 'translation_th' => 'พัทยา', 'unexpected' => 'dropped']);
+            'store_type' => 'P', 'translation_th' => 'พัทยา', 'translation_city_th' => ' พัทยา ', 'unexpected' => 'dropped']);
 
         $result->assertOK();
         [$endpoint, $payload] = $this->calls[0];
         $this->assertSame('v1/client/store/create', $endpoint);
         $this->assertSame('otter-cafe', $payload['business_slug']);
         $this->assertSame(['store_name' => 'Pattaya', 'store_type' => 'P'], $payload['store']);
-        $this->assertSame(['en-US' => '', 'th' => 'พัทยา'], (array) $payload['translations']);
+        $empty = ['store_name' => '', 'store_address_line_1' => '', 'store_address_line_2' => '', 'store_city' => ''];
+        $this->assertSame(['en-US' => $empty, 'th' => array_merge($empty, ['store_name' => 'พัทยา', 'store_city' => ' พัทยา '])], (array) $payload['translations']);
         $this->assertSame(base_url('admin/business/stores/edit/new1'), $this->json($result)['redirect']);
     }
 
     public function testEditStoreKeepsNamesInOtherLanguages(): void
     {
         $this->stubApi([200, ['status' => 'success', 'data' => self::STORES]],
-            [422, ['status' => 'error', 'message' => 'Please correct the highlighted fields.', 'errors' => ['translations.th' => 'Too long']]]);
+            [422, ['status' => 'error', 'message' => 'Please correct the highlighted fields.', 'errors' => ['translations.th.store_city' => 'Too long', 'translations.th.store_name' => 'Needed', 'store.store_name' => 'Taken']]]);
 
         $result = $this->withSession($this->session('O'))->post('admin/business/stores/save', ['public_id' => 'st0re1',
-            'store_name' => 'Bangkok', 'store_type' => 'P', 'translation_th' => 'กรุงเทพฯ']);
+            'store_name' => 'Bangkok', 'store_type' => 'P', 'translation_th' => 'กรุงเทพฯ', 'translation_address_line_1_th' => '1 ถนนพระราม 1']);
 
         $result->assertStatus(422);
         [$endpoint, $payload] = $this->calls[1];
         $this->assertSame('v1/client/store/edit', $endpoint);
         $this->assertSame('st0re1', $payload['public_id']);
-        $this->assertSame(['th' => 'กรุงเทพฯ', 'ja' => 'バンコク', 'en-US' => ''], (array) $payload['translations']);
-        $this->assertSame(['translation_th' => 'Too long'], $this->json($result)['errors']);
+        $empty = ['store_name' => '', 'store_address_line_1' => '', 'store_address_line_2' => '', 'store_city' => ''];
+        $this->assertSame([
+            'th'    => array_merge($empty, ['store_name' => 'กรุงเทพฯ', 'store_address_line_1' => '1 ถนนพระราม 1']),
+            'ja'    => self::STORES['stores'][0]['translations']['ja'], // not a language of the web pages: kept as it is
+            'en-US' => $empty,
+        ], (array) $payload['translations']);
+        $this->assertSame(['translation_city_th' => 'Too long', 'translation_th' => 'Needed', 'store_name' => 'Taken'], $this->json($result)['errors']);
     }
 }

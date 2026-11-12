@@ -171,6 +171,16 @@ abstract class BaseController extends Controller
     }
 
     /**
+     * A store's name in $locale when it has one, from a store of v1/client/stores (or of the staff calls, which give
+     * them the same way): translations is language_code => {store_name, store_address_line_1, ...}
+     */
+    protected static function storeName(array $store, string $locale): string
+    {
+        $name = (((array) ($store['translations'] ?? []))[$locale] ?? [])['store_name'] ?? null;
+        return (string) (null === $name || '' === $name ? ($store['store_name'] ?? '') : $name);
+    }
+
+    /**
      * A failed API body with its translation errors renamed for the form: the API names them
      * translations.<language>, the form translation_<language>
      */

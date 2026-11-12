@@ -25,16 +25,22 @@ return [
     'heading'           => [
         'store'        => 'Store',
         'address'      => 'Address',
-        'translations' => 'Store Name in Other Languages',
+        'translation'  => 'In {0}',
     ],
     'help'              => [
         'store-type'     => 'An online store has no address.',
         'store-timezone' => 'The opening hours of the store are in this timezone.',
+        'translation-name' => 'Needed to save the address in this language.',
     ],
     'hours-link'        => [
         'title' => 'Opening Hours',
         'text'  => 'The regular weekly hours of this store, and the dates it closes or opens at other times.',
         'open'  => 'Set Opening Hours',
     ],
-    'translation-label' => 'Name in {0}',
+    'translation'       => [
+        'store_name'           => 'Store Name',
+        'store_address_line_1' => 'Address Line 1',
+        'store_address_line_2' => 'Address Line 2',
+        'store_city'           => 'City',
+    ],
 ];

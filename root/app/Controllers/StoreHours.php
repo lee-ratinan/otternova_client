@@ -41,7 +41,7 @@ class StoreHours extends BaseController
         }
         $hours  = (array) $body['data'];
         $locale = $this->request->getLocale();
-        $name   = (string) (($store['translations'] ?? [])[$locale] ?? $store['store_name'] ?? '');
+        $name   = self::storeName($store, $locale);
         $editor = static fn (string $kind, string $field): array => ['type' => 'html', 'html' => view('stores/openings_editor', ['kind' => $kind, 'field' => $field])];
         $urlId  = rawurlencode($publicId);
 

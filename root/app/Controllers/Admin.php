@@ -103,6 +103,17 @@ class Admin extends BaseController
     /** Form field name of the business name in a language: translation_<language_code> */
     private const TRANSLATION_PREFIX = 'translation_';
 
+    /**
+     * The store's texts in other languages (business_store_translation), column => [form field prefix, longest
+     * length]: the form field is the prefix followed by the language_code. The name keeps TRANSLATION_PREFIX.
+     */
+    private const STORE_TRANSLATION_FIELDS = [
+        'store_name'           => [self::TRANSLATION_PREFIX, 255],
+        'store_address_line_1' => ['translation_address_line_1_', 255],
+        'store_address_line_2' => ['translation_address_line_2_', 255],
+        'store_city'           => ['translation_city_', 128],
+    ];
+
     /** otp_mode values only the system sets (telephone OTP is not available yet) */
     private const OTP_MODE_DISABLED = [AuthMasterModel::OTP_TELEPHONE];
 
@@ -697,7 +708,7 @@ class Admin extends BaseController
             $rows[]      = [
                 'public_id'          => (string) ($store['public_id'] ?? ''),
                 // the name in the UI language, when the store has one
-                'store_name'         => (string) (($store['translations'] ?? [])[$locale] ?? $store['store_name'] ?? ''),
+                'store_name'         => self::storeName($store, $locale),
                 'store_type'         => (string) ($store['store_type'] ?? ''),
                 'store_phone_number' => '' === $phone ? '' : formatPhoneNumber($phone),
                 'location'           => implode(', ', $location),
@@ -726,8 +737,10 @@ class Admin extends BaseController
                 throw PageNotFoundException::forPageNotFound(lang('Stores.form.not-found'));
             }
             $values = $store;
-            foreach ((array) ($store['translations'] ?? []) as $language => $name) {
-                $values[self::TRANSLATION_PREFIX . $language] = $name;
+            foreach ((array) ($store['translations'] ?? []) as $language => $texts) {
+                foreach (self::STORE_TRANSLATION_FIELDS as $column => [$prefix]) {
+                    $values[$prefix . $language] = (string) (((array) $texts)[$column] ?? '');
+                }
             }
             unset($values['translations']);
         }
@@ -762,7 +775,7 @@ class Admin extends BaseController
             'customScript' => view('scripts/store_form', [
                 'formId'  => $formId,
                 'online'  => BusinessStoreModel::TYPE_ONLINE,
-                'address' => BusinessStoreModel::ADDRESS_FIELDS,
+                'address' => [...BusinessStoreModel::ADDRESS_FIELDS, ...$this->storeAddressTranslationNames()],
             ]),
             // a saved store's opening hours are a page of their own
             'extraHtml'    => null === $publicId ? '' : view('stores/hours_link', ['url' => base_url('admin/business/stores/hours/' . rawurlencode($publicId))]),
@@ -773,8 +786,8 @@ class Admin extends BaseController
     /**
      * Create or save a store of the session business through LINK_INTERNAL_API: v1/client/store/create
      * { business_slug, store, translations }, or, with public_id, v1/client/store/edit { public_id, store, translations }.
-     * The form has the names in the web pages' languages only; on an edit, the names in other languages are kept, as the
-     * API replaces them all.
+     * translations is language_code => {store_name, store_address_line_1, store_address_line_2, store_city}. The form
+     * has them in the web pages' languages only; on an edit, the other languages' are kept, as the API replaces them all.
      */
     public function storeSavePost(): ResponseInterface
     {
@@ -790,14 +803,18 @@ class Admin extends BaseController
             $names = (array) ($stored['translations'] ?? []);
         }
         foreach (array_keys($this->websiteLanguages()) as $language) {
-            $names[$language] = (string) ($post[self::TRANSLATION_PREFIX . $language] ?? '');
+            $names[$language] = [];
+            foreach (self::STORE_TRANSLATION_FIELDS as $column => [$prefix]) {
+                // an online store's address fields are disabled, so not posted; the API clears them either way
+                $names[$language][$column] = (string) ($post[$prefix . $language] ?? '');
+            }
         }
 
         [$code, $body] = '' === $publicId
             ? $this->callApi('v1/client/store/create', ['business_slug' => (string) currentBusinessSlug(), 'store' => $store, 'translations' => (object) $names])
             : $this->callApi('v1/client/store/edit', ['public_id' => $publicId, 'store' => $store, 'translations' => (object) $names]);
         if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
-            return $this->saveFailed($code, $this->translationErrors($body), lang('Stores.form.failed'));
+            return $this->storeFailed($code, $body);
         }
         $savedId = (string) ($body['data']['public_id'] ?? $publicId);
         return $this->response->setJSON([
@@ -1152,8 +1169,8 @@ class Admin extends BaseController
     }
 
     /**
-     * Fields of the store form, grouped under the STORE_SECTIONS headings, then the store name in each language of
-     * the business's web pages (optional, sent as translations; none while it has no languages). The address heading is marked, so the form's script hides it with the
+     * Fields of the store form, grouped under the STORE_SECTIONS headings, then the store name and address in each
+     * language of the business's web pages (optional, sent as translations; none while it has no languages). The address heading is marked, so the form's script hides it with the
      * address fields for an online store.
      * @param string $country business_master.country_code of the session business
      */
@@ -1184,20 +1201,56 @@ class Admin extends BaseController
                 $fields[] = $config[$name];
             }
         }
-        $languages = $this->websiteLanguages();
-        if ([] !== $languages) {
-            $fields[] = ['type' => 'heading', 'label' => lang('Stores.heading.translations')];
-        }
-        foreach ($languages as $language => $label) {
-            $fields[] = [
-                'name'     => self::TRANSLATION_PREFIX . $language,
-                'type'     => 'text',
-                'label'    => lang('Stores.translation-label', [$label]),
-                'rules'    => 'max_length[255]',
-                'optional' => true,
-            ];
+        // the name and address in each language of the web pages, a heading per language; the address hides with
+        // the store's own for an online store
+        foreach ($this->websiteLanguages() as $language => $label) {
+            $fields[] = ['type' => 'heading', 'label' => lang('Stores.heading.translation', [$label])];
+            foreach (self::STORE_TRANSLATION_FIELDS as $column => [$prefix, $maxLength]) {
+                $fields[] = [
+                    'name'     => $prefix . $language,
+                    'type'     => 'text',
+                    'label'    => lang('Stores.translation.' . $column, [$label]),
+                    'rules'    => 'max_length[' . $maxLength . ']',
+                    'optional' => true,
+                ] + ('store_name' === $column ? ['help' => lang('Stores.help.translation-name')] : []);
+            }
         }
         return $fields;
+    }
+
+    /**
+     * The form fields of the store's address in the web pages' languages, which hide for an online store
+     * @return list<string>
+     */
+    private function storeAddressTranslationNames(): array
+    {
+        $names = [];
+        foreach (array_keys($this->websiteLanguages()) as $language) {
+            foreach (self::STORE_TRANSLATION_FIELDS as $column => [$prefix]) {
+                if ('store_name' !== $column) {
+                    $names[] = $prefix . $language;
+                }
+            }
+        }
+        return $names;
+    }
+
+    /**
+     * Form response of a failed store create or edit: the API names the errors of the texts in other languages
+     * translations.<language>.<column> (translations.<language> for the language as a whole, put on its name), which
+     * are renamed for the form before saveFailed() takes the others
+     */
+    private function storeFailed(int $code, array $body): ResponseInterface
+    {
+        $errors = [];
+        foreach ((array) ($body['errors'] ?? []) as $key => $message) {
+            if (preg_match('/^translations\.([^.]+)(?:\.([a-z0-9_]+))?$/', (string) $key, $m)) {
+                $key = (self::STORE_TRANSLATION_FIELDS[$m[2] ?? ''] ?? self::STORE_TRANSLATION_FIELDS['store_name'])[0] . $m[1];
+            }
+            $errors[$key] = $message;
+        }
+        $body['errors'] = $errors;
+        return $this->saveFailed($code, $body, lang('Stores.form.failed'));
     }
 
     /**

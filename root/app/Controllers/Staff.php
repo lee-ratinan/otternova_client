@@ -113,7 +113,7 @@ class Staff extends BaseController
 
         $stores = [];
         foreach ((array) $data['stores'] as $store) {
-            $stores[(string) $store['public_id']] = (string) (($store['translations'] ?? [])[$locale] ?? $store['store_name']);
+            $stores[(string) $store['public_id']] = self::storeName($store, $locale);
         }
         $assignedStores = array_values(array_map(static fn (array $s) => (string) $s['public_id'], array_filter((array) $data['stores'], static fn (array $s) => ! empty($s['assigned']))));
 
@@ -357,7 +357,7 @@ class Staff extends BaseController
         $stores = [];
         $zones  = [];
         foreach ((array) $data['stores'] as $store) {
-            $stores[(string) $store['public_id']] = (string) (($store['translations'] ?? [])[$locale] ?? $store['store_name']);
+            $stores[(string) $store['public_id']] = self::storeName($store, $locale);
             $zones[(string) $store['store_timezone']] = true;
         }
         // the editor's openings are open_time and close_time; the API's shifts start_time and end_time
