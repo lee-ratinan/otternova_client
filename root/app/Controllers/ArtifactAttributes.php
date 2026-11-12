@@ -170,7 +170,9 @@ class ArtifactAttributes extends BaseController
             foreach ($languages as $language) {
                 $valueNames[$language] = (string) (((array) ($choice['translations'] ?? []))[$language] ?? '');
             }
-            $value = ['attribute_value' => (string) ($choice['attribute_value'] ?? ''), 'sort_order' => $i, 'translations' => (object) $valueNames];
+            $color = $choice['color_code'] ?? null;
+            $value = ['attribute_value' => (string) ($choice['attribute_value'] ?? ''), 'color_code' => is_string($color) && '' !== $color ? $color : null,
+                'sort_order' => $i, 'translations' => (object) $valueNames];
             if ('' !== $id) {
                 $value['public_id'] = $id;
             }

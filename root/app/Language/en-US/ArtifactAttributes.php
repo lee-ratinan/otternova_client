@@ -32,6 +32,8 @@ return [
     'values'            => [
         'help'         => 'The choices of this option, in the order customers see them, such as Blue and Red. A choice cannot be deleted once saved, as variants may use it.',
         'value'        => 'Choice',
+        'color'        => 'Colour',
+        'use-color'    => 'Give this choice a colour',
         'in-language'  => 'In {0}',
         'add'          => 'Add Choice',
         'new'          => 'New',

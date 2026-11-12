@@ -2,7 +2,9 @@
 /**
  * customScript of the option form (see generic_form.php): the choices editor (artifacts/attribute_values_editor),
  * one row per choice with its name in each UI language, in order (the arrows move a row), kept as JSON in the hidden
- * field the form submits. Saved choices cannot be removed: the API never deletes one, as variants may use it.
+ * field the form submits. Each choice may have a colour (#rrggbb), for options shown as swatches such as Color; the
+ * box beside the picker turns it on, and off clears it. Saved choices cannot be removed: the API never deletes one,
+ * as variants may use it.
  *
  * @var string $formId      the option form's DOM id
  * @var string $valuesField the hidden field of the choices
@@ -18,6 +20,8 @@ $config = [
     'max'         => $max,
     'labels'      => [
         'value'       => lang('ArtifactAttributes.values.value'),
+        'color'       => lang('ArtifactAttributes.values.color'),
+        'useColor'    => lang('ArtifactAttributes.values.use-color'),
         'inLanguage'  => lang('ArtifactAttributes.values.in-language'),
         'new'         => lang('ArtifactAttributes.values.new'),
         'remove'      => lang('ArtifactAttributes.values.remove'),
@@ -45,23 +49,29 @@ $config = [
   function fmt(text, args) {
     return String(text).replace(/\{(\d+)\}/g, function (m, i) { return args[i] !== undefined ? args[i] : m; });
   }
-  function blank() { return { public_id: '', attribute_value: '', translations: {} }; }
+  // the picker's colour while a row has none, kept so turning the colour on shows a sensible one
+  var DEFAULT_COLOR = '#000000';
+  function blank() { return { public_id: '', attribute_value: '', color_code: null, translations: {} }; }
   // the choices as saved, in their order; a new option starts with one empty row
   function start() {
     rows = cfg.values.map(function (v) {
       var names = {};
       languages.forEach(function (l) { names[l] = (v.translations && v.translations[l]) || ''; });
-      return { public_id: v.public_id, attribute_value: v.attribute_value || '', translations: names };
+      return { public_id: v.public_id, attribute_value: v.attribute_value || '', color_code: v.color_code || null, translations: names };
     });
     if (!rows.length) { rows.push(blank()); }
   }
 
   function render() {
-    var head = '<thead><tr><th>#</th><th>' + esc(L.value) + ' <span class="text-danger">*</span></th>'
+    var head = '<thead><tr><th>#</th><th>' + esc(L.value) + ' <span class="text-danger">*</span></th><th>' + esc(L.color) + '</th>'
       + languages.map(function (l) { return '<th>' + esc(fmt(L.inLanguage, [cfg.languages[l]])) + '</th>'; }).join('') + '<th></th></tr></thead>';
     var body = rows.map(function (r, i) {
       return '<tr><td class="text-muted text-nowrap">' + (i + 1) + (r.public_id ? '' : ' <span class="badge bg-info">' + esc(L.new) + '</span>') + '</td>'
         + '<td><input type="text" class="form-control form-control-sm" style="min-width: 8rem;" maxlength="128" data-row="' + i + '" value="' + esc(r.attribute_value) + '" aria-label="' + esc(L.value) + '"></td>'
+        + '<td class="text-nowrap"><div class="d-flex align-items-center gap-2">'
+        + '<input type="checkbox" class="form-check-input m-0" data-color-on="' + i + '" title="' + esc(L.useColor) + '" aria-label="' + esc(L.useColor) + '"' + (r.color_code ? ' checked' : '') + '>'
+        + '<input type="color" class="form-control form-control-sm form-control-color" data-color="' + i + '" value="' + esc(r.color_code || DEFAULT_COLOR) + '" title="' + esc(L.color) + '" aria-label="' + esc(L.color) + '"' + (r.color_code ? '' : ' disabled') + '>'
+        + '</div></td>'
         + languages.map(function (l) {
           return '<td><input type="text" class="form-control form-control-sm" style="min-width: 8rem;" maxlength="128" data-row="' + i + '" data-language="' + esc(l) + '" value="'
             + esc(r.translations[l] || '') + '" aria-label="' + esc(fmt(L.inLanguage, [cfg.languages[l]])) + '"></td>';
@@ -81,17 +91,31 @@ $config = [
   // the choices as the API takes them: a new row left empty is left out, the order is the rows'
   function write() {
     hidden.value = JSON.stringify(rows.filter(function (r) { return r.public_id || r.attribute_value.trim() !== ''; }).map(function (r) {
-      var v = { attribute_value: r.attribute_value.trim(), translations: r.translations };
+      var v = { attribute_value: r.attribute_value.trim(), color_code: r.color_code || null, translations: r.translations };
       if (r.public_id) { v.public_id = r.public_id; }
       return v;
     }));
   }
 
   root.addEventListener('input', function (e) {
+    if (e.target.hasAttribute('data-color')) {
+      rows[Number(e.target.getAttribute('data-color'))].color_code = e.target.value.toLowerCase();
+      write();
+      return;
+    }
     var r = rows[Number(e.target.getAttribute('data-row'))];
     if (!e.target.hasAttribute('data-row') || !r) { return; }
     if (e.target.hasAttribute('data-language')) { r.translations[e.target.getAttribute('data-language')] = e.target.value.trim(); }
     else { r.attribute_value = e.target.value; }
+    write();
+  });
+  // the box turns the row's colour on (the picker's colour) or off (none)
+  root.addEventListener('change', function (e) {
+    if (!e.target.hasAttribute('data-color-on')) { return; }
+    var i = Number(e.target.getAttribute('data-color-on'));
+    var picker = root.querySelector('[data-color="' + i + '"]');
+    picker.disabled = !e.target.checked;
+    rows[i].color_code = e.target.checked ? picker.value.toLowerCase() : null;
     write();
   });
   root.addEventListener('click', function (e) {
