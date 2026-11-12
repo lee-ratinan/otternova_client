@@ -119,7 +119,7 @@
                     <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                         <img src="<?= esc(userAvatarUrl($user['avatar_path'] ?? null), 'attr') ?>" alt="<?= esc(userDisplayName($user), 'attr') ?>" class="avatar">
                         <span class="user-name"><?= esc(userDisplayName($user)) ?></span>
-                        <i class="ph ph-caret-down user-caret"></i>
+                        <i class="bi bi-chevron-down user-caret"></i>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end">
                         <div class="user-menu-card">
@@ -245,7 +245,7 @@
                     <a class="nav-link" href="#" aria-expanded="false">
                         <span class="nav-icon"><i class="bi bi-shop"></i></span>
                         <span class="nav-text"><?= lang('System.page.business') ?></span>
-                        <i class="ph ph-caret-right nav-arrow"></i>
+                        <i class="bi bi-chevron-right nav-arrow"></i>
                     </a>
                     <ul class="nav-submenu">
                         <li><a class="nav-link<?= ('business' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business') ?>"><?= lang('System.page.business') ?></a></li>
@@ -263,7 +263,7 @@
                     <a class="nav-link" href="#" aria-expanded="false">
                         <span class="nav-icon"><i class="bi bi-people"></i></span>
                         <span class="nav-text"><?= lang('System.page.employees') ?></span>
-                        <i class="ph ph-caret-right nav-arrow"></i>
+                        <i class="bi bi-chevron-right nav-arrow"></i>
                     </a>
                     <ul class="nav-submenu">
                         <?php if (isBusinessOwner()): ?>
@@ -277,7 +277,7 @@
                     <a class="nav-link" href="#" aria-expanded="false">
                         <span class="nav-icon"><i class="bi bi-box"></i></span>
                         <span class="nav-text"><?= lang('System.page.products-and-services') ?></span>
-                        <i class="ph ph-caret-right nav-arrow"></i>
+                        <i class="bi bi-chevron-right nav-arrow"></i>
                     </a>
                     <ul class="nav-submenu ">
                         <li><a class="nav-link<?= ('artifacts' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/artifacts') ?>"><?= lang('System.page.artifacts') ?></a></li>

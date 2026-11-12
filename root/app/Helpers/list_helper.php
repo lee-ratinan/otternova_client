@@ -882,6 +882,7 @@ if (!function_exists('listSupportedTypefaces')) {
                 'Open Sans'          => 'family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700',
                 'Oswald'             => 'family=Oswald:wght@400;700',
                 'Playfair Display'   => 'family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700',
+                'Raleway'            => 'family=Raleway:ital,wght@0,400;0,700;1,400;1,700',
                 'Roboto'             => 'family=Roboto:ital,wght@0,400;0,700;1,400;1,700',
                 'Schoolbell'         => 'family=Schoolbell',
                 'Ubuntu'             => 'family=Ubuntu:ital,wght@0,400;0,700;1,400;1,700'
@@ -1013,5 +1014,20 @@ if (!function_exists('listDefaultThemeVariables')) {
                 '--contrast-color'   => '#ffffff' /* Contrast color for text, ensuring readability against backgrounds of accent, heading, or default colors. */
             ]
         ];
+    }
+}
+
+if (!function_exists('listTypefacesOfLanguage')) {
+    /**
+     * The typefaces a language of listLanguages() may use on a business's web pages: its own list of
+     * listSupportedTypefaces() when it has one, else the Latin one (en-US), so a language is never left without
+     * fonts; the browser falls back to a system font for the letters a typeface does not have
+     * @param string $languageCode
+     * @return array name => Google Fonts query (family=...)
+     */
+    function listTypefacesOfLanguage(string $languageCode): array
+    {
+        $typefaces = listSupportedTypefaces();
+        return $typefaces[$languageCode] ?? $typefaces['en-US'] ?? [];
     }
 }
