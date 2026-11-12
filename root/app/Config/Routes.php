@@ -80,6 +80,18 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('hours/save', 'Staff::hoursSave');
         $routes->post('hours/exception-save', 'Staff::hoursExceptionSave');
         $routes->post('hours/exception-delete', 'Staff::hoursExceptionDelete');
+        // what the business records about its people; see App\Controllers\StaffAttributes
+        $routes->get('attributes', 'StaffAttributes::index');
+        $routes->post('attributes/data', 'StaffAttributes::data');
+        $routes->get('attributes/create', 'StaffAttributes::form');
+        $routes->get('attributes/edit/(:segment)', 'StaffAttributes::form/$1');
+        $routes->post('attributes/save', 'StaffAttributes::save');
+        $routes->post('attributes/delete', 'StaffAttributes::delete');
+        // one person's languages, details and restrictions; see App\Controllers\StaffProfiles
+        $routes->get('profile/(:segment)', 'StaffProfiles::form/$1');
+        $routes->post('profile/languages-save', 'StaffProfiles::saveLanguages');
+        $routes->post('profile/details-save', 'StaffProfiles::saveDetails');
+        $routes->post('profile/restrictions-save', 'StaffProfiles::saveRestrictions');
     });
     // the session business's subscription: its owners only, as the API allows
     $routes->group('plans', ['filter' => 'manager:owner'], static function ($routes) {

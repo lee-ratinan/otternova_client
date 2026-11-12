@@ -35,6 +35,8 @@ return [
         'artifact-attribute-create' => 'Create Variant Option',
         'sales'                 => 'Sales',
         'staff'                 => 'Staff Assignment',
+        'staff-attributes'      => 'Staff Attributes',
+        'staff-attribute-create' => 'Add Staff Attribute',
         'commission'            => 'Commission',
         'website'               => 'Website',
         'reviews'               => 'Reviews',

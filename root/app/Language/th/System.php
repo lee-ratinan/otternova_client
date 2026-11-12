@@ -35,6 +35,8 @@ return [
         'artifact-attribute-create' => 'สร้างคุณสมบัติของตัวเลือก',
         'sales'                 => 'การขาย',
         'staff'                 => 'การจัดสรรพนักงาน',
+        'staff-attributes'      => 'คุณสมบัติพนักงาน',
+        'staff-attribute-create' => 'เพิ่มคุณสมบัติพนักงาน',
         'commission'            => 'ค่าคอมมิชชัน',
         'website'               => 'เว็บไซต์',
         'reviews'               => 'รีวิว',

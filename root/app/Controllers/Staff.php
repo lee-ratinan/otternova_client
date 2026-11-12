@@ -209,7 +209,8 @@ class Staff extends BaseController
                 ],
             ],
             'extraForms'   => $forms,
-            'extraHtml'    => view('staff/hours_link', ['url' => base_url('admin/staff/hours/' . rawurlencode($uid))]),
+            'extraHtml'    => view('staff/hours_link', ['url' => base_url('admin/staff/hours/' . rawurlencode($uid))])
+                . view('staff/profile_link', ['url' => base_url('admin/staff/profile/' . rawurlencode($uid))]),
             'customScript' => view('scripts/staff_form', ['field' => self::SERVICES_FIELD]),
         ]);
     }

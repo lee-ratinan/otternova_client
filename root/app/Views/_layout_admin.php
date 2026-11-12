@@ -270,6 +270,7 @@
                             <li><a class="nav-link<?= ('employees' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/employees') ?>"><?= lang('System.page.employees') ?></a></li>
                         <?php endif ?>
                         <li><a class="nav-link<?= ('staff' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/staff') ?>"><?= lang('System.page.staff') ?></a></li>
+                        <li><a class="nav-link<?= ('staff-attributes' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/staff/attributes') ?>"><?= lang('System.page.staff-attributes') ?></a></li>
                         <li><a class="nav-link<?= ('public-profiles' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/public-profiles') ?>"><?= lang('System.page.public-profiles') ?></a></li>
                     </ul>
                 </li>
