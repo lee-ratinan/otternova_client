@@ -14,6 +14,9 @@ use Throwable;
  * entity. tax_id is encrypted (App\Libraries\FieldEncryption): the writes here encrypt it, findDecrypted() decrypts it.
  * Tips (tip_*) and the service charge (service_charge_*) are in percent or in the business's currency_code; the service
  * charge applies to services only (artifact_type S), once per service line. The API checks that they fit together.
+ * booking_* is when customers may book an appointment on the mart (how far ahead, how much notice); a service variant
+ * may have its own. The API checks that they fit together too. cancel_*, late_cancel_* and no_show_* are its
+ * cancellation policy: until when a customer cancels for free, and the fees after; the API checks them too.
  */
 class BusinessMasterModel extends Model
 {
@@ -73,6 +76,56 @@ class BusinessMasterModel extends Model
         'service_charge_unit'  => self::UNIT_PERCENTAGE,
     ];
 
+    // booking_notice_unit
+    public const NOTICE_MINUTES = 'M'; // booking_notice_value minutes before the start
+    public const NOTICE_DAYS    = 'D'; // by booking_notice_time, booking_notice_value days before the start's date
+
+    /** When customers may book, and what a business left without a value gets: 3 days ahead, an hour's notice */
+    public const BOOKING_DEFAULTS = [
+        'booking_horizon_days' => 3,
+        'booking_notice_unit'  => self::NOTICE_MINUTES,
+        'booking_notice_value' => 60,
+        'booking_notice_time'  => null,
+    ];
+
+    /** The cancellation policy, and what a business left without a value gets: free until 24 hours before, no fee */
+    public const CANCEL_DEFAULTS = [
+        'cancel_notice_unit'    => self::NOTICE_MINUTES,
+        'cancel_notice_value'   => 1440,
+        'cancel_notice_time'    => null,
+        'late_cancel_allowed'   => 'Y',
+        'late_cancel_fee_value' => '0.00',
+        'late_cancel_fee_unit'  => self::UNIT_PERCENTAGE,
+        'no_show_fee_value'     => '0.00',
+        'no_show_fee_unit'      => self::UNIT_PERCENTAGE,
+    ];
+
+    /**
+     * A booking window in a few words, as BusinessMaster.window has them: "Up to 3 days ahead · 1h notice",
+     * "Up to 30 days ahead · by 18:00 the day before"
+     * @param array  $rule   booking_horizon_days, booking_notice_unit, booking_notice_value, booking_notice_time
+     * @param string $locale for formatMinutes()
+     * @return string
+     */
+    public static function describeBookingWindow(array $rule, string $locale): string
+    {
+        helper('html');
+        $rule  += self::BOOKING_DEFAULTS;
+        $value  = (int) $rule['booking_notice_value'];
+        if (self::NOTICE_DAYS === $rule['booking_notice_unit']) {
+            $time   = substr((string) $rule['booking_notice_time'], 0, 5);
+            $notice = match ($value) {
+                0       => lang('BusinessMaster.window.same-day', [$time]),
+                1       => lang('BusinessMaster.window.day-before', [$time]),
+                default => lang('BusinessMaster.window.days-before', [$value, $time]),
+            };
+        } else {
+            $notice = 0 === $value ? lang('BusinessMaster.window.until-start') : lang('BusinessMaster.window.minutes', [formatMinutes($value, $locale)]);
+        }
+
+        return lang('BusinessMaster.window.ahead', [(int) $rule['booking_horizon_days']]) . ' · ' . $notice;
+    }
+
     /** Who the business is for, and what a business left without a value gets: the general public */
     public const AUDIENCE_DEFAULTS = [
         'lgbt_audience'     => self::LGBT_GENERAL,
@@ -101,6 +154,18 @@ class BusinessMasterModel extends Model
         'tip_value_kind',
         'service_charge_value',
         'service_charge_unit',
+        'booking_horizon_days',
+        'booking_notice_unit',
+        'booking_notice_value',
+        'booking_notice_time',
+        'cancel_notice_unit',
+        'cancel_notice_value',
+        'cancel_notice_time',
+        'late_cancel_allowed',
+        'late_cancel_fee_value',
+        'late_cancel_fee_unit',
+        'no_show_fee_value',
+        'no_show_fee_unit',
         'contact_person_name',
         'contact_email_address',
         'contact_phone_number',
@@ -139,6 +204,18 @@ class BusinessMasterModel extends Model
         'tip_value_kind'           => 'required|in_list[S,M]',
         'service_charge_value'     => 'required|decimal|greater_than_equal_to[0]',
         'service_charge_unit'      => 'required|in_list[P,F]',
+        'booking_horizon_days'     => 'required|is_natural_no_zero|less_than_equal_to[365]',
+        'booking_notice_unit'      => 'required|in_list[M,D]',
+        'booking_notice_value'     => 'required|is_natural|less_than_equal_to[65535]', // the API checks it against the unit and the horizon
+        'booking_notice_time'      => 'permit_empty', // HH:MM; for D only, which the API checks
+        'cancel_notice_unit'       => 'required|in_list[M,D]',
+        'cancel_notice_value'      => 'required|is_natural|less_than_equal_to[65535]', // the API checks it against the unit
+        'cancel_notice_time'       => 'permit_empty', // HH:MM; for D only
+        'late_cancel_allowed'      => 'required|in_list[Y,N]',
+        'late_cancel_fee_value'    => 'required|decimal|greater_than_equal_to[0]', // a percentage up to 100, which the API checks
+        'late_cancel_fee_unit'     => 'required|in_list[P,F]',
+        'no_show_fee_value'        => 'required|decimal|greater_than_equal_to[0]',
+        'no_show_fee_unit'         => 'required|in_list[P,F]',
         'contact_person_name'      => 'permit_empty|max_length[128]',
         'contact_email_address'    => 'required|valid_email|max_length[128]',
         'contact_phone_number'     => 'permit_empty|max_length[32]',
@@ -189,6 +266,18 @@ class BusinessMasterModel extends Model
             'tip_value_kind'           => ['type' => 'select', 'default' => self::TIP_VALUE_SUGGESTED],
             'service_charge_value'     => ['type' => 'number', 'step' => '0.01', 'default' => '0.00', 'searchable' => false], // services only
             'service_charge_unit'      => ['type' => 'select', 'default' => self::UNIT_PERCENTAGE],
+            'booking_horizon_days'     => ['type' => 'number', 'step' => '1', 'default' => self::BOOKING_DEFAULTS['booking_horizon_days'], 'searchable' => false],
+            'booking_notice_unit'      => ['type' => 'select', 'default' => self::NOTICE_MINUTES],
+            'booking_notice_value'     => ['type' => 'number', 'step' => '1', 'default' => self::BOOKING_DEFAULTS['booking_notice_value'], 'searchable' => false],
+            'booking_notice_time'      => ['type' => 'time', 'searchable' => false], // D only
+            'cancel_notice_unit'       => ['type' => 'select', 'default' => self::NOTICE_MINUTES],
+            'cancel_notice_value'      => ['type' => 'number', 'step' => '1', 'default' => self::CANCEL_DEFAULTS['cancel_notice_value'], 'searchable' => false],
+            'cancel_notice_time'       => ['type' => 'time', 'searchable' => false], // D only
+            'late_cancel_allowed'      => ['type' => 'select', 'default' => 'Y'],
+            'late_cancel_fee_value'    => ['type' => 'number', 'step' => '0.01', 'default' => '0.00', 'searchable' => false],
+            'late_cancel_fee_unit'     => ['type' => 'select', 'default' => self::UNIT_PERCENTAGE],
+            'no_show_fee_value'        => ['type' => 'number', 'step' => '0.01', 'default' => '0.00', 'searchable' => false],
+            'no_show_fee_unit'         => ['type' => 'select', 'default' => self::UNIT_PERCENTAGE],
             'contact_person_name'      => ['type' => 'text'],
             'contact_email_address'    => ['type' => 'email'],
             'contact_phone_number'     => ['type' => 'tel'],
@@ -212,6 +301,11 @@ class BusinessMasterModel extends Model
             'tip_unit'            => [self::UNIT_PERCENTAGE, self::UNIT_FIXED],
             'tip_value_kind'      => [self::TIP_VALUE_SUGGESTED, self::TIP_VALUE_MINIMUM],
             'service_charge_unit' => [self::UNIT_PERCENTAGE, self::UNIT_FIXED],
+            'booking_notice_unit' => [self::NOTICE_MINUTES, self::NOTICE_DAYS],
+            'cancel_notice_unit'  => [self::NOTICE_MINUTES, self::NOTICE_DAYS],
+            'late_cancel_allowed' => ['Y', 'N'],
+            'late_cancel_fee_unit' => [self::UNIT_PERCENTAGE, self::UNIT_FIXED],
+            'no_show_fee_unit'    => [self::UNIT_PERCENTAGE, self::UNIT_FIXED],
         ];
 
         return $this->buildConfiguration('BusinessMaster', $fields, $enums);

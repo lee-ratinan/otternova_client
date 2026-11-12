@@ -10,7 +10,11 @@
  * @var string $currency   the business's currency_code
  * @var int    $max        the plan's cap of variants per artifact
  * @var string $planName
+ * @var string $locale     the request locale, for formatMinutes()
+ * @var string $window     the business's booking window in words, for the service variants without one of their own
  */
+use App\Models\BusinessMasterModel;
+
 $product  = 'P' === $type;
 $column   = lang('Artifacts.variants.column');
 $statuses = lang('Artifacts.enum.variant_status');
@@ -43,6 +47,7 @@ $storeNames = array_column($stores, 'name', 'public_id');
                             <th><?= esc($column['booking_type']) ?></th>
                             <th class="text-end"><?= esc($column['staff_required']) ?></th>
                             <th class="text-end"><?= esc($column['capacity']) ?></th>
+                            <th><?= esc(lang('Artifacts.variants.window')) ?></th>
                         <?php endif ?>
                         <th><?= esc($column['variant_status']) ?></th>
                         <?php if ($product): ?><th><?= esc(lang('Artifacts.variants.stock')) ?></th><?php endif ?>
@@ -62,11 +67,18 @@ $storeNames = array_column($stores, 'name', 'public_id');
                             <?php if ($product): ?><td><?= esc((string) ($variant['barcode'] ?? '')) ?></td><?php endif ?>
                             <td class="text-end text-nowrap"><?= esc(formatMoney($variant['price_active'] ?? null, $currency)) ?></td>
                             <td class="text-end text-nowrap"><?= null === ($variant['price_compare'] ?? null) ? '' : '<del class="text-muted">' . esc(formatMoney($variant['price_compare'], $currency)) . '</del>' ?></td>
-                            <td class="text-end"><?= null === $amount ? '' : (int) $amount ?></td>
+                            <td class="text-end text-nowrap"><?= null === $amount ? '' : esc($product ? (string) (int) $amount : formatMinutes($amount, $locale)) ?></td>
                             <?php if (! $product): ?>
                                 <td><?= esc($bookings[$variant['booking_type'] ?? ''] ?? '') ?></td>
                                 <td class="text-end"><?= null === ($variant['staff_required'] ?? null) ? '' : (int) $variant['staff_required'] ?></td>
                                 <td class="text-end"><?= null === ($variant['capacity'] ?? null) ? '' : (int) $variant['capacity'] ?></td>
+                                <td class="small">
+                                    <?php if (null === ($variant['booking_horizon_days'] ?? null)): ?>
+                                        <span class="text-muted" title="<?= esc($window, 'attr') ?>"><?= esc(lang('Artifacts.variants.window-business')) ?></span>
+                                    <?php else: ?>
+                                        <?= esc(BusinessMasterModel::describeBookingWindow($variant, $locale)) ?>
+                                    <?php endif ?>
+                                </td>
                             <?php endif ?>
                             <td>
                                 <span class="badge <?= 'A' === ($variant['variant_status'] ?? '') ? 'bg-success' : 'bg-secondary' ?>"><?= esc($statuses[$variant['variant_status'] ?? ''] ?? '') ?></span>

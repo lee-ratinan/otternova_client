@@ -202,7 +202,9 @@ class ServiceSessions extends BaseController
      * Create or save a session of the session business through LINK_INTERNAL_API:
      * v1/client/session/create { business_slug, session, translations, slots }, or, with public_id,
      * v1/client/session/edit { public_id, session, translations, slots }. The form has the texts in the web pages' languages
-     * only; on an edit, the other languages' are kept, as the API replaces them all.
+     * only; on an edit, the other languages' are kept, as the API replaces them all. booking_closes_at left empty on a
+     * new session is not sent, so the API sets it from the booking window's notice; emptied on an edit, it is null
+     * (booking stays open until the first slot starts).
      */
     public function save(): ResponseInterface
     {
@@ -213,6 +215,9 @@ class ServiceSessions extends BaseController
             if (array_key_exists($field, $session) && '' === trim((string) $session[$field])) {
                 $session[$field] = null;
             }
+        }
+        if ('' === $publicId && array_key_exists('booking_closes_at', $session) && null === $session['booking_closes_at']) {
+            unset($session['booking_closes_at']);
         }
         if ('' === $publicId) {
             $session['variant_public_id'] = (string) ($post['variant_public_id'] ?? '');
@@ -285,7 +290,7 @@ class ServiceSessions extends BaseController
             $label = implode(' · ', array_filter([
                 (string) ($variant['artifact']['artifact_name'] ?? ''),
                 implode(' / ', (array) ($variant['attribute_values'] ?? [])),
-                null === ($variant['duration_minutes'] ?? null) ? '' : lang('Artifacts.variants.minutes', [(int) $variant['duration_minutes']]),
+                formatMinutes($variant['duration_minutes'] ?? null, $this->request->getLocale()),
             ]));
             if ('A' !== ($variant['variant_status'] ?? 'A') || 'A' !== ($variant['artifact']['artifact_status'] ?? 'A')) {
                 $label .= ' (' . lang('ServiceSessions.form.not-on-sale') . ')';
@@ -331,7 +336,7 @@ class ServiceSessions extends BaseController
         }
         $fields[] = ['type' => 'heading', 'label' => lang('ServiceSessions.heading.slots')];
         $fields[] = ['type' => 'html', 'show_in' => ['create', 'edit'], 'html' => view('sessions/slots_editor', ['field' => self::SLOTS_FIELD])];
-        $fields[] = ['type' => 'html', 'show_in' => ['view'], 'html' => view('sessions/slots_view', ['slots' => $editor['slots']])];
+        $fields[] = ['type' => 'html', 'show_in' => ['view'], 'html' => view('sessions/slots_view', ['slots' => $editor['slots'], 'locale' => $this->request->getLocale()])];
         $languages = $this->websiteLanguages();
         if ([] !== $languages) {
             $fields[] = ['type' => 'heading', 'label' => lang('ServiceSessions.heading.translations')];

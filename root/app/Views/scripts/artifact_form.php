@@ -4,7 +4,8 @@
  * - the tax rate shows only when tax is included in the price or added on top
  * - the variants editor (artifacts/variants_editor): the options the variants differ by, one row per variant with
  *   its price and, for a product, its stock per store, or, for a service, how it is booked (an appointment, or a
- *   group whose sessions take up to its capacity of customers) and the staff it needs, kept as JSON in the hidden field the form submits. Saved
+ *   group whose sessions take up to its capacity of customers), the staff it needs and its booking window (the
+ *   business's, or one of its own), kept as JSON in the hidden field the form submits. Saved
  *   variants cannot be removed (the API never deletes one; it is taken off sale instead). Add Variant stops at the
  *   plan's cap of variants per artifact.
  * - the images card (artifacts/images): upload, delete and reorder, each posted at once; Upload stops at the plan's
@@ -12,7 +13,7 @@
  *
  * @var string     $formId        the artifact form's DOM id
  * @var string     $variantsField the hidden field of the variants
- * @var array      $editor        type, variants, attributes, stores, labels, max, planName (see Artifacts::form())
+ * @var array      $editor        type, variants, attributes, stores, labels, window, windowRule, max, planName (see Artifacts::form())
  * @var string     $taxNone       tax_calculation of no tax
  * @var array|null $images        artifact, images, max, planName, urls; null for a new artifact
  */
@@ -43,6 +44,17 @@ $config = [
         'statuses'      => lang('Artifacts.enum.variant_status'),
         'bookingTypes'  => lang('Artifacts.enum.booking_type'),
         'capacityHelp'  => lang('Artifacts.variants.capacity-help'),
+        'hours'         => lang('Artifacts.variants.hours'),
+        'minutes'       => lang('Artifacts.variants.minutes-short'),
+        'durationInvalid' => lang('Artifacts.variants.duration-invalid'),
+        'window'        => lang('Artifacts.variants.window'),
+        'windowDefault' => lang('Artifacts.variants.window-default', [$editor['window'] ?? '']),
+        'windowOwn'     => lang('Artifacts.variants.window-own'),
+        'windowHelp'    => lang('Artifacts.variants.window-help'),
+        'windowAhead'   => lang('Artifacts.variants.window-ahead'),
+        'windowNotice'  => lang('Artifacts.variants.window-notice'),
+        'windowBy'      => lang('Artifacts.variants.window-by'),
+        'windowUnits'   => lang('Artifacts.variants.window-units'),
         'cover'         => lang('Artifacts.images.cover'),
         'moveEarlier'   => lang('Artifacts.images.move-earlier'),
         'moveLater'     => lang('Artifacts.images.move-later'),
@@ -110,9 +122,22 @@ $config = [
 
     function blank() {
       return { public_id: '', sku: '', barcode: '', price_active: '', price_compare: '', variant_status: 'A', weight_grams: '', duration_minutes: '',
-        booking_type: 'A', staff_required: '1', capacity: '', values: {}, stock: {} };
+        duration_h: '', duration_m: '', booking_type: 'A', staff_required: '1', capacity: '', values: {}, stock: {},
+        own_window: false, win_horizon: '', win_unit: 'M', win_value: '', win_time: '' };
     }
     function text(v) { return v === null || v === undefined ? '' : String(v); }
+    // a service's length is typed as hours and minutes, and kept (and saved) as minutes
+    function splitMinutes(r) {
+      var m = r.duration_minutes === '' ? NaN : Number(r.duration_minutes);
+      r.duration_h = isNaN(m) ? '' : String(Math.floor(m / 60));
+      r.duration_m = isNaN(m) ? '' : String(m % 60);
+      return r;
+    }
+    function joinMinutes(r) {
+      var h = r.duration_h === '' ? 0 : Number(r.duration_h);
+      var m = r.duration_m === '' ? 0 : Number(r.duration_m);
+      r.duration_minutes = r.duration_h === '' && r.duration_m === '' ? '' : String(Math.round(h * 60 + m));
+    }
     // the variants as saved, and the options they use
     function start() {
       used = {};
@@ -121,11 +146,14 @@ $config = [
         (v.attribute_values || []).forEach(function (x) { values[x.attribute_public_id] = x.value_public_id; used[x.attribute_public_id] = true; });
         var stock = {};
         (v.inventory || []).forEach(function (s) { stock[s.store_public_id] = text(s.quantity); });
-        return {
+        return splitMinutes({
           public_id: v.public_id, sku: text(v.sku), barcode: text(v.barcode), price_active: text(v.price_active), price_compare: text(v.price_compare),
           variant_status: v.variant_status || 'A', weight_grams: text(v.weight_grams), duration_minutes: text(v.duration_minutes),
-          booking_type: v.booking_type || 'A', staff_required: text(v.staff_required || 1), capacity: text(v.capacity), values: values, stock: stock
-        };
+          booking_type: v.booking_type || 'A', staff_required: text(v.staff_required || 1), capacity: text(v.capacity), values: values, stock: stock,
+          // its own booking window, or none (null) for the business's
+          own_window: v.booking_horizon_days !== null && v.booking_horizon_days !== undefined, win_horizon: text(v.booking_horizon_days),
+          win_unit: v.booking_notice_unit || 'M', win_value: text(v.booking_notice_value), win_time: text(v.booking_notice_time).slice(0, 5)
+        });
       });
       if (!rows.length) { rows.push(blank()); }
     }
@@ -172,7 +200,13 @@ $config = [
         html += field(i, 'price_active', r.price_active, 'number', ' min="0" step="0.01" required style="min-width: 6rem;"');
         html += field(i, 'price_compare', r.price_compare, 'number', ' min="0" step="0.01" style="min-width: 6rem;"');
         html += product ? field(i, 'weight_grams', r.weight_grams, 'number', ' min="0" step="1" style="min-width: 5rem;"')
-                        : field(i, 'duration_minutes', r.duration_minutes, 'number', ' min="1" max="65535" step="1" required style="min-width: 5rem;"');
+                        : '<td><div class="input-group input-group-sm flex-nowrap" style="min-width: 9rem;">'
+                          + '<input type="number" class="form-control" min="0" max="1092" step="1" data-row="' + i + '" data-key="duration_h" value="' + esc(r.duration_h)
+                          + '" placeholder="' + esc(L.hours) + '" aria-label="' + esc(L.column.duration_minutes + ' (' + L.hours + ')') + '">'
+                          + '<span class="input-group-text">:</span>'
+                          + '<input type="number" class="form-control" min="0" max="59" step="1" data-row="' + i + '" data-key="duration_m" value="' + esc(r.duration_m)
+                          + '" placeholder="' + esc(L.minutes) + '" aria-label="' + esc(L.column.duration_minutes + ' (' + L.minutes + ')') + '">'
+                          + '</div></td>';
         if (!product) {
           var group = r.booking_type === 'G';
           html += '<td><select class="form-select form-select-sm" style="min-width: 7rem;" data-row="' + i + '" data-key="booking_type" aria-label="' + esc(L.column.booking_type) + '">'
@@ -188,6 +222,7 @@ $config = [
           + '</select></td>';
         html += '<td class="text-end">' + (r.public_id ? '' : '<button type="button" class="btn btn-sm btn-outline-danger" data-remove="' + i + '" title="' + esc(L.remove) + '" aria-label="' + esc(L.remove) + '"'
           + (rows.length === 1 ? ' disabled' : '') + '><i class="bi bi-x-lg"></i></button>') + '</td></tr>';
+        if (!product) { html += windowRow(r, i, width); }
         if (product && stores.length) {
           html += '<tr><td></td><td colspan="' + (width - 1) + '" class="pt-0 border-top-0"><div class="d-flex flex-wrap align-items-center gap-2 small">'
             + '<span class="text-muted" title="' + esc(L.stockHelp) + '">' + esc(L.stock) + '</span>' + stores.map(function (s) {
@@ -204,6 +239,31 @@ $config = [
       write();
     }
 
+    // a service variant's booking window, under its row: the business's, or one of its own (how many days ahead,
+    // and the notice in minutes, or in days by a time of day)
+    function windowRow(r, i, width) {
+      // kept within the first columns' width, so its fields wrap where they can be seen rather than off to the right
+      var html = '<tr><td></td><td colspan="' + (width - 1) + '" class="pt-0 border-top-0"><div class="d-flex flex-wrap align-items-center gap-2 small" style="max-width: 34rem;">'
+        + '<span class="text-muted" title="' + esc(L.windowHelp) + '">' + esc(L.window) + '</span>'
+        + '<select class="form-select form-select-sm w-auto mw-100 text-truncate" data-row="' + i + '" data-key="own_window" aria-label="' + esc(L.window) + '" title="' + esc(r.own_window ? L.windowOwn : L.windowDefault) + '">'
+        + '<option value=""' + (r.own_window ? '' : ' selected') + '>' + esc(L.windowDefault) + '</option>'
+        + '<option value="1"' + (r.own_window ? ' selected' : '') + '>' + esc(L.windowOwn) + '</option></select>';
+      if (r.own_window) {
+        html += '<label class="d-inline-flex align-items-center gap-1">' + esc(L.windowAhead)
+          + ' <input type="number" class="form-control form-control-sm" style="width: 5rem;" min="1" max="365" step="1" required data-row="' + i + '" data-key="win_horizon" value="' + esc(r.win_horizon) + '"></label>'
+          + '<label class="d-inline-flex align-items-center gap-1">' + esc(L.windowNotice)
+          + ' <input type="number" class="form-control form-control-sm" style="width: 5.5rem;" min="0" max="' + (r.win_unit === 'D' ? 365 : 65535) + '" step="1" required data-row="' + i + '" data-key="win_value" value="' + esc(r.win_value) + '"></label>'
+          + '<select class="form-select form-select-sm w-auto" data-row="' + i + '" data-key="win_unit" aria-label="' + esc(L.windowNotice) + '">'
+          + ['M', 'D'].map(function (u) { return '<option value="' + u + '"' + (r.win_unit === u ? ' selected' : '') + '>' + esc(L.windowUnits[u]) + '</option>'; }).join('')
+          + '</select>';
+        if (r.win_unit === 'D') {
+          html += '<label class="d-inline-flex align-items-center gap-1">' + esc(L.windowBy)
+            + ' <input type="time" class="form-control form-control-sm" style="width: 7.5rem;" required data-row="' + i + '" data-key="win_time" value="' + esc(r.win_time) + '"></label>';
+        }
+      }
+      return html + '</div></td></tr>';
+    }
+
     // a service's variants differ by their length and booking type as well as their options: flag the rows that
     // repeat another (the API refuses them too), once their length is filled in
     function markDuplicates() {
@@ -211,14 +271,19 @@ $config = [
       var columns = usedAttributes();
       var seen = {};
       rows.forEach(function (r, i) {
-        var input = root.querySelector('input[data-row="' + i + '"][data-key="duration_minutes"]');
+        var input = root.querySelector('input[data-row="' + i + '"][data-key="duration_h"]');
         if (!input) { return; }
-        var key = JSON.stringify([columns.map(function (a) { return r.values[a.public_id] || ''; }), r.duration_minutes, r.booking_type]);
-        var taken = service && r.duration_minutes !== '' && seen[key];
+        // a length is required: at least a minute, at most what the API holds
+        var length = r.duration_minutes === '' ? 0 : Number(r.duration_minutes);
+        var bad = service && !(length >= 1 && length <= 65535);
+        var key = JSON.stringify([columns.map(function (a) { return r.values[a.public_id] || ''; }), length, r.booking_type]);
+        var taken = service && !bad && seen[key];
         seen[key] = true;
-        input.classList.toggle('is-invalid', !!taken);
-        input.setCustomValidity(taken ? L.duplicate : '');
-        input.title = taken ? L.duplicate : '';
+        var message = bad ? L.durationInvalid : (taken ? L.duplicate : '');
+        // an empty length is not flagged in red until the form is sent
+        input.classList.toggle('is-invalid', !!message && r.duration_minutes !== '');
+        input.setCustomValidity(message);
+        input.title = message;
       });
     }
 
@@ -255,6 +320,11 @@ $config = [
           v.booking_type = r.booking_type;
           v.staff_required = r.staff_required;
           v.capacity = r.booking_type === 'G' ? r.capacity : '';
+          // all four, or all null for the business's
+          v.booking_horizon_days = r.own_window ? r.win_horizon : null;
+          v.booking_notice_unit = r.own_window ? r.win_unit : null;
+          v.booking_notice_value = r.own_window ? r.win_value : null;
+          v.booking_notice_time = r.own_window && r.win_unit === 'D' ? r.win_time : null;
         }
         return v;
       }));
@@ -272,8 +342,20 @@ $config = [
       else if (t.hasAttribute('data-store')) { r.stock[t.getAttribute('data-store')] = t.value.trim(); }
       else if (t.hasAttribute('data-key')) {
         r[t.getAttribute('data-key')] = t.value.trim();
-        // the capacity is for a group only
-        if (t.getAttribute('data-key') === 'booking_type' && e.type === 'change') { renderTable(); return; }
+        if (/^duration_[hm]$/.test(t.getAttribute('data-key'))) { joinMinutes(r); }
+        if (t.getAttribute('data-key') === 'own_window') {
+          r.own_window = t.value !== '';
+          // a window of its own starts from the business's
+          if (r.own_window && r.win_horizon === '') {
+            var b = ed.windowRule || {};
+            r.win_horizon = text(b.booking_horizon_days);
+            r.win_unit = b.booking_notice_unit || 'M';
+            r.win_value = text(b.booking_notice_value);
+            r.win_time = text(b.booking_notice_time).slice(0, 5);
+          }
+        }
+        // the capacity is for a group only; the window's fields follow its choices
+        if (/^(booking_type|own_window|win_unit)$/.test(t.getAttribute('data-key')) && e.type === 'change') { renderTable(); return; }
       }
       markDuplicates();
       write();
@@ -296,6 +378,7 @@ $config = [
           row.booking_type = last.booking_type;
           row.staff_required = last.staff_required;
           row.capacity = last.capacity;
+          ['own_window', 'win_horizon', 'win_unit', 'win_value', 'win_time'].forEach(function (k) { row[k] = last[k]; });
         }
         rows.push(row);
         renderTable();

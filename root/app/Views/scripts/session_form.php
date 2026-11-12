@@ -16,6 +16,7 @@ $config = [
     'editor'     => $editor,
     'urls'       => $urls,
     'csrf'       => ['header' => csrf_header()],
+    'locale'     => service('request')->getLocale(),
     'labels'     => [
         'column'      => lang('ServiceSessions.slots.column'),
         'statuses'    => lang('ServiceSessions.enum.slot_status'),
@@ -27,6 +28,10 @@ $config = [
         'noResources' => lang('ServiceSessions.slots.no-resources'),
         'people'      => lang('ServiceSessions.slots.people'),
         'failed'      => lang('ServiceSessions.form.options-failed'),
+        'total'       => lang('ServiceSessions.slots.total'),
+        'tooLong'     => lang('ServiceSessions.slots.too-long'),
+        'repeatLimited' => lang('ServiceSessions.slots.repeat-limited'),
+        'full'        => lang('ServiceSessions.slots.full'),
     ],
 ];
 ?>
@@ -67,6 +72,29 @@ $config = [
     var id = variantSelect ? variantSelect.value : '';
     return (ed.variants || []).filter(function (v) { return v.public_id === id; })[0] || null;
   }
+  // the service's length, in minutes (0: none to check against)
+  function limit() { var v = variant(); return v && Number(v.duration_minutes) > 0 ? Number(v.duration_minutes) : 0; }
+  // as formatMinutes() in html_helper: 90 => '1h 30m', 120 => '2h' (th: '1 ชม. 30 นาที')
+  function hm(m) {
+    var h = Math.floor(m / 60), parts = [];
+    var th = cfg.locale === 'th';
+    m = m % 60;
+    if (h > 0) { parts.push(h + (th ? ' ชม.' : 'h')); }
+    if (m > 0 || h === 0) { parts.push(m + (th ? ' นาที' : 'm')); }
+    return parts.join(' ');
+  }
+  // a slot's length in minutes; an end not after the start is on the next day
+  function length(r) {
+    if (!r.start || !r.end) { return 0; }
+    var s = r.start.split(':'), e = r.end.split(':');
+    var m = (Number(e[0]) * 60 + Number(e[1])) - (Number(s[0]) * 60 + Number(s[1]));
+    return m <= 0 ? m + 1440 : m;
+  }
+  // the scheduled slots' lengths added up, but for $except
+  function total(except) {
+    return rows.reduce(function (sum, r) { return r === except || r.slot_status === 'X' ? sum : sum + length(r); }, 0);
+  }
+  function warn(text) { if (window.toastr) { window.toastr.warning(esc(text)); } }
   function placed() { return !!(variantSelect && variantSelect.value && storeSelect && storeSelect.value); }
 
   function set(list) { var out = {}; (list || []).forEach(function (k) { out[k] = true; }); return out; }
@@ -152,7 +180,28 @@ $config = [
     ['[data-slots-add]', '[data-slots-repeat]', '[data-slots-copy]'].forEach(function (sel) { root.querySelector(sel).disabled = !ready; });
     root.querySelector('[data-slots-copy]').disabled = !ready || rows.length < 2;
     renderNeeds();
+    check();
     write();
+  }
+
+  // the slots must not add up to more than the service's length: a new slot that goes over it is flagged, which
+  // stops the form being sent
+  function check() {
+    var box = root.querySelector('[data-slots-total]');
+    var max = limit();
+    var sum = 0;
+    rows.forEach(function (r, i) {
+      if (r.slot_status !== 'X') { sum += length(r); }
+      var end = root.querySelector('[data-row="' + i + '"][data-key="end"]');
+      if (!end) { return; }
+      var over = !!max && !r.slot_number && r.slot_status !== 'X' && length(r) > 0 && sum > max;
+      end.classList.toggle('is-invalid', over);
+      end.setCustomValidity(over ? fmt(L.tooLong, [hm(max)]) : '');
+      end.title = over ? fmt(L.tooLong, [hm(max)]) : '';
+    });
+    if (!max || !placed()) { box.textContent = ''; box.className = 'small mb-2'; return; }
+    box.textContent = sum > max ? fmt(L.tooLong, [hm(max)]) : fmt(L.total, [hm(sum), hm(max)]);
+    box.className = 'small mb-2 ' + (sum > max ? 'text-danger' : 'text-muted');
   }
 
   // the slots as the API takes them; an end not after the start is on the next day
@@ -179,15 +228,17 @@ $config = [
     else if (t.hasAttribute('data-key')) {
       var key = t.getAttribute('data-key');
       r[key] = t.value;
-      // a start with no end yet ends after the service's duration
-      var v = variant();
-      if (key === 'start' && r.start && !r.end && v && v.duration_minutes) {
-        r.end = addMinutes(r.start, v.duration_minutes);
+      // a start with no end yet ends after the service's duration, or what is left of it
+      var max = limit();
+      var left = max - total(r);
+      if (key === 'start' && r.start && !r.end && left > 0) {
+        r.end = addMinutes(r.start, left);
         var end = root.querySelector('[data-row="' + t.getAttribute('data-row') + '"][data-key="end"]');
         if (end) { end.value = r.end; }
       }
       if (key === 'slot_status' && e.type === 'change') { render(); return; }
     }
+    check();
     write();
   }
   root.addEventListener('input', onEdit);
@@ -200,12 +251,22 @@ $config = [
       return;
     }
     var last = rows.filter(function (r) { return r.slot_status !== 'X'; }).slice(-1)[0];
+    var max = limit();
     if (e.target.closest('[data-slots-add]')) {
-      rows.push(after(last, 1));
+      var next = after(last, 1);
+      if (max && length(next) && total() + length(next) > max) { warn(fmt(L.full, [hm(max)])); return; }
+      rows.push(next);
       render();
     } else if (e.target.closest('[data-slots-repeat]')) {
       var count = Math.max(1, Math.min(52, Number(root.querySelector('[data-slots-repeat-count]').value) || 1));
       if (!last) { rows.push(blank()); last = rows[0]; count--; }
+      // only as many as fit in the service's length
+      var each = length(last);
+      var fit = max && each ? Math.max(0, Math.floor((max - total()) / each)) : count;
+      if (fit < count) {
+        warn(fit ? fmt(L.repeatLimited, [fit, hm(max)]) : fmt(L.full, [hm(max)]));
+        count = fit;
+      }
       for (var w = 1; w <= count; w++) { rows.push(after(last, w)); }
       render();
     } else if (e.target.closest('[data-slots-copy]')) {

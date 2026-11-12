@@ -42,6 +42,9 @@ class Admin extends BaseController
             'business_description', 'business_mood_and_tone'],
         'audience' => ['lgbt_audience', 'naturist_audience', 'age_restricted'],
         'charges'  => ['tip_policy', 'tip_value', 'tip_unit', 'tip_value_kind', 'service_charge_value', 'service_charge_unit'],
+        'booking'  => ['booking_horizon_days', 'booking_notice_unit', 'booking_notice_value', 'booking_notice_time'],
+        'cancellation' => ['cancel_notice_unit', 'cancel_notice_value', 'cancel_notice_time', 'late_cancel_allowed',
+            'late_cancel_fee_value', 'late_cancel_fee_unit', 'no_show_fee_value', 'no_show_fee_unit'],
         'contact'  => ['contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website'],
         'address'  => ['contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code',
             'contact_postal_code'],
@@ -49,7 +52,9 @@ class Admin extends BaseController
     ];
     private const BUSINESS_FIELDS = ['business_type_public_id', 'business_name', 'business_slug', 'business_description',
         'business_mood_and_tone', 'lgbt_audience', 'naturist_audience', 'age_restricted', 'tip_policy', 'tip_value', 'tip_unit',
-        'tip_value_kind', 'service_charge_value', 'service_charge_unit', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
+        'tip_value_kind', 'service_charge_value', 'service_charge_unit', 'booking_horizon_days', 'booking_notice_unit',
+        'booking_notice_value', 'booking_notice_time', 'cancel_notice_unit', 'cancel_notice_value', 'cancel_notice_time',
+        'late_cancel_allowed', 'late_cancel_fee_value', 'late_cancel_fee_unit', 'no_show_fee_value', 'no_show_fee_unit', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
         'contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code', 'contact_postal_code',
         'country_code', 'currency_code', 'tax_id'];
 
@@ -64,15 +69,26 @@ class Admin extends BaseController
             'business_description', 'business_mood_and_tone'],
         'audience' => ['lgbt_audience', 'naturist_audience', 'age_restricted'],
         'charges'  => ['tip_policy', 'tip_value', 'tip_unit', 'tip_value_kind', 'service_charge_value', 'service_charge_unit'],
+        'booking'  => ['booking_horizon_days', 'booking_notice_unit', 'booking_notice_value', 'booking_notice_time'],
+        'cancellation' => ['cancel_notice_unit', 'cancel_notice_value', 'cancel_notice_time', 'late_cancel_allowed',
+            'late_cancel_fee_value', 'late_cancel_fee_unit', 'no_show_fee_value', 'no_show_fee_unit'],
         'contact'  => ['contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website'],
         'address'  => ['contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code',
             'contact_postal_code', 'tax_id'],
     ];
     private const BUSINESS_EDIT_FIELDS = ['business_type_public_id', 'business_name', 'business_slug', 'business_description',
         'business_mood_and_tone', 'lgbt_audience', 'naturist_audience', 'age_restricted', 'tip_policy', 'tip_value', 'tip_unit',
-        'tip_value_kind', 'service_charge_value', 'service_charge_unit', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
+        'tip_value_kind', 'service_charge_value', 'service_charge_unit', 'booking_horizon_days', 'booking_notice_unit',
+        'booking_notice_value', 'booking_notice_time', 'cancel_notice_unit', 'cancel_notice_value', 'cancel_notice_time',
+        'late_cancel_allowed', 'late_cancel_fee_value', 'late_cancel_fee_unit', 'no_show_fee_value', 'no_show_fee_unit', 'contact_person_name', 'contact_email_address', 'contact_phone_number', 'contact_website',
         'contact_address_line_1', 'contact_address_line_2', 'contact_city', 'contact_subdivision_code', 'contact_postal_code',
         'tax_id'];
+
+    /** The business form's notices with a time of day, shown for a notice in days only (scripts/notice_time) */
+    private const NOTICE_TIMES = [
+        ['unit' => 'booking_notice_unit', 'time' => 'booking_notice_time'],
+        ['unit' => 'cancel_notice_unit', 'time' => 'cancel_notice_time'],
+    ];
 
     /** Hidden field of the edit-business form: the slug the form was opened with, so a session switched meanwhile is seen */
     private const BUSINESS_CURRENT_SLUG = 'current_business_slug';
@@ -347,14 +363,14 @@ class Admin extends BaseController
                 'messages' => ['saved' => lang('Business.created'), 'saveFailed' => lang('Business.saveFailed')],
                 'fields'   => $this->businessFields($types, $user),
             ],
-            // fills the currency and subdivision dropdowns for the country picked
+            // fills the currency and subdivision dropdowns for the country picked; shows the time of day for a notice in days
             'customScript' => view('scripts/create_business', [
                 'formId' => 'create-business-form',
                 'urls'   => ['currencies' => base_url('admin/api/currencies'), 'subdivisions' => base_url('admin/api/subdivisions'),
                              'slug' => base_url('admin/api/generate-slug')],
                 'select' => lang('Form.select'),
                 'failed' => lang('CreateBusiness.form.locale-failed'),
-            ]),
+            ]) . view('scripts/notice_time', ['formId' => 'create-business-form', 'days' => BusinessMasterModel::NOTICE_DAYS, 'pairs' => self::NOTICE_TIMES]),
         ];
         return view('generic_form', $data);
     }
@@ -536,7 +552,11 @@ class Admin extends BaseController
         $locale   = $this->request->getLocale();
         $business = $this->refreshSessionBusiness(null, $names, $taxId) ?? (array) session('business');
         // a session business kept from before the API had tips and service charges: what the API stored for it then
-        $values   = (array) ($business['business'] ?? []) + BusinessMasterModel::CHARGE_DEFAULTS;
+        $values   = (array) ($business['business'] ?? []) + BusinessMasterModel::CHARGE_DEFAULTS + BusinessMasterModel::BOOKING_DEFAULTS
+            + BusinessMasterModel::CANCEL_DEFAULTS;
+        foreach (['booking_notice_time', 'cancel_notice_time'] as $name) {
+            $values[$name] = null === $values[$name] ? null : substr((string) $values[$name], 0, 5);
+        }
         $slug     = (string) ($values['business_slug'] ?? '');
         $values[self::BUSINESS_CURRENT_SLUG] = $slug;
         foreach ($names ?? [] as $language => $name) {
@@ -566,7 +586,7 @@ class Admin extends BaseController
                 'values'   => $values,
                 'fields'   => $this->businessEditFields($this->businessTypeOptions($locale), (string) ($values['country_code'] ?? ''), $slug, null !== $names, null !== $taxId),
             ],
-            // asks before a changed business slug is saved
+            // asks before a changed business slug is saved; shows the time of day for a notice in days
             'customScript' => view('scripts/edit_business', [
                 'formId'  => $formId,
                 'slug'    => $slug,
@@ -577,7 +597,7 @@ class Admin extends BaseController
                     'confirm' => lang('EditBusiness.slug-confirm.confirm'),
                     'cancel'  => lang('EditBusiness.slug-confirm.cancel'),
                 ],
-            ]),
+            ]) . view('scripts/notice_time', ['formId' => $formId, 'days' => BusinessMasterModel::NOTICE_DAYS, 'pairs' => self::NOTICE_TIMES]),
         ];
         return view('generic_form', $data);
     }
@@ -857,6 +877,8 @@ class Admin extends BaseController
         $config['business_mood_and_tone']['help']   = lang('CreateBusiness.help.mood-and-tone');
         $this->audienceHelp($config);
         $this->chargeHelp($config);
+        $this->bookingHelp($config);
+        $this->cancelHelp($config);
         // no options until a country is picked: customScript fills them from admin/api/currencies and subdivisions
         $config['currency_code']['options']            = [];
         $config['contact_subdivision_code']['type']    = 'select';
@@ -901,6 +923,40 @@ class Admin extends BaseController
         foreach (['tip_value', 'service_charge_value'] as $name) {
             $config[$name]['min'] = 0;
         }
+    }
+
+    /**
+     * The help and bounds of the booking window fields, shared by the create- and edit-business forms. Whether the
+     * notice fits the horizon is the API's to check. booking_notice_time is for a notice in days only: the form's
+     * script (scripts/notice_time) hides and empties it otherwise.
+     * @param array $config BusinessMasterModel::getConfiguration(), changed in place
+     */
+    private function bookingHelp(array &$config): void
+    {
+        $config['booking_horizon_days'] += ['min' => 1, 'max' => 365, 'help' => lang('CreateBusiness.help.booking-horizon')];
+        $config['booking_notice_unit']['help']  = lang('CreateBusiness.help.booking-notice-unit');
+        $config['booking_notice_value'] += ['min' => 0, 'help' => lang('CreateBusiness.help.booking-notice')];
+        $config['booking_notice_time']['help']  = lang('CreateBusiness.help.booking-notice-time');
+        $config['booking_notice_time']['optional'] = false; // shown only when it is needed
+        $config['booking_notice_time']['view']  = static fn ($value) => null === $value || '' === $value ? '' : substr((string) $value, 0, 5);
+    }
+
+    /**
+     * The help and bounds of the cancellation policy fields, shared by the create- and edit-business forms. Whether a
+     * percentage fee is no more than 100 is the API's to check. cancel_notice_time is for a deadline in days only: the
+     * form's script (scripts/notice_time) hides and empties it otherwise.
+     * @param array $config BusinessMasterModel::getConfiguration(), changed in place
+     */
+    private function cancelHelp(array &$config): void
+    {
+        $config['cancel_notice_unit']['help']  = lang('CreateBusiness.help.cancel-notice-unit');
+        $config['cancel_notice_value'] += ['min' => 0, 'help' => lang('CreateBusiness.help.cancel-notice')];
+        $config['cancel_notice_time']['help']  = lang('CreateBusiness.help.cancel-notice-time');
+        $config['cancel_notice_time']['optional'] = false; // shown only when it is needed
+        $config['cancel_notice_time']['view']  = static fn ($value) => null === $value || '' === $value ? '' : substr((string) $value, 0, 5);
+        $config['late_cancel_allowed']['help'] = lang('CreateBusiness.help.late-cancel-allowed');
+        $config['late_cancel_fee_value'] += ['min' => 0, 'help' => lang('CreateBusiness.help.late-cancel-fee')];
+        $config['no_show_fee_value'] += ['min' => 0, 'help' => lang('CreateBusiness.help.no-show-fee')];
     }
 
     /**
@@ -1071,6 +1127,8 @@ class Admin extends BaseController
         $config['business_mood_and_tone']['help'] = lang('CreateBusiness.help.mood-and-tone');
         $this->audienceHelp($config);
         $this->chargeHelp($config);
+        $this->bookingHelp($config);
+        $this->cancelHelp($config);
         foreach (BusinessMasterModel::FIXED_FIELDS as $name) {
             $config[$name]['disabled_in'] = ['create', 'edit'];
             $config[$name]['help']        = lang('EditBusiness.help.fixed');

@@ -10,6 +10,7 @@
     <div class="col-12" data-slots-editor>
         <p class="form-text mt-0"><?= esc(lang('ServiceSessions.slots.help')) ?></p>
         <p class="small mb-2" data-slots-needs></p>
+        <p class="small mb-2" data-slots-total></p>
         <div class="table-responsive">
             <table class="table table-sm align-middle mb-2" data-slots-table></table>
         </div>

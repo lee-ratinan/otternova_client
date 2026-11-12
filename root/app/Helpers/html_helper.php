@@ -220,6 +220,34 @@ if (!function_exists('formatTime')) {
     }
 }
 
+if (!function_exists('formatMinutes')) {
+    /**
+     * A length in minutes as hours and minutes, leaving out a part that is zero:
+     * 90 => '1h 30m', 120 => '2h', 45 => '45m' (th: '1 ชม. 30 นาที', '2 ชม.', '45 นาที')
+     * @param int|string|null $minutes
+     * @param string|null     $locale
+     * @return string '' when $minutes is empty or not a number
+     */
+    function formatMinutes(int|string|null $minutes, ?string $locale): string
+    {
+        if (null === $minutes || !is_numeric($minutes)) {
+            return '';
+        }
+        $minutes = max(0, (int) $minutes);
+        $hours   = intdiv($minutes, 60);
+        $minutes %= 60;
+        [$h, $m] = 'th' === $locale ? ['%d ชม.', '%d นาที'] : ['%dh', '%dm'];
+        $parts = [];
+        if ($hours > 0) {
+            $parts[] = sprintf($h, $hours);
+        }
+        if ($minutes > 0 || 0 === $hours) {
+            $parts[] = sprintf($m, $minutes);
+        }
+        return implode(' ', $parts);
+    }
+}
+
 if (!function_exists('localTime')) {
     /**
      * <time> tag for a UTC datetime from the API; main.js rewrites its text in the viewer's timezone.

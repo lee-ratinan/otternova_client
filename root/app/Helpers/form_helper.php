@@ -1666,7 +1666,8 @@ if (! function_exists('fb_script')) {
       if (r.maxlength !== undefined && s.length > Number(r.maxlength)) { return msg(f, 'maxlength', r.maxlength); }
       if (r.numeric && isNaN(n)) { return msg(f, 'numeric'); }
       if (r.integer && !/^[-+]?\d+$/.test(s)) { return msg(f, 'integer'); }
-      if (r.decimal && !/^[-+]?\d*\.\d+$/.test(s)) { return msg(f, 'decimal'); }
+      // as CI4's decimal rule: the decimal point is optional, so 50 passes as well as 50.00
+      if (r.decimal && !/^[-+]?\d*\.?\d+$/.test(s)) { return msg(f, 'decimal'); }
       if (r.natural && !/^\d+$/.test(s)) { return msg(f, 'natural'); }
       if (r.natural_nz && (!/^\d+$/.test(s) || Number(s) === 0)) { return msg(f, 'natural_nz'); }
 

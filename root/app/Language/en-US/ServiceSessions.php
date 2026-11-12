@@ -41,7 +41,7 @@ return [
         'store'             => 'Where it is held. It cannot change once the session is added.',
         'session-name'      => 'Anything customers will recognise, for example "Japanese Basic Course 1 starting 10 Nov 2026 with Jiro Sensei".',
         'capacity'          => 'The most customers it takes; the service\'s by default.',
-        'booking-closes-at' => 'In the store\'s time. Empty: until the first slot starts.',
+        'booking-closes-at' => 'In the store\'s time. Left empty on a new session, it is set from the service\'s booking notice before the first slot. Emptied later, booking stays open until the first slot starts.',
         'status'            => 'A draft is not offered yet and may be incomplete. Open takes bookings; closed takes no more. A cancelled session releases its staff and resources, and cannot change again.',
     ],
     'slots'                   => [
@@ -62,6 +62,10 @@ return [
         'none'         => 'No slots yet.',
         'timezone'     => 'Times are in the store\'s time.',
         'error'        => 'Slot {0}: {1}',
+        'total'        => 'The slots add up to {0} of the service\'s {1}.',
+        'too-long'     => 'The slots add up to more than the service\'s {0}. Shorten or remove a slot.',
+        'repeat-limited' => 'Room for {0} more within the service\'s {1}.',
+        'full'         => 'The slots already fill the service\'s {0}.',
         'column'       => [
             'date'        => 'Date',
             'time'        => 'Time',

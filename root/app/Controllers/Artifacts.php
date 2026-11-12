@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\BusinessMasterModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -39,7 +40,8 @@ class Artifacts extends BaseController
 
     /** The fields of a variant the variants editor sends, as the API takes them */
     private const VARIANT_FIELDS = ['public_id', 'sku', 'barcode', 'price_active', 'price_compare', 'variant_status', 'weight_grams',
-        'duration_minutes', 'booking_type', 'staff_required', 'capacity', 'attribute_values', 'inventory'];
+        'duration_minutes', 'booking_type', 'staff_required', 'capacity', 'booking_horizon_days', 'booking_notice_unit',
+        'booking_notice_value', 'booking_notice_time', 'attribute_values', 'inventory'];
 
     /** Form field names of the name and description in a language: translation_name_<language_code> */
     private const NAME_PREFIX        = 'translation_name_';
@@ -172,12 +174,18 @@ class Artifacts extends BaseController
         $attributes = $this->loadAttributes($locale);
         $stores     = $this->storeOptions($locale);
         $variants   = (array) ($detail['variants'] ?? []);
+        // the business's booking window; a session business from before the API had it gets the API's defaults
+        $window     = array_filter(array_intersect_key((array) (session('business')['business'] ?? []), BusinessMasterModel::BOOKING_DEFAULTS),
+            static fn ($v) => null !== $v) + BusinessMasterModel::BOOKING_DEFAULTS;
         $editor     = [
             'type'       => $type,
             'variants'   => $variants,
             'attributes' => $attributes,
             'stores'     => $stores,
             'labels'     => $this->variantLabels($variants, $attributes, $type),
+            // a service variant without a booking window of its own is booked by the business's
+            'window'     => BusinessMasterModel::describeBookingWindow($window, $locale),
+            'windowRule' => $window,
             'max'        => (int) ($variantCap['max'] ?? 0),
             'planName'   => planName($plan),
         ];
@@ -495,6 +503,7 @@ class Artifacts extends BaseController
             ['type' => 'html', 'show_in' => ['create', 'edit'], 'html' => view('artifacts/variants_editor', ['field' => self::VARIANTS_FIELD] + $editor)],
             ['type' => 'html', 'show_in' => ['view'], 'html' => view('artifacts/variants_view', $editor + [
                 'currency' => (string) (session('business')['business']['currency_code'] ?? ''),
+                'locale'   => $this->request->getLocale(),
             ])],
             ['type' => 'heading', 'label' => lang('Reviews.summary.heading'), 'show_in' => ['view']],
             ['type' => 'html', 'show_in' => ['view'], 'html' => '<div class="row mb-3"><div class="col-12">'
@@ -605,7 +614,7 @@ class Artifacts extends BaseController
             $labels[(string) $variant['public_id']] = implode(' · ', array_filter([
                 lang('Artifacts.variants.variant-n', [$i + 1]),
                 implode(' / ', array_filter($values)),
-                self::TYPE_SERVICE === $type && null !== ($variant['duration_minutes'] ?? null) ? lang('Artifacts.variants.minutes', [(int) $variant['duration_minutes']]) : '',
+                self::TYPE_SERVICE === $type && null !== ($variant['duration_minutes'] ?? null) ? formatMinutes($variant['duration_minutes'], $this->request->getLocale()) : '',
                 self::TYPE_SERVICE === $type ? (string) ($bookings[$variant['booking_type'] ?? ''] ?? '') : '',
                 (string) ($variant['sku'] ?? ''),
             ]));
