@@ -15589,6 +15589,7 @@ textarea.form-control {
   -o-object-fit: cover;
   object-fit: cover;
   border: 3px solid #171032;
+  background-color: #ffffff;
 }
 
 .page-profile .pf-identity {
