@@ -255,6 +255,7 @@
                         <li><a class="nav-link<?= ('resources' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/resources') ?>"><?= lang('System.page.resources') ?></a></li>
                         <li><a class="nav-link<?= ('payment-methods' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/payment-methods') ?>"><?= lang('System.page.payment-methods') ?></a></li>
                         <li><a class="nav-link<?= ('shipping-methods' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/shipping-methods') ?>"><?= lang('System.page.shipping-methods') ?></a></li>
+                        <li><a class="nav-link<?= ('order-numbers' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/order-numbers') ?>"><?= lang('System.page.order-numbers') ?></a></li>
                         <li><a class="nav-link<?= ('commission' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/commission') ?>"><?= lang('System.page.commission') ?></a></li>
                         <?php if (isBusinessOwner()): ?>
                             <li><a class="nav-link<?= ('plans' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/plans') ?>"><?= lang('System.page.plans') ?></a></li>

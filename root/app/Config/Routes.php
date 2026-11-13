@@ -78,6 +78,9 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         // how the business pays commission; see App\Controllers\Staff
         $routes->get('commission', 'Staff::commission');
         $routes->post('commission/save', 'Staff::commissionSave');
+        // how the business's order numbers look; see App\Controllers\OrderNumbers
+        $routes->get('order-numbers', 'OrderNumbers::index');
+        $routes->post('order-numbers/save', 'OrderNumbers::save');
     });
     // where the people of the session business work and what they are paid: its owners and managers, as the API allows
     $routes->group('staff', ['filter' => 'manager'], static function ($routes) {

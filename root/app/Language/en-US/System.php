@@ -24,6 +24,7 @@ return [
         'payment-methods'       => 'Payment Methods',
         'payment-method-create' => 'Add Payment Method',
         'shipping-methods'      => 'Shipping Methods',
+        'order-numbers'         => 'Order Numbers',
         'shipping-method-create' => 'Add Shipping Method',
         'plans'                 => 'Plans',
         'employees'             => 'Employees',

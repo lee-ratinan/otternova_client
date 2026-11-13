@@ -24,6 +24,7 @@ return [
         'payment-methods'       => 'ช่องทางชำระเงิน',
         'payment-method-create' => 'เพิ่มช่องทางชำระเงิน',
         'shipping-methods'      => 'วิธีจัดส่ง',
+        'order-numbers'         => 'เลขที่คำสั่งซื้อ',
         'shipping-method-create' => 'เพิ่มวิธีจัดส่ง',
         'plans'                 => 'แผน',
         'employees'             => 'พนักงาน',
