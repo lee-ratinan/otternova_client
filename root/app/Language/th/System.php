@@ -21,6 +21,8 @@ return [
         'resource-type-create'  => 'สร้างประเภททรัพยากร',
         'resources'             => 'ทรัพยากร',
         'resource-create'       => 'สร้างทรัพยากร',
+        'payment-methods'       => 'ช่องทางชำระเงิน',
+        'payment-method-create' => 'เพิ่มช่องทางชำระเงิน',
         'plans'                 => 'แผน',
         'employees'             => 'พนักงาน',
         'employee-create'       => 'เพิ่มพนักงาน',

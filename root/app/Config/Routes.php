@@ -58,6 +58,12 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->get('resources/create', 'Resources::form');
         $routes->get('resources/edit/(:segment)', 'Resources::form/$1');
         $routes->post('resources/save', 'Resources::save');
+        // how the business's customers can pay it, at every store or at one; see App\Controllers\PaymentMethods
+        $routes->get('payment-methods', 'PaymentMethods::index');
+        $routes->post('payment-methods/data', 'PaymentMethods::data');
+        $routes->get('payment-methods/create', 'PaymentMethods::form');
+        $routes->get('payment-methods/edit/(:segment)', 'PaymentMethods::form/$1');
+        $routes->post('payment-methods/save', 'PaymentMethods::save');
         // how the business's web pages look; see App\Controllers\Website
         $routes->get('website', 'Website::index');
         $routes->post('website/save', 'Website::save');

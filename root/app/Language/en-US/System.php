@@ -21,6 +21,8 @@ return [
         'resource-type-create'  => 'Create Resource Type',
         'resources'             => 'Resources',
         'resource-create'       => 'Create Resource',
+        'payment-methods'       => 'Payment Methods',
+        'payment-method-create' => 'Add Payment Method',
         'plans'                 => 'Plans',
         'employees'             => 'Employees',
         'employee-create'       => 'Add Employee',
