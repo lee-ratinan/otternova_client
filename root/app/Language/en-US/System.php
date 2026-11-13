@@ -23,6 +23,8 @@ return [
         'resource-create'       => 'Create Resource',
         'payment-methods'       => 'Payment Methods',
         'payment-method-create' => 'Add Payment Method',
+        'shipping-methods'      => 'Shipping Methods',
+        'shipping-method-create' => 'Add Shipping Method',
         'plans'                 => 'Plans',
         'employees'             => 'Employees',
         'employee-create'       => 'Add Employee',

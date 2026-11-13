@@ -23,6 +23,8 @@ return [
         'resource-create'       => 'สร้างทรัพยากร',
         'payment-methods'       => 'ช่องทางชำระเงิน',
         'payment-method-create' => 'เพิ่มช่องทางชำระเงิน',
+        'shipping-methods'      => 'วิธีจัดส่ง',
+        'shipping-method-create' => 'เพิ่มวิธีจัดส่ง',
         'plans'                 => 'แผน',
         'employees'             => 'พนักงาน',
         'employee-create'       => 'เพิ่มพนักงาน',

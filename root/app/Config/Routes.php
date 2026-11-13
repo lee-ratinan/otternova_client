@@ -64,6 +64,12 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->get('payment-methods/create', 'PaymentMethods::form');
         $routes->get('payment-methods/edit/(:segment)', 'PaymentMethods::form/$1');
         $routes->post('payment-methods/save', 'PaymentMethods::save');
+        // how the business's customers can get its products and what that costs; see App\Controllers\ShippingMethods
+        $routes->get('shipping-methods', 'ShippingMethods::index');
+        $routes->post('shipping-methods/data', 'ShippingMethods::data');
+        $routes->get('shipping-methods/create', 'ShippingMethods::form');
+        $routes->get('shipping-methods/edit/(:segment)', 'ShippingMethods::form/$1');
+        $routes->post('shipping-methods/save', 'ShippingMethods::save');
         // how the business's web pages look; see App\Controllers\Website
         $routes->get('website', 'Website::index');
         $routes->post('website/save', 'Website::save');
