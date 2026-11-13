@@ -23,6 +23,8 @@ return [
         'resource-create'       => 'สร้างทรัพยากร',
         'payment-methods'       => 'ช่องทางชำระเงิน',
         'payment-method-create' => 'เพิ่มช่องทางชำระเงิน',
+        'discounts'             => 'ส่วนลด',
+        'discount-create'       => 'เพิ่มส่วนลด',
         'shipping-methods'      => 'วิธีจัดส่ง',
         'order-numbers'         => 'เลขที่คำสั่งซื้อ',
         'shipping-method-create' => 'เพิ่มวิธีจัดส่ง',

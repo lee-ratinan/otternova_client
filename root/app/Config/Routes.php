@@ -70,6 +70,12 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->get('shipping-methods/create', 'ShippingMethods::form');
         $routes->get('shipping-methods/edit/(:segment)', 'ShippingMethods::form/$1');
         $routes->post('shipping-methods/save', 'ShippingMethods::save');
+        // the discount codes the business's customers can use on the mart; see App\Controllers\Discounts
+        $routes->get('discounts', 'Discounts::index');
+        $routes->post('discounts/data', 'Discounts::data');
+        $routes->get('discounts/create', 'Discounts::form');
+        $routes->get('discounts/edit/(:segment)', 'Discounts::form/$1');
+        $routes->post('discounts/save', 'Discounts::save');
         // how the business's web pages look; see App\Controllers\Website
         $routes->get('website', 'Website::index');
         $routes->post('website/save', 'Website::save');
