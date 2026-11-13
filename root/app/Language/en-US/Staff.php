@@ -43,6 +43,10 @@ return [
         'threshold-help'    => 'Leave empty to use the business\'s threshold, {0} in {1}. Enter 0 for no threshold for this person.',
         'commission-off'    => 'Commission is turned off for the business now, so none is earned until it is turned on.',
         'saved'             => 'Services and commission saved.',
+        'in-sessions'       => '{0} cannot be removed yet: this person is still assigned to its upcoming sessions ({1}). Remove them from those sessions first.',
+        'in-sessions-title' => 'Still in sessions',
+        'open-sessions'     => 'Open Sessions',
+        'close'             => 'OK',
     ],
     'salary'    => [
         'per'            => '{0} / {1}',
