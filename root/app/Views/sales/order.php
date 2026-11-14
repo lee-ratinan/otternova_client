@@ -21,24 +21,68 @@ $customer = (array) ($order['customer'] ?? []);
 $shipping = $order['shipping'] ?? null;
 $hasProducts = (bool) ($order['has_products'] ?? false);
 $publicId = (string) $order['public_id'];
+$cancelled = ! empty($order['cancelled_at']);
+$noShow    = ! empty($order['no_show_at']);
+$ended     = $cancelled || $noShow;
+$refundDue = (string) ($order['refund_due_amount'] ?? '0.00');
+$owesRefund = $cancelled && (float) $refundDue > 0;
 ?>
 <?= $this->section('content') ?>
 <section class="section" id="sales-order" data-public-id="<?= esc($publicId, 'attr') ?>">
     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
         <a href="<?= base_url('admin/sales') ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> <?= esc(lang('Sales.order.back')) ?></a>
         <span class="text-muted small ms-1"><?= esc(lang('Sales.order.placed')) ?> <?= localTimeTag($order['created_at'] ?? null) ?></span>
+        <?php if (($order['order_source'] ?? 'mart') === 'counter') : ?>
+            <span class="badge bg-light text-dark border" title="<?= esc((string) ($order['created_by_name'] ?? ''), 'attr') ?>">
+                <i class="bi bi-shop-window"></i> <?= esc(lang('Sales.order.counter', [(string) ($order['counter_store']['store_name'] ?? ''), (string) ($order['created_by_name'] ?? '')])) ?>
+            </span>
+        <?php endif; ?>
         <?php if (! empty($order['paid_at'])) : ?>
             <span class="text-muted small">· <?= esc(lang('Sales.order.paid-at')) ?> <?= localTimeTag($order['paid_at']) ?></span>
         <?php endif; ?>
-        <?php if (! empty($order['cancelled_at'])) : ?>
-            <span class="badge bg-danger"><?= esc(lang('Sales.order.cancelled')) ?></span>
-        <?php endif; ?>
-        <span class="ms-auto d-flex flex-wrap gap-1">
-            <?= $badge('order_status', $order['order_status'] ?? null) ?>
+        <span class="ms-auto d-flex flex-wrap align-items-center gap-1">
+            <?php if (! empty($order['can_mark_no_show'])) : ?>
+                <button type="button" class="btn btn-sm btn-outline-dark" data-no-show><i class="bi bi-person-x"></i> <?= esc(lang('Sales.order.no-show')) ?></button>
+            <?php endif; ?>
+            <?php if (! empty($order['can_cancel'])) : ?>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#sales-cancel-modal"><i class="bi bi-x-circle"></i> <?= esc(lang('Sales.order.cancel')) ?></button>
+            <?php elseif (! $ended && isset(lang('Sales.order.cannot-cancel')[$order['cancel_blocker'] ?? ''])) : ?>
+                <span class="small text-muted" title="<?= esc(lang('Sales.order.cannot-cancel')[$order['cancel_blocker']], 'attr') ?>"><i class="bi bi-info-circle"></i></span>
+            <?php endif; ?>
+            <?= $badge('order_status', $cancelled ? 'cancelled' : ($noShow ? 'no_show' : ($order['order_status'] ?? null))) ?>
             <?= $badge('financial_status', $order['financial_status'] ?? null) ?>
             <?= $badge('fulfillment_status', $order['fulfillment_status'] ?? null) ?>
         </span>
     </div>
+
+    <?php if ($cancelled) : ?>
+        <div class="alert <?= $owesRefund ? 'alert-warning' : 'alert-secondary' ?> d-flex flex-wrap align-items-center gap-2" role="status">
+            <div class="me-auto">
+                <div class="fw-semibold">
+                    <i class="bi bi-x-circle"></i>
+                    <?= esc(empty($order['cancelled_by_name']) ? lang('Sales.order.cancelled-by-customer') : lang('Sales.order.cancelled-banner', [(string) $order['cancelled_by_name']])) ?>
+                    · <?= localTimeTag($order['cancelled_at']) ?>
+                </div>
+                <?php if (! empty($order['cancel_reason'])) : ?><div><?= esc(lang('Sales.order.reason', [(string) $order['cancel_reason']])) ?></div><?php endif; ?>
+                <?php if ($owesRefund) : ?>
+                    <div class="fw-semibold"><?= esc(lang('Sales.order.refund-due', [formatMoney($refundDue, $currency)])) ?></div>
+                    <?php if (! $canRefund) : ?><div class="small"><?= esc(lang('Sales.order.refund-wait')) ?></div><?php endif; ?>
+                <?php elseif (! empty($order['refund_closed_reason'])) : ?>
+                    <div class="small"><?= esc(lang('Sales.order.refund-closed', [(string) $order['refund_closed_reason']])) ?></div>
+                <?php elseif ((float) ($sums['refunded'] ?? 0) > 0) : ?>
+                    <div class="small"><?= esc(lang('Sales.order.refund-settled')) ?></div>
+                <?php endif; ?>
+            </div>
+            <?php if ($owesRefund && $canRefund) : ?>
+                <button type="button" class="btn btn-sm btn-danger" data-payment-form="refund"><i class="bi bi-arrow-counterclockwise"></i> <?= esc(lang('Sales.order.record-refund')) ?></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-refund-close><?= esc(lang('Sales.order.refund-close')) ?></button>
+            <?php endif; ?>
+        </div>
+    <?php elseif ($noShow) : ?>
+        <div class="alert alert-dark" role="status">
+            <i class="bi bi-person-x"></i> <?= esc(lang('Sales.order.no-show-banner', [(string) ($order['no_show_by_name'] ?? '')])) ?> · <?= localTimeTag($order['no_show_at']) ?>
+        </div>
+    <?php endif; ?>
 
     <div class="row g-4">
         <div class="col-lg-8">
@@ -74,6 +118,21 @@ $publicId = (string) $order['public_id'];
                                         <?php endif; ?>
                                         <?php if (! empty($line['starts_at'])) : ?>
                                             <div class="small"><i class="bi bi-calendar-event"></i> <?= localTimeTag($line['starts_at']) ?> – <?= localTimeTag($line['ends_at'] ?? null) ?></div>
+                                        <?php endif; ?>
+                                        <?php if (! empty($line['staff'])) : ?>
+                                            <div class="small text-muted"><i class="bi bi-person"></i> <?= esc(implode(', ', array_column((array) $line['staff'], 'name'))) ?></div>
+                                        <?php endif; ?>
+                                        <?php $move = $line['reschedule'] ?? null; ?>
+                                        <?php if (is_array($move) && ! $ended) : ?>
+                                            <?php if (! empty($move['allowed'])) : ?>
+                                                <button type="button" class="btn btn-sm btn-outline-primary mt-1" data-reschedule="<?= (int) $line['line_number'] ?>"
+                                                        data-reschedule-date="<?= esc(substr((string) $line['starts_at'], 0, 10), 'attr') ?>" data-reschedule-name="<?= esc((string) $line['artifact_name'], 'attr') ?>">
+                                                    <i class="bi bi-calendar-week"></i> <?= esc(lang('Sales.order.reschedule')) ?>
+                                                </button>
+                                                <div class="small text-muted"><?= esc(lang('Sales.order.reschedule-until')) ?> <?= localTimeTag($move['until'] ?? null) ?></div>
+                                            <?php elseif (isset(lang('Sales.order.cannot-reschedule')[$move['blocker'] ?? ''])) : ?>
+                                                <div class="small text-muted"><i class="bi bi-lock"></i> <?= esc(lang('Sales.order.cannot-reschedule')[$move['blocker']]) ?></div>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                         <?php if (! empty($line['participants'])) : ?>
                                             <div class="small text-muted"><?= esc(lang('Sales.order.participants')) ?>: <?= esc(implode(', ', (array) $line['participants'])) ?></div>
@@ -177,6 +236,12 @@ $publicId = (string) $order['public_id'];
                                             <?php if (! empty($payment['reference'])) : ?><div><i class="bi bi-hash"></i><?= esc((string) $payment['reference']) ?></div><?php endif; ?>
                                             <?php if (! empty($payment['failure_reason'])) : ?><div class="text-danger"><?= esc((string) $payment['failure_reason']) ?></div><?php endif; ?>
                                             <?php if (! empty($payment['note'])) : ?><div class="text-muted" style="white-space: pre-line;"><?= esc((string) $payment['note']) ?></div><?php endif; ?>
+                                            <?php if (! empty($payment['reported_at'])) : ?>
+                                                <div class="text-warning-emphasis"><i class="bi bi-person-check"></i> <?= esc(lang('Sales.order.reported')) ?> <?= localTimeTag($payment['reported_at']) ?></div>
+                                            <?php endif; ?>
+                                            <?php if (! empty($payment['has_slip'])) : ?>
+                                                <div><a href="<?= base_url('admin/sales/payment-slip/' . rawurlencode((string) $payment['public_id'])) ?>" target="_blank" rel="noopener"><i class="bi bi-image"></i> <?= esc(lang('Sales.order.view-slip')) ?></a></div>
+                                            <?php endif; ?>
                                             <?php if (! empty($payment['recorded_by_name'])) : ?><div class="text-muted"><?= esc(lang('Sales.order.recorded-by', [(string) $payment['recorded_by_name']])) ?></div><?php endif; ?>
                                         </td>
                                         <td class="text-end text-nowrap">
@@ -204,6 +269,7 @@ $publicId = (string) $order['public_id'];
                 <div class="card-header"><h5 class="card-title mb-0"><?= esc(lang('Sales.order.statuses')) ?></h5></div>
                 <div class="card-body">
                     <form id="sales-status-form" novalidate>
+                        <fieldset<?= $ended ? ' disabled' : '' ?>>
                         <div class="mb-3">
                             <label class="form-label" for="order_status"><?= esc(lang('Sales.order.order-status')) ?></label>
                             <select class="form-select" id="order_status" name="order_status">
@@ -231,7 +297,10 @@ $publicId = (string) $order['public_id'];
                             <?= $badge('financial_status', $order['financial_status'] ?? null) ?>
                             <div class="form-text"><?= esc(lang('Sales.order.financial-help')) ?></div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2"></i> <?= esc(lang('Sales.order.save-status')) ?></button>
+                        <?php if (! $ended) : ?>
+                            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2"></i> <?= esc(lang('Sales.order.save-status')) ?></button>
+                        <?php endif; ?>
+                        </fieldset>
                     </form>
                 </div>
             </div>
@@ -241,6 +310,9 @@ $publicId = (string) $order['public_id'];
                 <div class="card-header"><h5 class="card-title mb-0"><?= esc(lang('Sales.order.customer')) ?></h5></div>
                 <div class="card-body">
                     <div class="fw-semibold"><?= esc(trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?></div>
+                    <?php if ((int) ($customer['no_show_count'] ?? 0) > 0) : ?>
+                        <div class="mb-1"><span class="badge bg-danger"><i class="bi bi-flag-fill"></i> <?= esc(lang('Sales.order.no-show-flags', [(int) $customer['no_show_count']])) ?></span></div>
+                    <?php endif; ?>
                     <?php if (! empty($customer['email_address'])) : ?>
                         <div><i class="bi bi-envelope"></i> <a href="mailto:<?= esc((string) $customer['email_address'], 'attr') ?>"><?= esc((string) $customer['email_address']) ?></a></div>
                     <?php endif; ?>
@@ -291,6 +363,63 @@ $publicId = (string) $order['public_id'];
         </div>
     </div>
 </section>
+
+<?php if (! empty($order['can_cancel'])) : ?>
+<!-- cancelling the order -->
+<div class="modal fade" id="sales-cancel-modal" tabindex="-1" aria-labelledby="sales-cancel-title" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="sales-cancel-form" novalidate>
+            <div class="modal-header">
+                <h5 class="modal-title" id="sales-cancel-title"><?= esc(lang('Sales.order.cancel-title', [(string) $order['order_number']])) ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= esc(lang('Sales.order.keep'), 'attr') ?>"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted"><?= esc(lang('Sales.order.cancel-help')) ?></p>
+                <div class="mb-3">
+                    <label class="form-label" for="cancel-reason"><?= esc(lang('Sales.order.cancel-reason')) ?> <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="cancel-reason" name="reason" rows="2" minlength="3" maxlength="255" required></textarea>
+                    <div class="form-text"><?= esc(lang('Sales.order.cancel-reason-help')) ?></div>
+                    <div class="invalid-feedback" data-error-for="reason"></div>
+                </div>
+                <?php if ($hasProducts) : ?>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="cancel-restock" name="restock" value="1" checked>
+                        <label class="form-check-label" for="cancel-restock"><?= esc(lang('Sales.order.restock')) ?></label>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= esc(lang('Sales.order.keep')) ?></button>
+                <button type="submit" class="btn btn-danger"><?= esc(lang('Sales.order.cancel-confirm')) ?></button>
+            </div>
+        </form>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- moving an appointment -->
+<div class="modal fade" id="sales-reschedule-modal" tabindex="-1" aria-labelledby="sales-reschedule-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form class="modal-content" id="sales-reschedule-form" novalidate>
+            <div class="modal-header">
+                <h5 class="modal-title" id="sales-reschedule-title"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= esc(lang('Sales.order.form.cancel'), 'attr') ?>"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted"><?= esc(lang('Sales.order.reschedule-help')) ?></p>
+                <div class="mb-3" style="max-width: 14rem;">
+                    <label class="form-label" for="reschedule-date"><?= esc(lang('Sales.new.date')) ?></label>
+                    <input type="date" class="form-control" id="reschedule-date">
+                </div>
+                <div class="d-flex flex-wrap gap-2" data-reschedule-options></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= esc(lang('Sales.order.form.cancel')) ?></button>
+                <button type="submit" class="btn btn-primary" data-reschedule-save disabled><?= esc(lang('Sales.order.reschedule-save')) ?></button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- the form of a payment or a refund -->
 <div class="modal fade" id="sales-payment-modal" tabindex="-1" aria-labelledby="sales-payment-title" aria-hidden="true">
@@ -354,7 +483,7 @@ $publicId = (string) $order['public_id'];
 <script>
 <?= view('scripts/sales_order', [
     'publicId' => $publicId,
-    'amounts'  => ['payment' => (string) ($sums['balance_due'] ?? ''), 'refund' => (string) ($sums['refundable'] ?? '')],
+    'amounts'  => ['payment' => (string) ($sums['balance_due'] ?? ''), 'refund' => $owesRefund ? $refundDue : (string) ($sums['refundable'] ?? '')],
 ]) ?>
 </script>
 <?= $this->endSection() ?>

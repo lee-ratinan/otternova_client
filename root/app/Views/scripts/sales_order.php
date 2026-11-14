@@ -13,6 +13,11 @@ $config = [
         'status'  => base_url('admin/sales/order/status'),
         'payment' => base_url('admin/sales/order/payment'),
         'settle'  => base_url('admin/sales/order/payment/settle'),
+        'cancel'  => base_url('admin/sales/order/cancel'),
+        'rescheduleSlots' => base_url('admin/sales/order/reschedule-slots'),
+        'reschedule'      => base_url('admin/sales/order/reschedule'),
+        'noShow'  => base_url('admin/sales/order/no-show'),
+        'refundClose' => base_url('admin/sales/order/refund-close'),
     ],
     'text'     => [
         'failed'        => lang('Sales.order.save-failed'),
@@ -20,6 +25,10 @@ $config = [
         'refundTitle'   => lang('Sales.order.form.refund-title'),
         'confirmVoid'   => lang('Sales.order.confirm-void'),
         'failurePrompt' => lang('Sales.order.failure-prompt'),
+        'noShowConfirm' => lang('Sales.order.no-show-confirm'),
+        'rescheduleTitle' => lang('Sales.order.reschedule-title'),
+        'noTimes'         => lang('Sales.new.no-times'),
+        'refundClosePrompt' => lang('Sales.order.refund-close-prompt'),
     ],
     'csrf'     => ['header' => csrf_header(), 'hash' => csrf_hash()],
 ];
@@ -137,6 +146,96 @@ $config = [
         if (body.transaction_status !== 'failed') { delete body.failure_reason; }
         body.public_id = cfg.publicId;
         post(cfg.urls.payment, body, payForm, payForm.querySelector('[type="submit"]'));
+      });
+    }
+
+    // moving an appointment: the free times of a day, its own aside, then the one picked
+    var moveModal = document.getElementById('sales-reschedule-modal');
+    var moveForm = document.getElementById('sales-reschedule-form');
+    var move = null;
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+    }
+    function loadMoveTimes() {
+      var box = moveForm.querySelector('[data-reschedule-options]');
+      var save = moveForm.querySelector('[data-reschedule-save]');
+      box.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+      move.choice = null;
+      save.disabled = true;
+      var headers = { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
+      headers[cfg.csrf.header] = csrfHash;
+      fetch(cfg.urls.rescheduleSlots, { method: 'POST', headers: headers, credentials: 'same-origin',
+        body: JSON.stringify({ public_id: cfg.publicId, line_number: move.line, date: document.getElementById('reschedule-date').value }) })
+        .then(function (r) { return r.json().catch(function () { return {}; }); })
+        .then(function (json) {
+          if (json.csrf_hash) { csrfHash = json.csrf_hash; }
+          if (!json.success) { box.innerHTML = '<span class="text-danger small">' + esc(json.message || cfg.text.failed) + '</span>'; return; }
+          var names = {};
+          (json.data.staff || []).forEach(function (p) { names[p.public_id] = p.name; });
+          move.slots = json.data.slots || [];
+          box.innerHTML = move.slots.length ? move.slots.map(function (s, i) {
+            return '<button type="button" class="btn btn-sm btn-outline-secondary" data-move-option="' + i + '">' + esc(s.time + '–' + s.end_time)
+              + '<span class="d-block small text-muted">' + esc(s.staff.map(function (id) { return names[id] || ''; }).join(', ')) + '</span></button>';
+          }).join('') : '<span class="text-muted small">' + esc(cfg.text.noTimes) + '</span>';
+        })
+        .catch(function () { box.innerHTML = '<span class="text-danger small">' + esc(cfg.text.failed) + '</span>'; });
+    }
+    document.querySelectorAll('[data-reschedule]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (!moveModal || !window.bootstrap) { return; }
+        move = { line: Number(button.getAttribute('data-reschedule')), choice: null, slots: [] };
+        document.getElementById('sales-reschedule-title').textContent = cfg.text.rescheduleTitle.replace('{0}', button.getAttribute('data-reschedule-name'));
+        document.getElementById('reschedule-date').value = button.getAttribute('data-reschedule-date');
+        loadMoveTimes();
+        window.bootstrap.Modal.getOrCreateInstance(moveModal).show();
+      });
+    });
+    if (moveForm) {
+      document.getElementById('reschedule-date').addEventListener('change', loadMoveTimes);
+      moveForm.addEventListener('click', function (e) {
+        var option = e.target.closest('[data-move-option]');
+        if (!option) { return; }
+        moveForm.querySelectorAll('[data-move-option]').forEach(function (el) { el.classList.remove('active'); });
+        option.classList.add('active');
+        move.choice = move.slots[Number(option.getAttribute('data-move-option'))];
+        moveForm.querySelector('[data-reschedule-save]').disabled = false;
+      });
+      moveForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!move || !move.choice) { return; }
+        post(cfg.urls.reschedule, { public_id: cfg.publicId, line_number: move.line, starts_at: move.choice.starts_at, staff: move.choice.staff },
+          null, moveForm.querySelector('[data-reschedule-save]'));
+      });
+    }
+
+    // cancelling: the reason is required, the products go back to stock unless unticked
+    var cancelForm = document.getElementById('sales-cancel-form');
+    if (cancelForm) {
+      cancelForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var restock = cancelForm.elements.restock;
+        post(cfg.urls.cancel, {
+          public_id: cfg.publicId,
+          reason: cancelForm.elements.reason.value.trim(),
+          restock: restock ? (restock.checked ? '1' : '0') : '1'
+        }, cancelForm, cancelForm.querySelector('[type="submit"]'));
+      });
+    }
+
+    var noShowButton = document.querySelector('[data-no-show]');
+    if (noShowButton) {
+      noShowButton.addEventListener('click', function () {
+        if (!window.confirm(cfg.text.noShowConfirm)) { return; }
+        post(cfg.urls.noShow, { public_id: cfg.publicId }, null, noShowButton);
+      });
+    }
+
+    var closeButton = document.querySelector('[data-refund-close]');
+    if (closeButton) {
+      closeButton.addEventListener('click', function () {
+        var reason = window.prompt(cfg.text.refundClosePrompt, '');
+        if (reason === null) { return; }
+        post(cfg.urls.refundClose, { public_id: cfg.publicId, reason: reason.trim() }, null, closeButton);
       });
     }
 

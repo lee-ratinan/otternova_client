@@ -90,6 +90,7 @@ return [
         'minutes-short' => 'min',
         'duration-invalid' => 'Enter the duration in hours and minutes: at least 1 minute.',
         'capacity-help' => 'For a group: the most customers in one session. It can be fewer than the room holds.',
+        'people-help'   => 'For an appointment: how many customers one booking is for (2 for a couples massage). Empty means 1. Each needs a name at checkout, and the rooms held must take them.',
         'window'          => 'Booking window',
         'window-business' => 'Business default',
         'window-default'  => 'Business default: {0}',

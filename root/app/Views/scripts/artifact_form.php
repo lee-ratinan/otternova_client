@@ -44,6 +44,7 @@ $config = [
         'statuses'      => lang('Artifacts.enum.variant_status'),
         'bookingTypes'  => lang('Artifacts.enum.booking_type'),
         'capacityHelp'  => lang('Artifacts.variants.capacity-help'),
+        'peopleHelp'    => lang('Artifacts.variants.people-help'),
         'hours'         => lang('Artifacts.variants.hours'),
         'minutes'       => lang('Artifacts.variants.minutes-short'),
         'durationInvalid' => lang('Artifacts.variants.duration-invalid'),
@@ -213,9 +214,10 @@ $config = [
             + ['A', 'G'].map(function (b) { return '<option value="' + b + '"' + (r.booking_type === b ? ' selected' : '') + '>' + esc(L.bookingTypes[b]) + '</option>'; }).join('')
             + '</select></td>';
           html += field(i, 'staff_required', r.staff_required, 'number', ' min="1" max="255" step="1" required style="min-width: 4.5rem;"');
-          // only a group has a capacity; an appointment is one customer's
-          html += field(i, 'capacity', group ? r.capacity : '', 'number', ' min="1" max="65535" step="1" style="min-width: 5rem;"'
-            + (group ? ' required' : ' disabled') + ' title="' + esc(L.capacityHelp) + '"');
+          // a group: the most customers in one session (required); an appointment: the customers one booking is
+          // for, 1 when left empty (2 for a couples massage)
+          html += field(i, 'capacity', r.capacity, 'number', ' min="1" max="' + (group ? 65535 : 255) + '" step="1" style="min-width: 5rem;"'
+            + (group ? ' required' : ' placeholder="1"') + ' title="' + esc(group ? L.capacityHelp : L.peopleHelp) + '"');
         }
         html += '<td><select class="form-select form-select-sm" style="min-width: 6rem;" data-row="' + i + '" data-key="variant_status" aria-label="' + esc(L.column.variant_status) + '">'
           + ['A', 'I'].map(function (s) { return '<option value="' + s + '"' + (r.variant_status === s ? ' selected' : '') + '>' + esc(L.statuses[s]) + '</option>'; }).join('')
@@ -319,7 +321,7 @@ $config = [
           v.duration_minutes = r.duration_minutes;
           v.booking_type = r.booking_type;
           v.staff_required = r.staff_required;
-          v.capacity = r.booking_type === 'G' ? r.capacity : '';
+          v.capacity = r.capacity;
           // all four, or all null for the business's
           v.booking_horizon_days = r.own_window ? r.win_horizon : null;
           v.booking_notice_unit = r.own_window ? r.win_unit : null;
@@ -354,7 +356,7 @@ $config = [
             r.win_time = text(b.booking_notice_time).slice(0, 5);
           }
         }
-        // the capacity is for a group only; the window's fields follow its choices
+        // the capacity means another thing for a group; the window's fields follow its choices
         if (/^(booking_type|own_window|win_unit)$/.test(t.getAttribute('data-key')) && e.type === 'change') { renderTable(); return; }
       }
       markDuplicates();

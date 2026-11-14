@@ -185,10 +185,18 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     // allows (refunds its owners and managers only); see App\Controllers\Sales
     $routes->get('sales', 'Sales::index');
     $routes->post('sales/data', 'Sales::data');
+    $routes->get('sales/new', 'Sales::newOrder');
+    $routes->post('sales/counter/(stores|catalog|slots|sessions|quote|order)', 'Sales::counter/$1');
     $routes->get('sales/order/(:segment)', 'Sales::order/$1');
     $routes->post('sales/order/status', 'Sales::saveStatus');
     $routes->post('sales/order/payment', 'Sales::createPayment');
     $routes->post('sales/order/payment/settle', 'Sales::settlePayment');
+    $routes->post('sales/order/reschedule-slots', 'Sales::rescheduleSlots');
+    $routes->post('sales/order/reschedule', 'Sales::reschedule');
+    $routes->post('sales/order/cancel', 'Sales::cancel');
+    $routes->get('sales/payment-slip/(:segment)', 'Sales::paymentSlip/$1');
+    $routes->post('sales/order/no-show', 'Sales::noShow');
+    $routes->post('sales/order/refund-close', 'Sales::closeRefund');
     // the reviews of the session business's products and services: anyone working in it, as the API allows
     $routes->get('reviews', 'Reviews::index');
     $routes->post('reviews/data', 'Reviews::data');
