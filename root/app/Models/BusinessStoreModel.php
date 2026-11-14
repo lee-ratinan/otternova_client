@@ -24,6 +24,12 @@ class BusinessStoreModel extends Model
     public const TYPE_ONLINE   = 'O';
 
     /** Columns that only a physical store has */
+    /** The receipt_format of a store that prints receipts; empty is a store with no printer */
+    public const RECEIPT_FORMATS = ['58mm', '80mm', 'A4'];
+
+    /** Columns about the receipts, which only a physical store prints */
+    public const RECEIPT_FIELDS = ['receipt_format', 'receipt_footer'];
+
     public const ADDRESS_FIELDS = [
         'store_address_line_1',
         'store_address_line_2',
@@ -78,6 +84,8 @@ class BusinessStoreModel extends Model
         'store_city'             => 'permit_empty|max_length[128]',
         'store_subdivision_code' => 'permit_empty|max_length[8]',
         'store_postal_code'      => 'permit_empty|max_length[16]',
+        'receipt_format'         => 'permit_empty|in_list[58mm,80mm,A4]',
+        'receipt_footer'         => 'permit_empty|max_length[255]',
     ];
     protected $validationMessages   = [];
     protected $skipValidation       = false;
@@ -100,9 +108,12 @@ class BusinessStoreModel extends Model
             'store_city'             => ['type' => 'text'],
             'store_subdivision_code' => ['type' => 'text', 'searchable' => false], // depends on the business's country
             'store_postal_code'      => ['type' => 'text'],
+            'receipt_format'         => ['type' => 'select'],
+            'receipt_footer'         => ['type' => 'textarea', 'rows' => 3],
         ];
         $enums  = [
-            'store_type' => [self::TYPE_PHYSICAL => 'primary', self::TYPE_ONLINE => 'info'],
+            'store_type'     => [self::TYPE_PHYSICAL => 'primary', self::TYPE_ONLINE => 'info'],
+            'receipt_format' => self::RECEIPT_FORMATS,
         ];
 
         return $this->buildConfiguration('BusinessStore', $fields, $enums);

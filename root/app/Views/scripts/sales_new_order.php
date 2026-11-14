@@ -369,7 +369,11 @@ $config = [
     });
     api('order', body).then(function (res) {
       if (res.status === 201 && res.json.data) {
-        try { window.sessionStorage.setItem('sales-order-flash', res.json.message || ''); } catch (err) { /* no storage */ }
+        try {
+          window.sessionStorage.setItem('sales-order-flash', res.json.message || '');
+          // paid at the counter: the order's page offers the receipt
+          if (body.paid_now) { window.sessionStorage.setItem('sales-order-print', '1'); }
+        } catch (err) { /* no storage */ }
         window.location.href = cfg.urls.order + encodeURIComponent(res.json.data.public_id);
         return;
       }

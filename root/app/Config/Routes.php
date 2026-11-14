@@ -195,6 +195,7 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->post('sales/order/reschedule', 'Sales::reschedule');
     $routes->post('sales/order/cancel', 'Sales::cancel');
     $routes->get('sales/payment-slip/(:segment)', 'Sales::paymentSlip/$1');
+    $routes->get('sales/receipt/(:segment)', 'Sales::receipt/$1');
     $routes->post('sales/order/no-show', 'Sales::noShow');
     $routes->post('sales/order/refund-close', 'Sales::closeRefund');
     // the reviews of the session business's products and services: anyone working in it, as the API allows

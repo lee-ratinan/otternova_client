@@ -25,12 +25,15 @@ return [
     'heading'           => [
         'store'        => 'Store',
         'address'      => 'Address',
+        'receipt'      => 'Receipts',
         'translation'  => 'In {0}',
     ],
     'help'              => [
         'store-type'     => 'An online store has no address.',
         'store-timezone' => 'The opening hours of the store are in this timezone.',
         'translation-name' => 'Needed to save the address in this language.',
+        'receipt-format' => 'The paper of this store\'s receipt printer. Leave it empty if the store has no printer; then no receipts are printed here.',
+        'receipt-footer' => 'Printed at the bottom of every receipt, such as a thank-you or the return policy.',
     ],
     'hours-link'        => [
         'title' => 'Opening Hours',
@@ -42,5 +45,9 @@ return [
         'store_address_line_1' => 'Address Line 1',
         'store_address_line_2' => 'Address Line 2',
         'store_city'           => 'City',
+        'receipt_footer'       => 'Receipt Footer',
+    ],
+    'receipt'           => [
+        'no-printer' => 'No printer',
     ],
 ];

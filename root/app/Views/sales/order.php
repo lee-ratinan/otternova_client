@@ -26,6 +26,13 @@ $noShow    = ! empty($order['no_show_at']);
 $ended     = $cancelled || $noShow;
 $refundDue = (string) ($order['refund_due_amount'] ?? '0.00');
 $owesRefund = $cancelled && (float) $refundDue > 0;
+// printing the receipt: anyone, on the day it was paid in full, at a store of it with a printer (see Sales::receipt())
+$printing      = (array) ($order['receipt'] ?? []);
+$canPrint      = ! empty($printing['can_print']);
+$printStores   = (array) ($printing['stores'] ?? []);
+$printBlocker  = (string) ($printing['blocker'] ?? '');
+$receiptPapers = (array) lang('BusinessStore.enum.receipt_format');
+helper('list');
 ?>
 <?= $this->section('content') ?>
 <section class="section" id="sales-order" data-public-id="<?= esc($publicId, 'attr') ?>">
@@ -41,6 +48,11 @@ $owesRefund = $cancelled && (float) $refundDue > 0;
             <span class="text-muted small">· <?= esc(lang('Sales.order.paid-at')) ?> <?= localTimeTag($order['paid_at']) ?></span>
         <?php endif; ?>
         <span class="ms-auto d-flex flex-wrap align-items-center gap-1">
+            <?php if ($canPrint) : ?>
+                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#sales-receipt-modal"><i class="bi bi-printer"></i> <?= esc(lang('Sales.order.print.button')) ?></button>
+            <?php elseif (isset(lang('Sales.order.print.cannot')[$printBlocker])) : ?>
+                <span class="small text-muted" title="<?= esc(lang('Sales.order.print.cannot')[$printBlocker], 'attr') ?>"><i class="bi bi-printer"></i> <i class="bi bi-info-circle"></i></span>
+            <?php endif; ?>
             <?php if (! empty($order['can_mark_no_show'])) : ?>
                 <button type="button" class="btn btn-sm btn-outline-dark" data-no-show><i class="bi bi-person-x"></i> <?= esc(lang('Sales.order.no-show')) ?></button>
             <?php endif; ?>
@@ -391,6 +403,49 @@ $owesRefund = $cancelled && (float) $refundDue > 0;
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= esc(lang('Sales.order.keep')) ?></button>
                 <button type="submit" class="btn btn-danger"><?= esc(lang('Sales.order.cancel-confirm')) ?></button>
+            </div>
+        </form>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if ($canPrint) : ?>
+<!-- printing the receipt: a page of its own in a new tab, which opens the print dialog -->
+<div class="modal fade" id="sales-receipt-modal" tabindex="-1" aria-labelledby="sales-receipt-title" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="sales-receipt-form" method="get" target="_blank" action="<?= base_url('admin/sales/receipt/' . rawurlencode($publicId)) ?>">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sales-receipt-title"><?= esc(lang('Sales.order.print.title')) ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= esc(lang('Sales.order.form.cancel'), 'attr') ?>"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" for="receipt-language"><?= esc(lang('Sales.order.print.language')) ?></label>
+                    <select class="form-select" id="receipt-language" name="lang">
+                        <?php foreach (listSupportedLanguages() as $code => $name) : ?>
+                            <option value="<?= esc($code, 'attr') ?>"<?= $code === $locale ? ' selected' : '' ?>><?= esc($name) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="form-text"><?= esc(lang('Sales.order.print.language-help')) ?></div>
+                </div>
+                <?php if (count($printStores) > 1) : ?>
+                    <div class="mb-3">
+                        <label class="form-label" for="receipt-store"><?= esc(lang('Sales.order.print.store')) ?></label>
+                        <select class="form-select" id="receipt-store" name="store">
+                            <?php foreach ($printStores as $store) : ?>
+                                <option value="<?= esc((string) $store['public_id'], 'attr') ?>"><?= esc((string) $store['store_name']) ?> · <?= esc((string) ($receiptPapers[$store['receipt_format']] ?? $store['receipt_format'])) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                <?php elseif ($printStores !== []) : ?>
+                    <input type="hidden" name="store" value="<?= esc((string) $printStores[0]['public_id'], 'attr') ?>">
+                    <p class="small text-muted mb-0"><i class="bi bi-shop"></i> <?= esc((string) $printStores[0]['store_name']) ?> ·
+                        <?= esc(lang('Sales.order.print.paper', [(string) ($receiptPapers[$printStores[0]['receipt_format']] ?? $printStores[0]['receipt_format'])])) ?></p>
+                <?php endif; ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= esc(lang('Sales.order.form.cancel')) ?></button>
+                <button type="submit" class="btn btn-success"><i class="bi bi-printer"></i> <?= esc(lang('Sales.order.print.open')) ?></button>
             </div>
         </form>
     </div>

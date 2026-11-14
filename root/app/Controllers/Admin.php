@@ -97,8 +97,10 @@ class Admin extends BaseController
     private const STORE_SECTIONS = [
         'store'   => ['store_name', 'store_type', 'store_timezone', 'store_phone_number'],
         'address' => BusinessStoreModel::ADDRESS_FIELDS,
+        'receipt' => BusinessStoreModel::RECEIPT_FIELDS,
     ];
-    private const STORE_FIELDS = ['store_name', 'store_type', 'store_timezone', 'store_phone_number', ...BusinessStoreModel::ADDRESS_FIELDS];
+    private const STORE_FIELDS = ['store_name', 'store_type', 'store_timezone', 'store_phone_number', ...BusinessStoreModel::ADDRESS_FIELDS,
+        ...BusinessStoreModel::RECEIPT_FIELDS];
 
     /** Form field name of the business name in a language: translation_<language_code> */
     private const TRANSLATION_PREFIX = 'translation_';
@@ -112,6 +114,7 @@ class Admin extends BaseController
         'store_address_line_1' => ['translation_address_line_1_', 255],
         'store_address_line_2' => ['translation_address_line_2_', 255],
         'store_city'           => ['translation_city_', 128],
+        'receipt_footer'       => ['translation_receipt_footer_', 255],
     ];
 
     /** otp_mode values only the system sets (telephone OTP is not available yet) */
@@ -776,7 +779,7 @@ class Admin extends BaseController
             'customScript' => view('scripts/store_form', [
                 'formId'  => $formId,
                 'online'  => BusinessStoreModel::TYPE_ONLINE,
-                'address' => [...BusinessStoreModel::ADDRESS_FIELDS, ...$this->storeAddressTranslationNames()],
+                'address' => [...BusinessStoreModel::ADDRESS_FIELDS, ...BusinessStoreModel::RECEIPT_FIELDS, ...$this->storeAddressTranslationNames()],
             ]),
             // a saved store's opening hours are a page of their own
             'extraHtml'    => null === $publicId ? '' : view('stores/hours_link', ['url' => base_url('admin/business/stores/hours/' . rawurlencode($publicId))]),
@@ -787,7 +790,8 @@ class Admin extends BaseController
     /**
      * Create or save a store of the session business through LINK_INTERNAL_API: v1/client/store/create
      * { business_slug, store, translations }, or, with public_id, v1/client/store/edit { public_id, store, translations }.
-     * translations is language_code => {store_name, store_address_line_1, store_address_line_2, store_city}. The form
+     * translations is language_code => {store_name, store_address_line_1, store_address_line_2, store_city,
+     * receipt_footer}. The form
      * has them in the web pages' languages only; on an edit, the other languages' are kept, as the API replaces them all.
      */
     public function storeSavePost(): ResponseInterface
@@ -1188,13 +1192,21 @@ class Admin extends BaseController
         $config['store_timezone']['help']              = lang('Stores.help.store-timezone');
         $config['store_subdivision_code']['type']      = 'select';
         $config['store_subdivision_code']['options']   = listSupportedSubdivisions($country);
+        // empty is a store with no printer, which prints no receipts
+        $noPrinter                                     = lang('Stores.receipt.no-printer');
+        $config['receipt_format']['attrs']             = ['placeholder' => $noPrinter];
+        $config['receipt_format']['help']              = lang('Stores.help.receipt-format');
+        $config['receipt_format']['view']              = static fn ($v) => '' === (string) $v ? $noPrinter : (lang('BusinessStore.enum.receipt_format')[$v] ?? $v);
+        $config['receipt_footer']['maxlength']         = 255;
+        $config['receipt_footer']['help']              = lang('Stores.help.receipt-footer');
 
         $fields = [];
         foreach (self::STORE_SECTIONS as $heading => $names) {
-            if ('address' === $heading) {
-                // a heading of its own, as the form builder's headings cannot be told apart
+            if ('address' === $heading || 'receipt' === $heading) {
+                // a heading of its own, as the form builder's headings cannot be told apart; an online store has
+                // neither an address nor a printer
                 $fields[] = ['type' => 'html', 'html' => '<div class="row mb-2 mt-4" data-store-address><div class="col-sm-8 offset-sm-4">'
-                    . '<h6 class="text-uppercase text-muted mb-0">' . esc(lang('Stores.heading.address')) . '</h6></div></div>'];
+                    . '<h6 class="text-uppercase text-muted mb-0">' . esc(lang('Stores.heading.' . $heading)) . '</h6></div></div>'];
             } else {
                 $fields[] = ['type' => 'heading', 'label' => lang('Stores.heading.' . $heading)];
             }
@@ -1209,7 +1221,7 @@ class Admin extends BaseController
             foreach (self::STORE_TRANSLATION_FIELDS as $column => [$prefix, $maxLength]) {
                 $fields[] = [
                     'name'     => $prefix . $language,
-                    'type'     => 'text',
+                    'type'     => 'receipt_footer' === $column ? 'textarea' : 'text',
                     'label'    => lang('Stores.translation.' . $column, [$label]),
                     'rules'    => 'max_length[' . $maxLength . ']',
                     'optional' => true,

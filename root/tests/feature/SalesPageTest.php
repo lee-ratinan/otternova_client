@@ -342,4 +342,65 @@ final class SalesPageTest extends CIUnitTestCase
         $this->assertStringStartsWith('image/png', $result->response()->getHeaderLine('Content-Type'));
         $this->assertSame('v1/client/order/payment-slip/pa0000000001', $this->calls[0][0]);
     }
+
+    public function testAPaidOrderOffersItsReceiptInTheChosenLanguage(): void
+    {
+        $stores = [['public_id' => 'st0000000001', 'store_name' => 'Silom', 'receipt_format' => '80mm'], ['public_id' => 'st0000000002', 'store_name' => 'Ari', 'receipt_format' => '58mm']];
+        $this->stubApi(self::detail(false, ['financial_status' => 'paid', 'paid_at' => '2026-11-16 05:00:00', 'receipt' => ['can_print' => true, 'blocker' => null, 'stores' => $stores]]));
+        $result = $this->withSession($this->session('E'))->get('admin/sales/order/or0000000001');
+        foreach (['Print receipt', 'id="sales-receipt-modal"', 'action="' . base_url('admin/sales/receipt/or0000000001') . '"', 'target="_blank"',
+            '<option value="th">', 'name="store"', 'Ari · Thermal 58mm'] as $text) {
+            $result->assertSee($text);
+        }
+    }
+
+    public function testAnOrderThatCannotBePrintedSaysWhyOrNothing(): void
+    {
+        $this->stubApi(self::detail(false, ['receipt' => ['can_print' => false, 'blocker' => 'noPrinter', 'stores' => []]]));
+        $result = $this->withSession($this->session('E'))->get('admin/sales/order/or0000000001');
+        $result->assertDontSee('id="sales-receipt-modal"');
+        $result->assertSee('No store of this order has a receipt printer.');
+
+        // not paid yet: nothing to say
+        $this->stubApi(self::detail(false, ['receipt' => ['can_print' => false, 'blocker' => 'notPaid', 'stores' => []]]));
+        $result = $this->withSession($this->session('E'))->get('admin/sales/order/or0000000001');
+        $result->assertDontSee('id="sales-receipt-modal"');
+        $result->assertDontSee('bi-printer');
+    }
+
+    public function testTheReceiptIsPrintedOnTheStoresPaperInTheChosenLanguage(): void
+    {
+        $receipt = ['receipt' => ['format' => '58mm', 'language_code' => 'th', 'timezone' => 'Asia/Bangkok', 'footer' => "ขอบคุณค่ะ\nโทร 02", 'printed_by_name' => 'Somchai'],
+            'business' => ['business_name' => 'ออตเตอร์', 'legal_name' => 'บริษัท ออตเตอร์ จำกัด', 'tax_id' => '0105555000001', 'tax_branch_code' => '00000', 'country_code' => 'TH'],
+            'store'    => ['store_name' => 'สีลม', 'phone_number' => '021234567', 'address_line_1' => '1 ถนนสีลม', 'address_line_2' => null, 'city' => 'บางรัก', 'subdivision_code' => 'TH-10', 'postal_code' => '10500'],
+            'order'    => ['order_number' => 'IN2611-0001', 'order_source' => 'counter', 'created_at' => '2026-11-16 03:00:00', 'paid_at' => '2026-11-16 05:00:00',
+                'currency_code' => 'THB', 'customer_name' => 'Ann Lee', 'discount_code' => 'OTTER', 'shipping_method_name' => null,
+                'lines' => [['line_number' => 1, 'kind' => 'P', 'artifact_name' => 'หนังสือ <นาก>', 'variant_label' => null, 'sku' => null, 'quantity' => 2, 'unit_price' => '300.00',
+                    'discount_amount' => '50.00', 'tax' => ['calculation' => 'I', 'percentage' => '7.00', 'amount' => '35.98'], 'line_total' => '550.00', 'starts_at' => null, 'ends_at' => null]],
+                'totals' => ['subtotal' => '600.00', 'discount' => '50.00', 'shipping' => '0.00', 'tax_included' => '35.98', 'tax_added' => '0.00', 'total' => '550.00'],
+                'money' => ['paid' => '550.00', 'refunded' => '0.00', 'net_paid' => '550.00', 'balance_due' => '0.00', 'refundable' => '550.00'],
+                'payments' => [['transaction_type' => 'payment', 'payment_method_name' => 'เงินสด', 'amount' => '550.00', 'reference' => null, 'processed_at' => '2026-11-16 05:00:00']]]];
+        $this->stubApi([200, ['status' => 'success', 'data' => $receipt]]);
+        // the staff's UI is English; the customer's receipt is Thai
+        $result = $this->withSession($this->session('E'))->get('admin/sales/receipt/or0000000001?lang=th&store=st0000000001');
+        $result->assertOK();
+        $this->assertSame(['v1/client/order/receipt', ['public_id' => 'or0000000001', 'language_code' => 'th', 'store_public_id' => 'st0000000001']], $this->calls[0]);
+        foreach (['class="fmt-58mm"', 'ใบเสร็จรับเงิน', 'ออตเตอร์', 'เลขประจำตัวผู้เสียภาษี 0105555000001', '(สำนักงานใหญ่)', 'สีลม', 'IN2611-0001',
+            '16/11/2026 12:00', 'Somchai', esc('หนังสือ <นาก>'), '2 × 300.00', '600.00', 'ส่วนลด (OTTER)', '-50.00', 'ยอดสุทธิ (THB)', '550.00', 'รวมภาษีแล้ว',
+            'เงินสด', "ขอบคุณค่ะ\nโทร 02", 'window.print()'] as $text) {
+            $result->assertSee($text);
+        }
+        $result->assertDontSee('Receipt');
+    }
+
+    public function testAReceiptThatCannotBePrintedSaysWhy(): void
+    {
+        $this->stubApi([409, ['status' => 'error', 'message' => 'A receipt can only be printed on the day the order was paid.']]);
+        $result = $this->withSession($this->session('E'))->get('admin/sales/receipt/or0000000001?lang=xx');
+        $result->assertOK();
+        // an unknown language is the staff's own
+        $this->assertSame(['v1/client/order/receipt', ['public_id' => 'or0000000001', 'language_code' => 'en-US']], $this->calls[0]);
+        $result->assertSee('A receipt can only be printed on the day the order was paid.');
+        $result->assertDontSee('class="paper"');
+    }
 }

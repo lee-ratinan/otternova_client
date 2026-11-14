@@ -718,7 +718,7 @@ class Artifacts extends BaseController
         }
         $stores = [];
         foreach ((array) ($body['data']['stores'] ?? []) as $store) {
-            $stores[] = ['public_id' => (string) $store['public_id'], 'name' => (string) (($store['translations'] ?? [])[$locale] ?? $store['store_name'] ?? '')];
+            $stores[] = ['public_id' => (string) $store['public_id'], 'name' => self::storeName((array) $store, $locale)];
         }
         return $stores;
     }

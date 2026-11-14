@@ -300,6 +300,38 @@ class Sales extends BaseController
     }
 
     /**
+     * The receipt of a paid order, a page of its own made to be printed (it opens the print dialog itself), from
+     * LINK_INTERNAL_API v1/client/order/receipt { public_id, store_public_id, language_code }: ?store= is the store it
+     * is printed at (needed when the order has more than one with a printer), ?lang= the language it is printed in,
+     * one of the UI's, the staff's own when left out. Its paper (58mm, 80mm or A4) is the store's. When it may not
+     * be printed (not paid in full, refunded, cancelled, the next day...), the page says why instead.
+     * @param string $publicId order_master.public_id
+     */
+    public function receipt(string $publicId): string
+    {
+        helper('list');
+        $language = (string) $this->request->getGet('lang');
+        $language = isset(listSupportedLanguages()[$language]) ? $language : $this->request->getLocale();
+        $payload  = ['public_id' => $publicId, 'language_code' => $language];
+        $store    = trim((string) $this->request->getGet('store'));
+        if ('' !== $store) {
+            $payload['store_public_id'] = $store;
+        }
+        [$code, $body] = $this->callApi('v1/client/order/receipt', $payload);
+        $ok = $code === 200 && ($body['status'] ?? '') === 'success';
+        if (! $ok) {
+            $errors = array_values((array) ($body['errors'] ?? []));
+            $error  = (string) ($errors[0] ?? $body['message'] ?? lang('Sales.receipt.failed', [], $language));
+        }
+        return view('sales/receipt', [
+            'language' => $language,
+            'publicId' => $publicId,
+            'receipt'  => $ok ? (array) $body['data'] : null,
+            'error'    => $ok ? null : $error,
+        ]);
+    }
+
+    /**
      * A field of the page's JSON body (or form post), trimmed
      */
     private function input(string $name): string

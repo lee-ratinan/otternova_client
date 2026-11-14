@@ -271,6 +271,12 @@ final class BusinessManagementTest extends CIUnitTestCase
         $result->assertSee('data-store-address');
         $result->assertSee('"online":"O"');
         $result->assertSee('"translation_city_th"'); // hides with the address for an online store
+        // the receipt printer, none until one is picked; it hides for an online store too
+        $result->assertSee('name="receipt_format"');
+        $result->assertSee('<option value="" selected>No printer</option>');
+        $result->assertSee('Thermal 80mm');
+        $result->assertSee('name="translation_receipt_footer_th"');
+        $result->assertSee('"receipt_format","receipt_footer"');
     }
 
     public function testUnknownStoreIsNotFound(): void
@@ -285,15 +291,16 @@ final class BusinessManagementTest extends CIUnitTestCase
         $this->stubApi([200, ['status' => 'success', 'data' => ['public_id' => 'new1'], 'message' => 'Store created.']]);
 
         $result = $this->withSession($this->session('M'))->post('admin/business/stores/save', ['store_name' => 'Pattaya',
-            'store_type' => 'P', 'translation_th' => 'พัทยา', 'translation_city_th' => ' พัทยา ', 'unexpected' => 'dropped']);
+            'store_type' => 'P', 'receipt_format' => '80mm', 'receipt_footer' => 'Thank you', 'translation_th' => 'พัทยา', 'translation_city_th' => ' พัทยา ',
+            'translation_receipt_footer_th' => 'ขอบคุณค่ะ', 'unexpected' => 'dropped']);
 
         $result->assertOK();
         [$endpoint, $payload] = $this->calls[0];
         $this->assertSame('v1/client/store/create', $endpoint);
         $this->assertSame('otter-cafe', $payload['business_slug']);
-        $this->assertSame(['store_name' => 'Pattaya', 'store_type' => 'P'], $payload['store']);
-        $empty = ['store_name' => '', 'store_address_line_1' => '', 'store_address_line_2' => '', 'store_city' => ''];
-        $this->assertSame(['en-US' => $empty, 'th' => array_merge($empty, ['store_name' => 'พัทยา', 'store_city' => ' พัทยา '])], (array) $payload['translations']);
+        $this->assertSame(['store_name' => 'Pattaya', 'store_type' => 'P', 'receipt_format' => '80mm', 'receipt_footer' => 'Thank you'], $payload['store']);
+        $empty = ['store_name' => '', 'store_address_line_1' => '', 'store_address_line_2' => '', 'store_city' => '', 'receipt_footer' => ''];
+        $this->assertSame(['en-US' => $empty, 'th' => array_merge($empty, ['store_name' => 'พัทยา', 'store_city' => ' พัทยา ', 'receipt_footer' => 'ขอบคุณค่ะ'])], (array) $payload['translations']);
         $this->assertSame(base_url('admin/business/stores/edit/new1'), $this->json($result)['redirect']);
     }
 
@@ -309,7 +316,7 @@ final class BusinessManagementTest extends CIUnitTestCase
         [$endpoint, $payload] = $this->calls[1];
         $this->assertSame('v1/client/store/edit', $endpoint);
         $this->assertSame('st0re1', $payload['public_id']);
-        $empty = ['store_name' => '', 'store_address_line_1' => '', 'store_address_line_2' => '', 'store_city' => ''];
+        $empty = ['store_name' => '', 'store_address_line_1' => '', 'store_address_line_2' => '', 'store_city' => '', 'receipt_footer' => ''];
         $this->assertSame([
             'th'    => array_merge($empty, ['store_name' => 'กรุงเทพฯ', 'store_address_line_1' => '1 ถนนพระราม 1']),
             'ja'    => self::STORES['stores'][0]['translations']['ja'], // not a language of the web pages: kept as it is

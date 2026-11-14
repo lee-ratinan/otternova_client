@@ -37,6 +37,8 @@ $config = [
   'use strict';
   var csrfHash = cfg.csrf.hash;
   var FLASH = 'sales-order-flash';
+  // set when a payment is recorded (or a counter order taken paid): the page loaded again offers the receipt
+  var PRINT = 'sales-order-print';
 
   function notify(type, text) {
     if (!text) { return; }
@@ -76,6 +78,7 @@ $config = [
         var json = result.json || {};
         if (json.csrf_hash) { csrfHash = json.csrf_hash; }
         if (!result.ok || !json.success) {
+          try { window.sessionStorage.removeItem(PRINT); } catch (e) { /* no storage */ }
           if (json.redirect && json.status === 'error') { window.location.href = json.redirect; return; } // session expired
           var inForm = form && showErrors(form, json.errors);
           notify('error', inForm && json.message ? json.message : (json.message || cfg.text.failed));
@@ -105,6 +108,21 @@ $config = [
       var flash = window.sessionStorage.getItem(FLASH);
       if (flash !== null) { window.sessionStorage.removeItem(FLASH); notify('success', flash); }
     } catch (e) { /* no storage */ }
+
+    // the receipt: offered once the order is paid; the form opens it in a new tab
+    var receiptModal = document.getElementById('sales-receipt-modal');
+    var receiptForm = document.getElementById('sales-receipt-form');
+    try {
+      if (window.sessionStorage.getItem(PRINT) !== null) {
+        window.sessionStorage.removeItem(PRINT);
+        if (receiptModal && window.bootstrap) { window.bootstrap.Modal.getOrCreateInstance(receiptModal).show(); }
+      }
+    } catch (e) { /* no storage */ }
+    if (receiptForm && receiptModal && window.bootstrap) {
+      receiptForm.addEventListener('submit', function () {
+        setTimeout(function () { window.bootstrap.Modal.getOrCreateInstance(receiptModal).hide(); }, 0);
+      });
+    }
 
     // the statuses
     var statusForm = document.getElementById('sales-status-form');
@@ -145,6 +163,9 @@ $config = [
         var body = values(payForm);
         if (body.transaction_status !== 'failed') { delete body.failure_reason; }
         body.public_id = cfg.publicId;
+        if (body.transaction_type === 'payment' && body.transaction_status !== 'failed' && body.transaction_status !== 'pending') {
+          try { window.sessionStorage.setItem(PRINT, '1'); } catch (err) { /* no storage */ }
+        }
         post(cfg.urls.payment, body, payForm, payForm.querySelector('[type="submit"]'));
       });
     }
