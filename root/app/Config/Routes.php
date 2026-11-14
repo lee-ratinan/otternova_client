@@ -181,6 +181,14 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->get('/', 'Traffic::index');
         $routes->post('data/(overview|breakdown|visits)', 'Traffic::data/$1');
     });
+    // the orders of the session business, their statuses, payments and refunds: anyone working in it, as the API
+    // allows (refunds its owners and managers only); see App\Controllers\Sales
+    $routes->get('sales', 'Sales::index');
+    $routes->post('sales/data', 'Sales::data');
+    $routes->get('sales/order/(:segment)', 'Sales::order/$1');
+    $routes->post('sales/order/status', 'Sales::saveStatus');
+    $routes->post('sales/order/payment', 'Sales::createPayment');
+    $routes->post('sales/order/payment/settle', 'Sales::settlePayment');
     // the reviews of the session business's products and services: anyone working in it, as the API allows
     $routes->get('reviews', 'Reviews::index');
     $routes->post('reviews/data', 'Reviews::data');
