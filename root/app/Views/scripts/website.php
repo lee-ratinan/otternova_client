@@ -14,7 +14,8 @@ $defaultColors = [];
 foreach ((listDefaultThemeVariables()['colors'] ?? []) as $variable => $value) {
     $defaultColors[str_replace('-', '_', trim($variable, '-'))] = $value;
 }
-$textFields = ['meta_title', 'meta_description', 'meta_keywords', 'hero_badge', 'hero_headline', 'hero_paragraph'];
+$textFields = ['meta_title', 'meta_description', 'meta_keywords', 'hero_badge', 'hero_headline', 'hero_paragraph',
+    'staff_term_one', 'staff_term_other', 'participant_term_one', 'participant_term_other'];
 $labels     = [];
 foreach (['heading_font', 'nav_font', 'default_font', ...$textFields] as $field) {
     $labels[$field] = ['label' => lang('Website.content.' . $field), 'help' => lang('Website.content.' . $field . '-help')];
@@ -38,6 +39,23 @@ $config = [
         'metaHelp'         => lang('Website.content.meta-help'),
         'hero'             => lang('Website.content.hero'),
         'heroHelp'         => lang('Website.content.hero-help'),
+        'terms'            => lang('Website.content.terms'),
+        'termsHelp'        => lang('Website.content.terms-help'),
+        'termsPresets'     => lang('Website.content.terms-presets'),
+        'termsClear'       => lang('Website.content.terms-clear'),
+        // the storefront's own words where a field is empty (otternova_mart's Business.terms), as placeholders
+        'termDefaults'     => [
+            'en-US' => ['staff_term_one' => 'staff member', 'staff_term_other' => 'staff', 'participant_term_one' => 'participant', 'participant_term_other' => 'participants'],
+            'th'    => ['staff_term_one' => 'พนักงาน', 'staff_term_other' => 'พนักงาน', 'participant_term_one' => 'ผู้เข้าร่วม', 'participant_term_other' => 'ผู้เข้าร่วม'],
+        ],
+        // ready-made words, named in the page's language, the words in the tab's: [staff one, staff other, participant one, participant other]
+        'termPresets'      => [
+            ['name' => lang('Website.content.preset-spa'),     'words' => ['en-US' => ['therapist', 'therapists', 'client', 'clients'],   'th' => ['นักบำบัด', 'นักบำบัด', 'ลูกค้า', 'ลูกค้า']]],
+            ['name' => lang('Website.content.preset-school'),  'words' => ['en-US' => ['teacher', 'teachers', 'student', 'students'],    'th' => ['ครู', 'ครู', 'นักเรียน', 'นักเรียน']]],
+            ['name' => lang('Website.content.preset-clinic'),  'words' => ['en-US' => ['doctor', 'doctors', 'patient', 'patients'],      'th' => ['แพทย์', 'แพทย์', 'ผู้ป่วย', 'ผู้ป่วย']]],
+            ['name' => lang('Website.content.preset-salon'),   'words' => ['en-US' => ['stylist', 'stylists', 'client', 'clients'],      'th' => ['ช่าง', 'ช่าง', 'ลูกค้า', 'ลูกค้า']]],
+            ['name' => lang('Website.content.preset-fitness'), 'words' => ['en-US' => ['trainer', 'trainers', 'member', 'members'],      'th' => ['เทรนเนอร์', 'เทรนเนอร์', 'สมาชิก', 'สมาชิก']]],
+        ],
         'fontSamples'      => [
             'en-US' => 'At OtterNova, we help your business grow.',
             'th'    => 'ที่ OtterNova เราช่วยให้ธุรกิจของคุณเติบโต',
@@ -314,10 +332,11 @@ $config = [
     ]);
   }
 
-  function textField(language, index, field, multiline) {
+  function textField(language, index, field, multiline, placeholder) {
     var limit = limits[field] || 255;
     var input = el(multiline ? 'textarea' : 'input', multiline ? { class: 'form-control', rows: field === 'hero_paragraph' ? 3 : 2 } : { class: 'form-control', type: 'text' });
     input.value = language[field] || '';
+    if (placeholder) { input.placeholder = placeholder; }
     input.addEventListener('input', function () { language[field] = input.value; markDirty(); drawPreview(); });
     return fieldBlock(language, index, field, input, counter(input, limit));
   }
@@ -370,6 +389,7 @@ $config = [
         textField(language, index, 'hero_badge'),
         textField(language, index, 'hero_headline'),
         textField(language, index, 'hero_paragraph', true),
+        termsSection(language, index),
         el('h6', { class: 'fw-semibold mt-2 mb-0', text: M.meta }),
         el('p', { class: 'small text-muted', text: M.metaHelp }),
         textField(language, index, 'meta_title'),
@@ -378,6 +398,36 @@ $config = [
       ]));
     });
     showTab(activeCode);
+  }
+
+  var TERM_FIELDS = ['staff_term_one', 'staff_term_other', 'participant_term_one', 'participant_term_other'];
+
+  // what the storefront calls the business's staff and the people a booking is for, in this language: empty is the
+  // storefront's own word (the placeholder); a ready-made set fills all four
+  function termsSection(language, index) {
+    var code = language.language_code;
+    var defaults = M.termDefaults[code] || M.termDefaults[code.split('-')[0]] || {};
+    var presets = M.termPresets.filter(function (p) { return p.words[code]; });
+    function fill(words) {
+      TERM_FIELDS.forEach(function (f, i) { language[f] = words ? words[i] : ''; });
+      markDirty();
+      drawContent();
+    }
+    var buttons = presets.length ? el('div', { class: 'd-flex flex-wrap align-items-center gap-1 mb-2' }, [
+      el('span', { class: 'small text-muted me-1', text: M.termsPresets }),
+    ].concat(presets.map(function (p) {
+      return el('button', { type: 'button', class: 'btn btn-sm btn-outline-secondary', text: p.name, onclick: function () { fill(p.words[code]); } });
+    })).concat([
+      el('button', { type: 'button', class: 'btn btn-sm btn-link', text: M.termsClear, onclick: function () { fill(null); } }),
+    ])) : null;
+    return el('div', {}, [
+      el('h6', { class: 'fw-semibold mt-2 mb-0', text: M.terms }),
+      el('p', { class: 'small text-muted', text: M.termsHelp }),
+      buttons,
+      el('div', { class: 'row' }, TERM_FIELDS.map(function (field) {
+        return el('div', { class: 'col-md-6' }, [textField(language, index, field, false, defaults[field])]);
+      })),
+    ]);
   }
 
   function showTab(code) {
