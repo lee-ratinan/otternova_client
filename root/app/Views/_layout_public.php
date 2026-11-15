@@ -7,8 +7,8 @@
     <meta name="description" content="<?= META_DESCRIPTION ?>">
     <meta name="keywords" content="<?= META_KEYWORDS ?>">
     <!-- Favicons -->
-    <link href="<?= base_url('assets/img/logo.webp') ?>" rel="icon">
-    <link href="<?= base_url('assets/img/logo.webp') ?>" rel="apple-touch-icon">
+    <link href="<?= assets_url('img/logo.webp') ?>" rel="icon">
+    <link href="<?= assets_url('img/logo.webp') ?>" rel="apple-touch-icon">
     <!-- Google Fonts - Plus Jakarta Sans (body) + Outfit (headings) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,16 +18,10 @@
         <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@100..900&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <?php endif; ?>
     <!-- Vendor CSS Files -->
-    <link href="<?= base_url('assets/vendor/bootstrap/css/bootstrap.min.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/lucide-icons/lucide.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/simple-datatables/style.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/quill/quill.snow.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/quill/quill.bubble.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/choices.js/choices.min.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/flatpickr/flatpickr.min.css') ?>" rel="stylesheet">
+    <link href="<?= assets_url('vendor/bootstrap5.3.8/css/bootstrap.min.css') ?>" rel="stylesheet">
+    <link href="<?= assets_url('vendor/bootstrap-icons1.13.1/bootstrap-icons.css') ?>" rel="stylesheet">
     <!-- Template Main CSS File -->
-    <link href="<?= base_url('assets/css/main.css') ?>" rel="stylesheet">
+    <link href="<?= assets_url('themes/client/css/main.css') ?>" rel="stylesheet">
     <!-- =======================================================
       * Template Name: TrendyAdmin - Bootstrap Admin Template
       * Template URL: https://bootstrapmade.com/trendy-admin-bootstrap-dashboard-template/
@@ -42,7 +36,7 @@
     <aside class="auth-panel">
         <span class="auth-panel-logo">
             <span class="auth-logo-mark">
-                <img src="<?= base_url('assets/img/logo.webp') ?>" alt="<?= SITE_TITLE ?>">
+                <img src="<?= assets_url('img/logo.webp') ?>" alt="<?= SITE_TITLE ?>">
             </span>
             <span><?= SITE_TITLE ?></span>
         </span>
@@ -61,7 +55,7 @@
     <div class="auth-content">
         <a href="<?= base_url() ?>" class="auth-logo">
             <span class="auth-logo-mark">
-                <img src="<?= base_url('assets/img/logo.webp') ?>" alt="<?= SITE_TITLE ?>">
+                <img src="<?= assets_url('img/logo.webp') ?>" alt="<?= SITE_TITLE ?>">
             </span>
             <span><?= SITE_TITLE ?></span>
         </a>
@@ -74,9 +68,9 @@
                 &copy; 2025-<?= date('Y') ?> <a href="<?= getenv('LINK_WWW') ?>"><?= SITE_TITLE ?></a> <?= lang('System.footer.copyright') ?>
             </div>
             <div class="footer-links">
-                <a href="<?= getenv('LINK_WWW') ?>privacy-policy"><?= lang('System.footer.privacy-policy') ?></a>
-                <a href="<?= getenv('LINK_WWW') ?>terms-of-service"><?= lang('System.footer.terms') ?></a>
-                <a href="<?= getenv('LINK_WWW') ?>contact"><?= lang('System.footer.help') ?></a>
+                <a href="<?= getenv('LINK_WWW') ?>/privacy-policy"><?= lang('System.footer.privacy-policy') ?></a>
+                <a href="<?= getenv('LINK_WWW') ?>/terms-of-service"><?= lang('System.footer.terms') ?></a>
+                <a href="<?= getenv('LINK_WWW') ?>/contact"><?= lang('System.footer.help') ?></a>
             </div>
         </footer>
     </div>
@@ -90,20 +84,10 @@
     </div>
 <?php endif; ?>
 <!-- Vendor JS Files -->
-<script src="<?= base_url('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/apexcharts/apexcharts.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/chart.js/chart.umd.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/echarts/echarts.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/simple-datatables/simple-datatables.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/quill/quill.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/tinymce/tinymce.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/choices.js/choices.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/flatpickr/flatpickr.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/php-email-form/validate.js') ?>"></script>
-<script src="<?= base_url('assets/js/theme.js') ?>"></script>
-<script src="<?= base_url('assets/js/main.js') ?>"></script>
-<script src="<?= base_url('assets/js/local-time.js') ?>"></script>
-<script src="<?= base_url('assets/js/apps-sidebar-toggle.js') ?>"></script>
+<script src="<?= assets_url('vendor/bootstrap5.3.8/js/bootstrap.bundle.min.js') ?>"></script>
+<script src="<?= assets_url('themes/client/js/theme.js') ?>"></script>
+<script src="<?= assets_url('themes/client/js/main.js') ?>"></script>
+<script src="<?= assets_url('themes/client/js/local-time.js') ?>"></script>
 <?= $this->renderSection('script') ?>
 </body>
 </html>

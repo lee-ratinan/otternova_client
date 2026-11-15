@@ -263,3 +263,15 @@ if (!function_exists('localTime')) {
         return '<time data-utc datetime="' . esc($utc, 'attr') . '">' . esc($utc) . ' UTC</time>';
     }
 }
+
+if (!function_exists('assets_url')) {
+    /**
+     * Build assets URL
+     * @param string $path
+     * @return string
+     */
+    function assets_url(string $path = ''): string
+    {
+        return getenv('LINK_ASSETS') . '/' . ltrim($path, '/');
+    }
+}

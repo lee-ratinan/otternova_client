@@ -7,8 +7,8 @@
     <meta name="description" content="<?= META_DESCRIPTION ?>">
     <meta name="keywords" content="<?= META_KEYWORDS ?>">
     <!-- Favicons -->
-    <link href="<?= base_url('assets/img/logo.webp') ?>" rel="icon">
-    <link href="<?= base_url('assets/img/logo.webp') ?>" rel="apple-touch-icon">
+    <link href="<?= assets_url('img/logo.webp') ?>" rel="icon">
+    <link href="<?= assets_url('img/logo.webp') ?>" rel="apple-touch-icon">
     <!-- Google Fonts - Plus Jakarta Sans (body) + Outfit (headings) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,17 +18,12 @@
         <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@100..900&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <?php endif; ?>
     <!-- Vendor CSS Files -->
-    <link href="<?= base_url('assets/vendor/bootstrap/css/bootstrap.min.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/fontawesome-free/css/all.min.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/quill/quill.snow.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/quill/quill.bubble.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/choices.js/choices.min.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/flatpickr/flatpickr.min.css') ?>" rel="stylesheet">
-    <link href="<?= base_url('assets/vendor/toastr/toastr.min.css') ?>" rel="stylesheet">
-    <link href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="<?= assets_url('vendor/bootstrap5.3.8/css/bootstrap.min.css') ?>" rel="stylesheet">
+    <link href="<?= assets_url('vendor/bootstrap-icons1.13.1/bootstrap-icons.css') ?>" rel="stylesheet">
+    <link href="<?= assets_url('vendor/toastr/toastr.min.css') ?>" rel="stylesheet">
+    <link href="<?= assets_url('vendor/DataTables3.1.5/datatables.min.css') ?>" rel="stylesheet">
     <!-- Template Main CSS File -->
-    <link href="<?= base_url('assets/css/main.css') ?>" rel="stylesheet">
+    <link href="<?= assets_url('themes/client/css/main.css') ?>" rel="stylesheet">
     <!-- =======================================================
       * Template Name: TrendyAdmin - Bootstrap Admin Template
       * Template URL: https://bootstrapmade.com/trendy-admin-bootstrap-dashboard-template/
@@ -45,7 +40,7 @@
                 <i class="bi bi-layout-sidebar-inset"></i>
             </button>
             <a href="<?= base_url('admin/dashboard') ?>" class="header-logo">
-                <span class="header-logo-mark"><img src="<?= base_url('assets/img/logo.webp') ?>" alt="<?= lang('System.site-title') ?>" /></span>
+                <span class="header-logo-mark"><img src="<?= assets_url('img/logo.webp') ?>" alt="<?= lang('System.site-title') ?>" /></span>
                 <span class="header-logo-text">
                     <?= esc(currentBusinessName() ?? lang('System.site-title')) ?>
                 </span>
@@ -210,7 +205,7 @@
     <div class="sidebar-header">
         <a href="<?= base_url('admin/dashboard') ?>" class="sidebar-logo">
             <?php if (!currentBusinessName()) : ?>
-                <span class="sidebar-logo-mark"><img src="<?= base_url('assets/img/logo.webp') ?>" alt="<?= lang('System.site-title') ?>" /></span>
+                <span class="sidebar-logo-mark"><img src="<?= assets_url('img/logo.webp') ?>" alt="<?= lang('System.site-title') ?>" /></span>
             <?php endif; ?>
             <span class="sidebar-logo-text">
                 <?= esc(currentBusinessName() ?? lang('System.site-title')) ?>
@@ -382,28 +377,22 @@
     </div>
 <?php endif; ?>
 <!-- Vendor JS Files -->
-<script src="<?= base_url('assets/vendor/jquery/jquery-4.0.0.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
+<script src="<?= assets_url('vendor/jquery4.0.0/jquery-4.0.0.min.js') ?>"></script>
+<script src="<?= assets_url('vendor/bootstrap5.3.8/js/bootstrap.bundle.min.js') ?>"></script>
 <!-- DataTables (jQuery), for the Table Builder of generic_list.php -->
-<script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js"></script>
-<script src="<?= base_url('assets/vendor/apexcharts/apexcharts.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/chart.js/chart.umd.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/echarts/echarts.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/simple-datatables/simple-datatables.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/quill/quill.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/tinymce/tinymce.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/choices.js/choices.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/flatpickr/flatpickr.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/php-email-form/validate.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/toastr/toastr.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/sweetalert/sweetalert2.min.js') ?>"></script>
+<script src="<?= assets_url('vendor/DataTables3.1.5/datatables.min.js') ?>"></script>
+<script src="<?= assets_url('vendor/apexcharts/apexcharts.min.js') ?>"></script>
+<script src="<?= assets_url('vendor/chart.js/chart.umd.js') ?>"></script>
+<script src="<?= assets_url('vendor/echarts/echarts.min.js') ?>"></script>
+<script src="<?= assets_url('vendor/tinymce/tinymce.min.js') ?>"></script>
+<script src="<?= assets_url('vendor/toastr/toastr.min.js') ?>"></script>
+<script src="<?= assets_url('vendor/sweetalert/sweetalert2.min.js') ?>"></script>
 <!-- Template Main JS Files -->
-<script src="<?= base_url('assets/js/theme.js') ?>"></script>
-<script src="<?= base_url('assets/js/main.js') ?>"></script>
-<script src="<?= base_url('assets/js/local-time.js') ?>"></script>
+<script src="<?= assets_url('themes/client/js/theme.js') ?>"></script>
+<script src="<?= assets_url('themes/client/js/main.js') ?>"></script>
+<script src="<?= assets_url('themes/client/js/local-time.js') ?>"></script>
 <!-- App Sidebar Toggle (for app pages with sidebars) -->
-<script src="<?= base_url('assets/js/apps-sidebar-toggle.js') ?>"></script>
-<script src="<?= base_url('assets/js/notification-center.js') ?>"></script>
+<script src="<?= assets_url('themes/client/js/apps-sidebar-toggle.js') ?>"></script>
+<script src="<?= assets_url('themes/client/js/notification-center.js') ?>"></script>
 </body>
 </html>
