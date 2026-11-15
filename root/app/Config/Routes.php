@@ -113,6 +113,7 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('profile/languages-save', 'StaffProfiles::saveLanguages');
         $routes->post('profile/details-save', 'StaffProfiles::saveDetails');
         $routes->post('profile/restrictions-save', 'StaffProfiles::saveRestrictions');
+        $routes->post('profile/visibility-save', 'StaffProfiles::saveVisibility');
     });
     // the session business's subscription: its owners only, as the API allows
     $routes->group('plans', ['filter' => 'manager:owner'], static function ($routes) {

@@ -9,8 +9,8 @@ use RuntimeException;
 
 /**
  * One person's profile page in the session business, from LINK_INTERNAL_API v1/client/staff/profile and its saves:
- * the languages they speak, their values of the attributes the business records (StaffAttributes), and the customers
- * they do not serve, which customers are told before booking them. Its owners and managers (the routes' manager
+ * whether customers see them on the business's staff page on the mart, the languages they speak, their values of
+ * the attributes the business records (StaffAttributes), and the customers they do not serve, which customers are told before booking them. Its owners and managers (the routes' manager
  * filter). A person comes in by their auth_master.uid; the page opens from their Staff page.
  */
 class StaffProfiles extends BaseController
@@ -87,6 +87,28 @@ class StaffProfiles extends BaseController
                 ],
             ],
             'extraForms'   => [
+                [
+                    // whether customers see this person on the business's staff page on the mart
+                    'form_id'   => 'staff-visibility-form',
+                    'title'     => lang('StaffProfiles.visibility.title'),
+                    'subtitle'  => lang('StaffProfiles.visibility.subtitle'),
+                    'mode'      => 'view',
+                    'id_prefix' => 'visibility-',
+                    'locale'    => $locale,
+                    'urls'      => ['submit' => base_url('admin/staff/profile/visibility-save')],
+                    'messages'  => ['saved' => lang('StaffProfiles.visibility.shown'), 'saveFailed' => lang('StaffProfiles.save-failed')],
+                    'values'    => ['show_profile' => empty($data['show_profile']) ? '0' : '1', 'uid' => $uid],
+                    'fields'    => [
+                        ['name' => 'show_profile', 'type' => 'switch', 'label' => lang('StaffProfiles.visibility.label'), 'text' => lang('StaffProfiles.visibility.switch'),
+                            'checked_value' => '1', 'off_value' => '0', 'help' => lang('StaffProfiles.visibility.help'),
+                            'view_labels' => ['on' => lang('StaffProfiles.visibility.on'), 'off' => lang('StaffProfiles.visibility.off')]],
+                        // the page is there only while someone is shown, so the link only while this person is
+                        ['type' => 'html', 'show_in' => ['view'], 'html' => empty($data['show_profile']) ? '' : '<p class="small text-muted mb-0"><a href="'
+                            . esc(rtrim((string) getenv('LINK_MART'), '/') . '/' . rawurlencode((string) currentBusinessSlug()) . '/staff', 'attr')
+                            . '" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> ' . esc(lang('StaffProfiles.visibility.open')) . '</a></p>'],
+                        $hidden,
+                    ],
+                ],
                 [
                     'form_id'   => 'staff-details-form',
                     'title'     => lang('StaffProfiles.details.title'),
@@ -246,6 +268,36 @@ class StaffProfiles extends BaseController
         return $this->response->setJSON([
             'success'   => true,
             'message'   => $body['message'] ?? lang('StaffProfiles.restrictions.saved'),
+            'redirect'  => base_url('admin/staff/profile/' . rawurlencode($uid)),
+            'csrf_hash' => csrf_hash(),
+        ]);
+    }
+
+    /**
+     * Show the person on the business's staff page on the mart, or take them off it, through LINK_INTERNAL_API
+     * v1/client/staff/visibility/save { business_slug, uid, show_profile }
+     */
+    public function saveVisibility(): ResponseInterface
+    {
+        $post = (array) $this->request->getPost();
+        $uid  = trim((string) ($post['uid'] ?? ''));
+        $show = '1' === (string) ($post['show_profile'] ?? '0');
+        [$code, $body] = $this->callApi('v1/client/staff/visibility/save', [
+            'business_slug' => (string) currentBusinessSlug(),
+            'uid'           => $uid,
+            'show_profile'  => $show,
+        ]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            return $this->response->setStatusCode($code === 200 ? 422 : $code)->setJSON([
+                'success'   => false,
+                'message'   => $body['message'] ?? lang('StaffProfiles.save-failed'),
+                'errors'    => ((array) ($body['errors'] ?? [])) ?: null,
+                'csrf_hash' => csrf_hash(),
+            ]);
+        }
+        return $this->response->setJSON([
+            'success'   => true,
+            'message'   => $body['message'] ?? lang($show ? 'StaffProfiles.visibility.shown' : 'StaffProfiles.visibility.hidden'),
             'redirect'  => base_url('admin/staff/profile/' . rawurlencode($uid)),
             'csrf_hash' => csrf_hash(),
         ]);

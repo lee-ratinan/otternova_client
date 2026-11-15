@@ -10,8 +10,20 @@ return [
     'move-later'    => 'Move down',
     'link'          => [
         'title' => 'Profile',
-        'text'  => 'The languages this person speaks, their certifications and other details, and the customers they do not serve.',
+        'text'  => 'Whether customers see this person on your staff page, the languages they speak, their certifications and other details, and the customers they do not serve.',
         'open'  => 'Edit Profile',
+    ],
+    'visibility'    => [
+        'title'    => 'Staff Page',
+        'subtitle' => 'Whether customers see this person on your shop\'s Our Staff page.',
+        'label'    => 'Show on Staff Page',
+        'switch'   => 'Show this person to customers',
+        'help'     => 'Turn this on for the people who serve your customers, such as teachers, therapists or masseurs. Customers then see their display name, picture, bio, languages, public details and restrictions. Owners, managers and people behind the scenes usually stay off.',
+        'on'       => 'Shown on the staff page',
+        'off'      => 'Not shown',
+        'open'     => 'Open the staff page',
+        'shown'    => 'Saved.',
+        'hidden'   => 'Saved.',
     ],
     'languages'     => [
         'title'       => 'Languages',

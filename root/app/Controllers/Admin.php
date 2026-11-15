@@ -1197,6 +1197,8 @@ class Admin extends BaseController
         $config['receipt_format']['attrs']             = ['placeholder' => $noPrinter];
         $config['receipt_format']['help']              = lang('Stores.help.receipt-format');
         $config['receipt_format']['view']              = static fn ($v) => '' === (string) $v ? $noPrinter : (lang('BusinessStore.enum.receipt_format')[$v] ?? $v);
+        $config['google_maps_url']['help']             = lang('Stores.help.google-maps-url');
+        $config['google_maps_url']['attrs']            = ['placeholder' => 'https://maps.app.goo.gl/...'];
         $config['receipt_footer']['maxlength']         = 255;
         $config['receipt_footer']['help']              = lang('Stores.help.receipt-footer');
 

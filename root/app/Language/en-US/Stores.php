@@ -34,6 +34,7 @@ return [
         'translation-name' => 'Needed to save the address in this language.',
         'receipt-format' => 'The paper of this store\'s receipt printer. Leave it empty if the store has no printer; then no receipts are printed here.',
         'receipt-footer' => 'Printed at the bottom of every receipt, such as a thank-you or the return policy.',
+        'google-maps-url' => 'Optional. In Google Maps, open the store, choose Share and copy the link (https://maps.app.goo.gl/...). It is the "Open in Google Maps" button on your shop\'s Contact Us page; without it, the button searches Google Maps for the address.',
     ],
     'hours-link'        => [
         'title' => 'Opening Hours',
