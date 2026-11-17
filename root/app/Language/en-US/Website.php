@@ -22,7 +22,9 @@ return [
     ],
     'content'       => [
         'title'                 => 'Fonts and Text',
-        'subtitle'              => 'Each language has its own fonts, main-page text and search engine details.',
+        'subtitle'              => 'Each language has its own business name, fonts, main-page text and search engine details.',
+        'business-name'         => 'Business Name',
+        'business-name-help'    => 'Your business name in this language, shown on your web pages. Leave it empty to use your business name as it is.',
         'none-yet'              => 'Add a language above to set its fonts and text.',
         'fonts'                 => 'Fonts',
         'heading_font'          => 'Headings',

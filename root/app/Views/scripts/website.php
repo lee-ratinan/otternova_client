@@ -4,9 +4,11 @@
  * fonts, meta tags and main-page text for each language, and the featured pickers from it, updates the preview as
  * anything changes, and saves colors, languages and featured products together with one button. The logo is
  * uploaded and removed straight away. Errors come back by the API's field names (languages.0.heading_font), which
- * the fields carry in data-error-for.
+ * the fields carry in data-error-for. Each language's tab starts with the business name in that language, posted as
+ * names (only those changed) and saved with the rest; the API names their errors translations.<language_code>.
  *
  * @var array $settings v1/client/website
+ * @var array|null $names    the business's names in other languages; null: no fields for them
  * @var array $urls     Website::index() urls
  */
 helper('list');
@@ -22,6 +24,8 @@ foreach (['heading_font', 'nav_font', 'default_font', ...$textFields] as $field)
 }
 $config = [
     'settings'      => $settings,
+    'names'         => null === $names ? null : (object) $names,
+    'businessName'  => (string) (currentBusinessName() ?? ''),
     'urls'          => $urls,
     'csrf'          => ['header' => csrf_header(), 'hash' => csrf_hash()],
     'defaultColors' => $defaultColors,
@@ -34,6 +38,8 @@ $config = [
         'moveDown'         => lang('Website.languages.move-down'),
         'remove'           => lang('Website.languages.remove'),
         'addPlaceholder'   => lang('Website.languages.add-placeholder'),
+        'businessName'     => lang('Website.content.business-name'),
+        'businessNameHelp' => lang('Website.content.business-name-help'),
         'fonts'            => lang('Website.content.fonts'),
         'meta'             => lang('Website.content.meta'),
         'metaHelp'         => lang('Website.content.meta-help'),
@@ -102,6 +108,9 @@ $config = [
   var dirty = false;
   var activeCode = null;
   var state;
+  // the business's names in other languages, and the languages whose name was changed since the last save
+  var names = cfg.names ? Object.assign({}, cfg.names) : null;
+  var changedNames = {};
 
   // ---------------------------------------------------------------- helpers
 
@@ -217,8 +226,9 @@ $config = [
       var input = page.querySelector('[data-input-for="' + key + '"]');
       if (input) { input.classList.add('is-invalid'); }
       var match = /^languages\.(\d+)\./.exec(key);
-      if (match && state.languages[+match[1]]) {
-        var code = state.languages[+match[1]].language_code;
+      var nameMatch = /^translations\.(.+)$/.exec(key);
+      var code = match && state.languages[+match[1]] ? state.languages[+match[1]].language_code : (nameMatch ? nameMatch[1] : null);
+      if (code !== null) {
         var badge = page.querySelector('[data-tab-error="' + code + '"]');
         if (badge) { badge.hidden = false; }
         if (firstTab === null) { firstTab = code; }
@@ -304,6 +314,24 @@ $config = [
 
   // ---------------------------------------------------------------- what each language has
 
+  /** The business name in this language: empty is the business's own name (the placeholder) */
+  function nameSection(language) {
+    if (!names) { return null; }
+    var code = language.language_code;
+    var key = 'translations.' + code;
+    var id = 'lang-' + code + '-business-name';
+    var limit = 255; // the API's longest business name
+    var input = el('input', { class: 'form-control', type: 'text', id: id, 'data-input-for': key, placeholder: cfg.businessName, maxlength: limit });
+    input.value = names[code] || '';
+    input.addEventListener('input', function () { names[code] = input.value; changedNames[code] = true; markDirty(); drawPreview(); });
+    return el('div', { class: 'mb-3' }, [
+      el('h6', { class: 'fw-semibold mt-1' }, [el('label', { for: id, text: M.businessName })]),
+      input,
+      el('div', { class: 'form-text', text: M.businessNameHelp }),
+      el('div', { class: 'invalid-feedback d-block', 'data-error-for': key }),
+    ]);
+  }
+
   function counter(input, limit) {
     var count = el('span', { class: 'small text-muted' });
     function update() {
@@ -382,6 +410,7 @@ $config = [
         return el('div', { class: 'col-md-4' }, [fontField(language, index, field)]);
       }));
       panes.appendChild(el('div', { class: 'tab-pane', role: 'tabpanel', 'data-pane': code, hidden: true }, [
+        nameSection(language),
         el('h6', { class: 'fw-semibold mt-1', text: M.fonts }),
         fonts,
         el('h6', { class: 'fw-semibold mt-2 mb-0', text: M.hero }),
@@ -571,7 +600,7 @@ $config = [
     root.style.fontFamily = fontStack(language.default_font);
     root.lang = language.language_code || '';
     each('nav', function (n) { n.style.fontFamily = fontStack(language.nav_font); n.style.borderBottom = '1px solid color-mix(in srgb, ' + c.default_color + ', transparent 85%)'; });
-    each('brand', function (n) { n.style.color = c.heading_color; n.style.fontFamily = fontStack(language.heading_font); n.hidden = !!(state.logo && state.logo.shape === 'W'); });
+    each('brand', function (n) { n.textContent = (names && names[language.language_code]) || cfg.businessName; n.style.color = c.heading_color; n.style.fontFamily = fontStack(language.heading_font); n.hidden = !!(state.logo && state.logo.shape === 'W'); });
     each('logo', function (n) { n.hidden = !state.logo; if (state.logo) { n.src = state.logo.url; } });
     function sample(node, value, fallback) {
       node.textContent = value || fallback;
@@ -609,6 +638,11 @@ $config = [
       }),
       featured: state.featured,
     };
+    var changed = Object.keys(changedNames);
+    if (names && changed.length) {
+      body.names = {};
+      changed.forEach(function (code) { body.names[code] = (names[code] || '').trim(); });
+    }
     post(cfg.urls.save, body).then(function (result) {
       saveButton.disabled = false;
       saveButton.lastChild.textContent = ' ' + M.save;
@@ -621,6 +655,7 @@ $config = [
       state = fromSettings(result.json.settings || {});
       state.logo = logo;
       dirty = false;
+      changedNames = {};
       document.getElementById('website-dirty').hidden = true;
       clearErrors();
       redrawLanguages();

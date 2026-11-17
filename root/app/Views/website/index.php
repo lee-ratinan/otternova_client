@@ -5,6 +5,8 @@
  * logo is uploaded and removed on its own. The preview beside them shows the main page's top as it will look.
  *
  * @var array $settings v1/client/website: colors, logo, languages, featured, options
+ * @var array|null $names the business's names in other languages (language_code => business_name); null when they
+ *                        could not be fetched, and then the page has no fields for them
  * @var array $urls     save, logoUpload, logoDelete
  */
 $this->extend('_layout_admin');
@@ -192,6 +194,6 @@ $maxFeatured = (int) ($settings['options']['max_featured'] ?? 3);
 </section>
 
 <script>
-<?= view('scripts/website', ['settings' => $settings, 'urls' => $urls]) ?>
+<?= view('scripts/website', ['settings' => $settings, 'names' => $names, 'urls' => $urls]) ?>
 </script>
 <?= $this->endSection() ?>

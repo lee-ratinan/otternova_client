@@ -60,9 +60,9 @@ class Admin extends BaseController
 
     /**
      * The edit-business form, section => fields. country_code and currency_code are shown but never sent: they are
-     * fixed once the business is created. tax_id (under the postal code) and the names in other languages are not
-     * kept in the session business, but come beside it from v1/client/business/switch; when they cannot be fetched,
-     * their fields are left out, and so the API keeps them.
+     * fixed once the business is created. tax_id (under the postal code) is not kept in the session business, but
+     * comes beside it from v1/client/business/switch; when it cannot be fetched, its field is left out, and so the
+     * API keeps it. The names in other languages are set on the website page (Website), beside its languages.
      */
     private const BUSINESS_EDIT_SECTIONS = [
         'business' => ['business_type_public_id', 'business_name', 'business_slug', 'country_code', 'currency_code',
@@ -574,9 +574,6 @@ class Admin extends BaseController
         }
         $slug     = (string) ($values['business_slug'] ?? '');
         $values[self::BUSINESS_CURRENT_SLUG] = $slug;
-        foreach ($names ?? [] as $language => $name) {
-            $values[self::TRANSLATION_PREFIX . $language] = $name;
-        }
         if (null !== $taxId) {
             $values['tax_id'] = $taxId['tax_id'];
         }
@@ -599,7 +596,7 @@ class Admin extends BaseController
                 ],
                 'messages' => ['saved' => lang('EditBusiness.form.saved'), 'saveFailed' => lang('EditBusiness.form.failed')],
                 'values'   => $values,
-                'fields'   => $this->businessEditFields($this->businessTypeOptions($locale), (string) ($values['country_code'] ?? ''), $slug, null !== $names, null !== $taxId),
+                'fields'   => $this->businessEditFields($this->businessTypeOptions($locale), (string) ($values['country_code'] ?? ''), $slug, null !== $taxId),
             ],
             // asks before a changed business slug is saved; shows the time of day for a notice in days
             'customScript' => view('scripts/edit_business', [
@@ -619,11 +616,9 @@ class Admin extends BaseController
 
     /**
      * Save the session business through LINK_INTERNAL_API v1/client/business/edit { business_slug, business,
-     * translations }. country_code and currency_code are never forwarded, so the API keeps them; tax_id only when the
-     * form has it (see business()). The names
-     * in the form's languages replace the stored ones, and those in other languages are kept (fetched afresh, as the
-     * API replaces them all); a form without them sends no translations. A renamed business slug becomes the
-     * session business's key at once.
+     * }. country_code and currency_code are never forwarded, so the API keeps them; tax_id only when the form has it
+     * (see business()). No translations are sent, so the API keeps the names in other languages (set on the website
+     * page). A renamed business slug becomes the session business's key at once.
      */
     public function businessEditPost(): ResponseInterface
     {
@@ -640,21 +635,10 @@ class Admin extends BaseController
         $post     = (array) $this->request->getPost();
         $business = array_intersect_key($post, array_flip(self::BUSINESS_EDIT_FIELDS));
         $payload  = ['business_slug' => $current, 'business' => $business];
-        $posted   = array_filter(array_keys($this->websiteLanguages()), static fn (string $language) => array_key_exists(self::TRANSLATION_PREFIX . $language, $post));
-        if ([] !== $posted) {
-            // the API replaces all the names, so the names in other languages than the form's are sent as they are
-            if (null === $this->refreshSessionBusiness($current, $names)) {
-                return $this->saveFailed(500, [], lang('EditBusiness.form.failed'));
-            }
-            foreach ($posted as $language) {
-                $names[$language] = (string) $post[self::TRANSLATION_PREFIX . $language];
-            }
-            $payload['translations'] = (object) $names;
-        }
 
         [$code, $body] = $this->callApi('v1/client/business/edit', $payload);
         if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
-            return $this->saveFailed($code, $this->translationErrors($body), lang('EditBusiness.form.failed'));
+            return $this->saveFailed($code, $body, lang('EditBusiness.form.failed'));
         }
 
         // the session business follows: fetched afresh, or else patched with what was saved
@@ -982,29 +966,6 @@ class Admin extends BaseController
     }
 
     /**
-     * The business name in each language of its web pages (websiteLanguages()), optional, under their own heading:
-     * sent as translations, kept in business_master_translation; none while the web pages have no languages
-     */
-    private function businessNameFields(): array
-    {
-        $languages = $this->websiteLanguages();
-        if ([] === $languages) {
-            return [];
-        }
-        $fields = [['type' => 'heading', 'label' => lang('CreateBusiness.heading.translations')]];
-        foreach ($languages as $language => $label) {
-            $fields[] = [
-                'name'     => self::TRANSLATION_PREFIX . $language,
-                'type'     => 'text',
-                'label'    => lang('CreateBusiness.translation-label', [$label]),
-                'rules'    => 'max_length[255]',
-                'optional' => true,
-            ];
-        }
-        return $fields;
-    }
-
-    /**
      * Table Builder config of myBusinesses(): no edit column, the Add button opens the create-business form
      */
     private function myBusinessesListConfig(): array
@@ -1128,11 +1089,10 @@ class Admin extends BaseController
      * @param array  $types   public_id => type name, for the Business Type dropdown
      * @param string $country business_master.country_code, for the subdivisions and the telephone number
      * @param string $slug      the business slug now, for the store address in its help
-     * @param bool   $withNames with the business name in each language of its web pages (left out when they could not be fetched,
-     *                          so the names are not saved as empty)
-     * @param bool   $withTaxId with the tax ID under the postal code (left out when it could not be fetched, likewise)
+     * @param bool   $withTaxId with the tax ID under the postal code (left out when it could not be fetched, so it is
+     *                          not saved as empty)
      */
-    private function businessEditFields(array $types, string $country, string $slug, bool $withNames = true, bool $withTaxId = true): array
+    private function businessEditFields(array $types, string $country, string $slug, bool $withTaxId = true): array
     {
         $config = (new BusinessMasterModel())->getConfiguration();
         $config['business_type_public_id'] = [
@@ -1170,7 +1130,7 @@ class Admin extends BaseController
                 }
             }
         }
-        return $withNames ? [...$fields, ...$this->businessNameFields()] : $fields;
+        return $fields;
     }
 
     /**

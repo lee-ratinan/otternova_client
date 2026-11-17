@@ -16,7 +16,6 @@ return [
         'contact'      => 'Contact',
         'address'      => 'Address',
         'billing'      => 'Billing',
-        'translations' => 'Business Name in Other Languages',
     ],
     'help'              => [
         'business-slug'  => 'Made from the business name; you can change it. Letters (lower case for Latin), numbers and hyphens, e.g. otter-cafe-sg or ร้าน-otter. It appears in your page addresses.',
@@ -42,5 +41,4 @@ return [
     'error'             => [
         'business-slug' => 'Please use only letters (lower case for Latin), numbers and single hyphens between them.',
     ],
-    'translation-label' => 'Name in {0}',
 ];
