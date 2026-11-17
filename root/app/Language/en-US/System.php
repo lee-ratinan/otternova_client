@@ -42,6 +42,7 @@ return [
         'artifact-attribute-create' => 'Create Variant Option',
         'sales'                 => 'Sales',
         'calendar'              => 'Calendar',
+        'revenue-report'        => 'Revenue report',
         'staff'                 => 'Staff Assignment',
         'staff-attributes'      => 'Staff Attributes',
         'staff-attribute-create' => 'Add Staff Attribute',

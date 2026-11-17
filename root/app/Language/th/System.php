@@ -42,6 +42,7 @@ return [
         'artifact-attribute-create' => 'สร้างคุณสมบัติของตัวเลือก',
         'sales'                 => 'การขาย',
         'calendar'              => 'ปฏิทิน',
+        'revenue-report'        => 'รายงานรายได้',
         'staff'                 => 'การจัดสรรพนักงาน',
         'staff-attributes'      => 'คุณสมบัติพนักงาน',
         'staff-attribute-create' => 'เพิ่มคุณสมบัติพนักงาน',

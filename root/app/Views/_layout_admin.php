@@ -235,10 +235,24 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link<?= ('calendar' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/calendar') ?>">
-                    <span class="nav-icon"><i class="bi bi-calendar"></i></span>
+                    <span class="nav-icon"><i class="bi bi-calendar-check"></i></span>
                     <span class="nav-text"><?= lang('System.page.calendar') ?></span>
                 </a>
             </li>
+            <?php if (isBusinessOwner()): ?>
+                <li class="nav-item">
+                    <a class="nav-link<?= ('revenue-report' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/revenue-report') ?>">
+                        <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                        <span class="nav-text"><?= lang('System.page.revenue-report') ?></span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link<?= ('salary-and-commission' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/salary-and-commission') ?>">
+                        <span class="nav-icon"><i class="bi bi-cash-coin"></i></span>
+                        <span class="nav-text"><?= lang('System.page.salary-and-commission') ?></span>
+                    </a>
+                </li>
+            <?php endif; ?>
             <!-- ONLY BUSINESS OWNER and MANAGER -->
             <?php if (canManageBusiness()): ?>
                 <li class="nav-heading"><span><?= lang('System.page.business') ?></span></li>
