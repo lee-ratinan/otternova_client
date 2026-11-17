@@ -539,7 +539,7 @@ if (! function_exists('fb_defaults')) {
             ],
             'heic_decoder'  => function_exists('base_url') ? base_url('assets/vendor/heic2any/heic2any.min.js') : '',
             'emoji_picker'  => function_exists('base_url') ? base_url('assets/vendor/emoji-picker-element/index.js') : '',
-            'emoji_data'    => function_exists('base_url') ? base_url('assets/vendor/emoji-picker-element-data/{lang}/cldr/data.json') : '',
+            'emoji_data'    => function_exists('assets_url') ? assets_url('vendor/emoji-picker-element-data/{lang}/cldr/data.json') : '',
             'emoji_languages' => null,
             'values'        => [],
             'fields'        => [],
@@ -1287,7 +1287,7 @@ if (! function_exists('fb_script')) {
         }
         $emoji = in_array('emoji', array_column($fields, 'type'), true) ? [
             'picker' => $form['emoji_picker'],
-            'data'   => str_replace('%7Blang%7D', $emojiLang, (string) $form['emoji_data']),
+            'data'   => str_replace(['{lang}', '%7Blang%7D'], $emojiLang, (string) $form['emoji_data']),
             'locale' => $emojiLang,
             'i18n'   => lang('Form.emoji.picker'),
         ] : null;
