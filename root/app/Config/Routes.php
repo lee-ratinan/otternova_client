@@ -199,6 +199,9 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->get('sales/receipt/(:segment)', 'Sales::receipt/$1');
     $routes->post('sales/order/no-show', 'Sales::noShow');
     $routes->post('sales/order/refund-close', 'Sales::closeRefund');
+    // what the session business has booked on a day, and one session of it: anyone working in it; see App\Controllers\Calendar
+    $routes->get('calendar', 'Calendar::index');
+    $routes->get('calendar/session/(:segment)', 'Calendar::session/$1');
     // the reviews of the session business's products and services: anyone working in it, as the API allows
     $routes->get('reviews', 'Reviews::index');
     $routes->post('reviews/data', 'Reviews::data');

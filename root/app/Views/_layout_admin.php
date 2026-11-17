@@ -233,6 +233,12 @@
                     <span class="nav-text"><?= lang('System.page.sales') ?></span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link<?= ('calendar' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/calendar') ?>">
+                    <span class="nav-icon"><i class="bi bi-calendar"></i></span>
+                    <span class="nav-text"><?= lang('System.page.calendar') ?></span>
+                </a>
+            </li>
             <!-- ONLY BUSINESS OWNER and MANAGER -->
             <?php if (canManageBusiness()): ?>
                 <li class="nav-heading"><span><?= lang('System.page.business') ?></span></li>
