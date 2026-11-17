@@ -1347,6 +1347,23 @@ if (! function_exists('fb_script')) {
     return scripts[src];
   }
 
+  // ES modules (the emoji picker) come from the assets subdomain. import() resolves a specifier against this
+  // inline script, so it is made absolute first, and a cross-origin module is fetched with CORS (no cookies),
+  // which the assets server allows for the otternova.com subdomains and localhost.
+  var modules = {};
+
+  function loadModule(src) {
+    if (!src) { return Promise.reject(new Error('No module URL is configured')); }
+    var url = new URL(src, document.baseURI).href;
+    if (!modules[url]) {
+      modules[url] = import(url).catch(function (err) {
+        delete modules[url]; // a later attempt (e.g. after a network blip) tries again
+        throw err;
+      });
+    }
+    return modules[url];
+  }
+
   async function decodeHeic(file, decoderUrl) {
     // browsers that read HEIC themselves (Safari) need no decoder
     try { return await createImageBitmap(file); } catch (e) {}
@@ -1528,7 +1545,9 @@ if (! function_exists('fb_script')) {
 
     function emojiPicker(f, p) {
       if (!emojiPickers[f.name]) {
-        emojiPickers[f.name] = import(cfg.emoji.picker).then(function () {
+        emojiPickers[f.name] = loadModule(cfg.emoji.picker).then(function () {
+          return customElements.whenDefined('emoji-picker');
+        }).then(function () {
           var picker = document.createElement('emoji-picker');
           picker.className = 'light'; // the admin pages are light whatever the system theme is
           picker.locale = cfg.emoji.locale;
