@@ -240,6 +240,7 @@
                 </a>
             </li>
             <?php if (isBusinessOwner()): ?>
+                <li class="nav-heading"><span><?= lang('System.page.finance') ?></span></li>
                 <li class="nav-item">
                     <a class="nav-link<?= ('revenue-report' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/revenue-report') ?>">
                         <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>

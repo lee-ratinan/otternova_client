@@ -203,6 +203,8 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->get('calendar', 'Calendar::index');
     $routes->get('calendar/session/(:segment)', 'Calendar::session/$1');
     $routes->get('revenue-report', 'RevenueReport::index');
+    $routes->get('salary-and-commission', 'SalaryAndCommission::index');
+    $routes->get('salary-and-commission/(:segment)', 'SalaryAndCommission::person/$1');
     // the reviews of the session business's products and services: anyone working in it, as the API allows
     $routes->get('reviews', 'Reviews::index');
     $routes->post('reviews/data', 'Reviews::data');
