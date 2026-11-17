@@ -50,14 +50,15 @@ class Website extends BaseController
      * Save the colours, languages and featured products and services through LINK_INTERNAL_API v1/client/website/save;
      * the page's script posts them as JSON { colors, languages, featured, names? }. names (language_code =>
      * business_name), sent only when changed, are saved first through v1/client/business/edit, which only owners may
-     * do; the names in languages not posted are kept (fetched afresh, as the API replaces them all).
+     * do (a manager's are ignored: the page shows them disabled); the names in languages not posted are kept (fetched
+     * afresh, as the API replaces them all).
      * @return ResponseInterface { success, message, settings } or { success: false, message, errors } with the API's
      *                           field names (languages.0.heading_font, translations.th), which the script shows by them
      */
     public function save(): ResponseInterface
     {
         $input   = (array) ($this->request->getJSON(true) ?? []);
-        if (is_array($input['names'] ?? null) && [] !== $input['names']) {
+        if (is_array($input['names'] ?? null) && [] !== $input['names'] && isBusinessOwner()) {
             $names = $this->businessNames();
             if (null === $names) {
                 return $this->failed(500, [], lang('Website.save-failed'));

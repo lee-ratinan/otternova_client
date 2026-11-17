@@ -26,6 +26,7 @@ $config = [
     'settings'      => $settings,
     'names'         => null === $names ? null : (object) $names,
     'businessName'  => (string) (currentBusinessName() ?? ''),
+    'canEditNames'  => isBusinessOwner(), // the API lets only owners change them; managers see them disabled
     'urls'          => $urls,
     'csrf'          => ['header' => csrf_header(), 'hash' => csrf_hash()],
     'defaultColors' => $defaultColors,
@@ -40,6 +41,7 @@ $config = [
         'addPlaceholder'   => lang('Website.languages.add-placeholder'),
         'businessName'     => lang('Website.content.business-name'),
         'businessNameHelp' => lang('Website.content.business-name-help'),
+        'businessNameOwner'=> lang('Website.content.business-name-owner-only'),
         'fonts'            => lang('Website.content.fonts'),
         'meta'             => lang('Website.content.meta'),
         'metaHelp'         => lang('Website.content.meta-help'),
@@ -321,13 +323,13 @@ $config = [
     var key = 'translations.' + code;
     var id = 'lang-' + code + '-business-name';
     var limit = 255; // the API's longest business name
-    var input = el('input', { class: 'form-control', type: 'text', id: id, 'data-input-for': key, placeholder: cfg.businessName, maxlength: limit });
+    var input = el('input', { class: 'form-control', type: 'text', id: id, 'data-input-for': key, placeholder: cfg.businessName, maxlength: limit, disabled: !cfg.canEditNames });
     input.value = names[code] || '';
     input.addEventListener('input', function () { names[code] = input.value; changedNames[code] = true; markDirty(); drawPreview(); });
     return el('div', { class: 'mb-3' }, [
       el('h6', { class: 'fw-semibold mt-1' }, [el('label', { for: id, text: M.businessName })]),
       input,
-      el('div', { class: 'form-text', text: M.businessNameHelp }),
+      el('div', { class: 'form-text', text: cfg.canEditNames ? M.businessNameHelp : M.businessNameOwner }),
       el('div', { class: 'invalid-feedback d-block', 'data-error-for': key }),
     ]);
   }
@@ -639,7 +641,7 @@ $config = [
       featured: state.featured,
     };
     var changed = Object.keys(changedNames);
-    if (names && changed.length) {
+    if (names && cfg.canEditNames && changed.length) {
       body.names = {};
       changed.forEach(function (code) { body.names[code] = (names[code] || '').trim(); });
     }

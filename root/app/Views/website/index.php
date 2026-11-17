@@ -183,9 +183,10 @@ $maxFeatured = (int) ($settings['options']['max_featured'] ?? 3);
                     </div>
                 </div>
                 <div class="card">
-                    <div class="card-body d-flex align-items-center gap-3">
+                    <div class="card-body d-flex justify-content-between align-items-center gap-3">
                         <button type="button" class="btn btn-primary" id="website-save"><i class="bi bi-check-lg"></i> <?= lang('Website.save') ?></button>
                         <span class="small text-muted" id="website-dirty" hidden><i class="bi bi-dot"></i><?= lang('Website.unsaved') ?></span>
+                        <a href="<?= esc(rtrim((string) getenv('LINK_MART'), '/') . '/' . rawurlencode((string) currentBusinessSlug()), 'attr') ?>" class="btn btn-outline-primary" id="btn-preview" target="_blank" rel="noopener"><?= lang('Website.preview.title') ?></a>
                     </div>
                 </div>
             </div>
