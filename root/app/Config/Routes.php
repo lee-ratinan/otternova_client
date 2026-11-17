@@ -17,8 +17,10 @@ $routes->get('/reset-password', 'Home::resetPassword');
 $routes->post('/reset-password', 'Home::submitResetPassword');
 
 $routes->group('admin', ['filter' => 'auth'], static function($routes) {
-    $routes->get('/', 'Admin::dashboard');
-    $routes->get('dashboard', 'Admin::dashboard');
+    // the widgets of the client's role in the session business, each loaded on its own; see App\Controllers\Dashboard
+    $routes->get('/', 'Dashboard::index');
+    $routes->get('dashboard', 'Dashboard::index');
+    $routes->post('dashboard/widget/(:segment)', 'Dashboard::widget/$1');
     $routes->get('create-business', 'Admin::createBusiness');
     $routes->post('create-business', 'Admin::createBusinessPost');
     $routes->get('profile', 'Admin::profile');
@@ -81,6 +83,18 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('website/save', 'Website::save');
         $routes->post('website/logo-upload', 'Website::logoUpload');
         $routes->post('website/logo-delete', 'Website::logoDelete');
+        // the pages the business designs itself, their sections and pictures; see App\Controllers\Webpages
+        $routes->get('webpages', 'Webpages::index');
+        $routes->get('webpages/edit/(:segment)', 'Webpages::edit/$1');
+        $routes->post('webpages/create', 'Webpages::create');
+        $routes->post('webpages/save', 'Webpages::save');
+        $routes->post('webpages/delete', 'Webpages::delete');
+        $routes->post('webpages/reorder', 'Webpages::reorder');
+        $routes->post('webpages/preview', 'Webpages::preview');
+        $routes->post('webpages/section-save', 'Webpages::sectionSave');
+        $routes->post('webpages/section-delete', 'Webpages::sectionDelete');
+        $routes->post('webpages/image-upload', 'Webpages::imageUpload');
+        $routes->post('webpages/image-delete', 'Webpages::imageDelete');
         // how the business pays commission; see App\Controllers\Staff
         $routes->get('commission', 'Staff::commission');
         $routes->post('commission/save', 'Staff::commissionSave');

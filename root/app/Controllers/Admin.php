@@ -121,20 +121,6 @@ class Admin extends BaseController
     private const OTP_MODE_DISABLED = [AuthMasterModel::OTP_TELEPHONE];
 
     /**
-     * Landing page after sign-in (placeholder until the client dashboard is built).
-     */
-    public function dashboard(): string
-    {
-        $locale = $this->request->getLocale();
-        $data   = [
-            'locale' => $locale,
-            'slug'   => 'dashboard',
-            'user'   => session()->get('user') ?? [],
-        ];
-        return view('admin_dashboard', $data);
-    }
-
-    /**
      * The signed-in client's own profile (v1/client/account), opened in view mode; the Edit button switches the
      * same page to edit mode. Below it: the profile picture upload and the password change.
      */

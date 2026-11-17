@@ -50,6 +50,7 @@ return [
         'staff-attribute-create' => 'Add Staff Attribute',
         'commission'            => 'Commission',
         'website'               => 'Website',
+        'webpages'              => 'Web Pages',
         'reviews'               => 'Reviews',
         'public-profiles'       => 'Public Profiles',
         'traffic'               => 'Traffic',

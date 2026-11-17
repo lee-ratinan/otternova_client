@@ -50,6 +50,7 @@ return [
         'staff-attribute-create' => 'เพิ่มคุณสมบัติพนักงาน',
         'commission'            => 'ค่าคอมมิชชัน',
         'website'               => 'เว็บไซต์',
+        'webpages'              => 'หน้าเว็บ',
         'reviews'               => 'รีวิว',
         'public-profiles'       => 'ประวัติสาธารณะ',
         'traffic'               => 'ผู้เข้าชม',
