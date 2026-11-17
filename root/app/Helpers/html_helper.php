@@ -272,6 +272,6 @@ if (!function_exists('assets_url')) {
      */
     function assets_url(string $path = ''): string
     {
-        return getenv('LINK_ASSETS') . '/' . ltrim($path, '/');
+        return rtrim(getenv('LINK_ASSETS'), '/') . '/' . ltrim($path, '/');
     }
 }
