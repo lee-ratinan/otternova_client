@@ -13,9 +13,13 @@
  */
 $this->extend('_layout_admin');
 
-$hour     = (int) date('G');
-$greeting = lang('Dashboard.greeting.' . ($hour < 12 ? 'morning' : ($hour < 18 ? 'afternoon' : 'evening')), [userDisplayName($user)]);
-$roles    = (array) lang('Dashboard.role');
+// the time of day is the viewer's own (they may be anywhere), so the script under the heading picks the greeting;
+// without it the neutral one stays
+$greetings = [];
+foreach (['hello', 'morning', 'afternoon', 'evening'] as $time) {
+    $greetings[$time] = lang('Dashboard.greeting.' . $time, [userDisplayName($user)]);
+}
+$roles = (array) lang('Dashboard.role');
 
 // the quick actions of each role: [url, icon, label key, least role]
 $actions = [
@@ -45,7 +49,16 @@ $order = ['revenue', 'today', 'orders', 'traffic', 'reviews', 'subscription'];
     <div class="card mb-3">
         <div class="card-body d-flex flex-wrap align-items-center gap-3">
             <div class="me-auto">
-                <h4 class="mb-1" data-greeting><?= esc($greeting) ?></h4>
+                <h4 class="mb-1" data-greeting="<?= esc(json_encode($greetings, JSON_UNESCAPED_UNICODE), 'attr') ?>"><?= esc($greetings['hello']) ?></h4>
+                <script>
+                (function () {
+                    // morning until noon, afternoon until 18:00, on the viewer's own clock
+                    var heading = document.querySelector('[data-greeting]');
+                    var greetings = JSON.parse(heading.getAttribute('data-greeting'));
+                    var hour = new Date().getHours();
+                    heading.textContent = greetings[hour < 12 ? 'morning' : (hour < 18 ? 'afternoon' : 'evening')];
+                })();
+                </script>
                 <?php if (null !== $birthday) : ?>
                     <div class="alert alert-warning py-2 my-3 d-none" role="status" data-birthday="<?= esc($birthday, 'attr') ?>">
                         <i class="bi bi-cake2"></i>

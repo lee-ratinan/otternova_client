@@ -1,6 +1,7 @@
 <?php
 return [
     'greeting'    => [
+        'hello'     => 'Hello, {0}',
         'morning'   => 'Good morning, {0}',
         'afternoon' => 'Good afternoon, {0}',
         'evening'   => 'Good evening, {0}',
