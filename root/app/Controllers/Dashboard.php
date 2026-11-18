@@ -49,7 +49,31 @@ class Dashboard extends BaseController
             'widgets'      => null === $role ? [] : self::widgetsFor($role),
             'businessName' => (string) currentBusinessName(),
             'widgetUrl'    => base_url('admin/dashboard/widget/'),
+            'birthday'     => $this->birthday(),
         ]);
+    }
+
+    /**
+     * The client's birthday as 'm-d' (from client_profile.date_of_birth), for the page's script to wish them a happy
+     * birthday when it is that day on the viewer's own clock (the server's is UTC); null when it is not known.
+     * Sign-in does not send date_of_birth, so it is read from v1/client/account once and kept in the session user,
+     * where saving the profile (Admin::profileEditPost()) keeps it up to date; a failed read is kept as unknown, so it
+     * does not slow down every visit.
+     */
+    private function birthday(): ?string
+    {
+        $user = session('user');
+        if (! is_array($user)) {
+            return null;
+        }
+        if (! array_key_exists('date_of_birth', $user)) {
+            [$code, $body] = $this->callApi('v1/client/account', []);
+            $ok = $code === 200 && ($body['status'] ?? '') === 'success';
+            $user['date_of_birth'] = $ok ? ($body['data']['profile']['date_of_birth'] ?? $body['data']['account']['date_of_birth'] ?? null) : null;
+            session()->set('user', $user);
+        }
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', substr((string) $user['date_of_birth'], 0, 10));
+        return false === $date ? null : $date->format('m-d');
     }
 
     /**

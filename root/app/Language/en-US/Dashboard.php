@@ -5,6 +5,10 @@ return [
         'afternoon' => 'Good afternoon, {0}',
         'evening'   => 'Good evening, {0}',
     ],
+    'birthday'    => [
+        'title' => 'Happy birthday, {0}!',
+        'note'  => 'Wishing you a wonderful day and a great year ahead.',
+    ],
     'subtitle'    => 'Here is what is happening at {0} today.',
     'no-business' => 'You are not working in a business yet. Create one to get started.',
     'role'        => ['O' => 'Owner', 'M' => 'Manager', 'E' => 'Staff'],

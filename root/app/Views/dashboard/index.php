@@ -7,6 +7,7 @@
  * @var list<string> $widgets      the widgets the role sees, in order
  * @var string       $businessName the session business
  * @var string       $widgetUrl    admin/dashboard/widget/, the widget's name appended
+ * @var string|null  $birthday     the client's birthday, 'm-d'; the script below shows the birthday wish on that day
  * @var array        $user         the session user
  * @var string       $locale
  */
@@ -44,13 +45,34 @@ $order = ['revenue', 'today', 'orders', 'traffic', 'reviews', 'subscription'];
     <div class="card mb-3">
         <div class="card-body d-flex flex-wrap align-items-center gap-3">
             <div class="me-auto">
-                <h4 class="mb-1"><?= esc($greeting) ?></h4>
+                <h4 class="mb-1" data-greeting><?= esc($greeting) ?></h4>
+                <?php if (null !== $birthday) : ?>
+                    <div class="alert alert-warning py-2 my-3 d-none" role="status" data-birthday="<?= esc($birthday, 'attr') ?>">
+                        <i class="bi bi-cake2"></i>
+                        <strong><?= esc(lang('Dashboard.birthday.title', [userDisplayName($user)])) ?></strong><br/>
+                        <?= esc(lang('Dashboard.birthday.note')) ?>
+                    </div>
+                    <script>
+                    (function () {
+                        // on the viewer's own clock; a 29 February birthday is wished on 28 February in other years
+                        var box = document.querySelector('[data-birthday]');
+                        var now = new Date();
+                        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+                        var today = pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+                        var day = box.getAttribute('data-birthday');
+                        var leap = new Date(now.getFullYear(), 1, 29).getMonth() === 1;
+                        if (day === today || (day === '02-29' && !leap && today === '02-28')) {
+                            box.classList.remove('d-none');
+                        }
+                    })();
+                    </script>
+                <?php endif; ?>
                 <?php if (null === $role) : ?>
                     <p class="text-muted mb-0"><?= esc(lang('Dashboard.no-business')) ?></p>
                 <?php else : ?>
                     <p class="text-muted mb-0">
                         <?= esc(lang('Dashboard.subtitle', [$businessName])) ?>
-                        <span class="badge bg-light text-dark border ms-1" data-dashboard-role><?= esc((string) ($roles[$role] ?? $role)) ?></span>
+                        <span class="badge bg-light text-dark border ms-1 d-none" data-dashboard-role><?= esc((string) ($roles[$role] ?? $role)) ?></span>
                     </p>
                 <?php endif; ?>
             </div>
