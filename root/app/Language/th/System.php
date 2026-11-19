@@ -42,6 +42,7 @@ return [
         'artifact-attribute-create' => 'สร้างคุณสมบัติของตัวเลือก',
         'sales'                 => 'การขาย',
         'calendar'              => 'ปฏิทิน',
+        'customers'             => 'ลูกค้า',
         'finance'               => 'การเงิน',
         'revenue-report'        => 'รายงานรายได้',
         'salary-and-commission' => 'เงินเดือนและค่าคอมมิชชั่น',

@@ -2,7 +2,7 @@
 /**
  * The script of webpages/edit.php. It keeps the page as the API last answered it, and draws from it:
  * - the details card: the names per language and the address (the home page has neither, only its fixed name)
- * - one card per section type (only the hero for now): a picker of the type's designs, each with its thumbnail
+ * - one card per section type (the hero first, then the others in the API's order): a picker of the type's designs, each with its thumbnail
  *   ({LINK_ASSETS}img/sections/{design_code}.webp, an icon while there is none) and a preview on the storefront in a
  *   modal; the design's text fields in a tab per language; and, once saved with that design, its picture slots
  * - the status and preview buttons
@@ -14,7 +14,9 @@
  * @var array $urls
  */
 helper('list');
-$config = [
+// the section types of the API's designs (Config\WebpageDesigns::SECTION_TYPES), named in Webpages.sections
+$sectionTypes = ['hero', 'about', 'services', 'portfolio', 'testimonials', 'why_us'];
+$config       = [
     'page'          => $page,
     'options'       => $options,
     'urls'          => $urls,
@@ -34,8 +36,8 @@ $config = [
         'slugWarning'      => lang('Webpages.editor.slug-warning'),
         'confirmSlug'      => lang('Webpages.editor.confirm-slug'),
         'saveDetails'      => lang('Webpages.editor.save-details'),
-        'sectionTypes'     => ['hero' => lang('Webpages.sections.hero')],
-        'sectionHelp'      => ['hero' => lang('Webpages.sections.hero-help')],
+        'sectionTypes'     => array_combine($sectionTypes, array_map(static fn (string $type): string => lang('Webpages.sections.' . $type), $sectionTypes)),
+        'sectionHelp'      => array_combine($sectionTypes, array_map(static fn (string $type): string => lang('Webpages.sections.' . $type . '-help'), $sectionTypes)),
         'chooseDesign'     => lang('Webpages.sections.choose-design'),
         'previewDesign'    => lang('Webpages.sections.preview-design'),
         'notOnPlan'        => lang('Webpages.sections.not-on-plan'),
@@ -59,15 +61,11 @@ $config = [
         'confirmDeleteImage' => lang('Webpages.images.confirm-delete'),
         'full'             => lang('Webpages.images.full'),
         'uploading'        => lang('Webpages.images.uploading'),
-        'slots'            => [
-            'badge'        => lang('Webpages.slots.badge'),
-            'headline'     => lang('Webpages.slots.headline'),
-            'paragraph'    => lang('Webpages.slots.paragraph'),
-            'button_label' => lang('Webpages.slots.button_label'),
-            'background'   => lang('Webpages.slots.background'),
-            'slide'        => lang('Webpages.slots.slide'),
-        ],
-        'designs'          => ['hero_design_1' => lang('Webpages.designs.hero_design_1')],
+        'slots'            => lang('Webpages.slots'),
+        'slotItem'         => lang('Webpages.slot-item'),
+        'slotItems'        => lang('Webpages.slot-items'),
+        'slotFields'       => lang('Webpages.slot-fields'),
+        'designs'          => lang('Webpages.designs'),
         'draft'            => lang('Webpages.status.D'),
         'published'        => lang('Webpages.status.P'),
         'publish'          => lang('Webpages.list.publish'),
@@ -165,7 +163,15 @@ $config = [
   }
 
   function humanize(code) { return code.replace(/_/g, ' ').replace(/^./, function (c) { return c.toUpperCase(); }); }
-  function slotName(code) { return M.slots[code] || humanize(code); }
+  /** A slot's name: its own, or for a numbered one, {item}_{n}_{field}, the item's name with n and the field's */
+  function slotName(code) {
+    if (M.slots[code]) { return M.slots[code]; }
+    var parts = /^([a-z]+)_(\d+)_([a-z_]+)$/.exec(code);
+    if (parts && M.slotItems[parts[1]]) {
+      return fill(M.slotItem, [M.slotItems[parts[1]], parts[2], M.slotFields[parts[3]] || humanize(parts[3])]);
+    }
+    return humanize(code);
+  }
   function designName(code) { return M.designs[code] || humanize(code); }
   function languageName(code) { return cfg.languageNames[code] || code; }
   function fill(text, values) { return text.replace(/\{(\d+)\}/g, function (m, i) { return values[+i] !== undefined ? values[+i] : m; }); }
@@ -522,9 +528,11 @@ $config = [
           section ? el('button', { type: 'button', class: 'btn btn-outline-danger', onclick: function () { deleteSection(type); } }, [el('i', { class: 'bi bi-trash' }), ' ' + M.deleteSection]) : null,
         ]));
       }
-      if (section && section.design_code === draft.design) {
+      // a design without pictures (services_01) has no picture slots to show
+      var hasPictures = !!draft.design && Object.keys(designs[draft.design].images || {}).length > 0;
+      if (hasPictures && section && section.design_code === draft.design) {
         body.appendChild(imageSlots(section));
-      } else if (draft.design) {
+      } else if (hasPictures) {
         body.appendChild(el('p', { class: 'small text-muted border-top pt-3 mt-3 mb-0' }, [el('i', { class: 'bi bi-image' }), ' ' + M.picturesFirst]));
       }
       holder.appendChild(el('div', { class: 'card mb-4' }, [

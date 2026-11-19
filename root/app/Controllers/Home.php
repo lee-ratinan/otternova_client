@@ -28,6 +28,9 @@ class Home extends BaseController
             'locale' => $locale,
             'slug'   => 'login'
         ];
+        if ('1' === (string) $this->request->getGet('expired')) {
+            $data['authAlert'] = ['warning', lang('Auth.sessionExpired')];
+        }
         return view('public_login', $data);
     }
 
@@ -149,13 +152,18 @@ class Home extends BaseController
      */
     public function logout(): RedirectResponse
     {
+        $expired = '1' === (string) $this->request->getGet('expired');
+        // the session-expiry timer of an old page (scripts/session_expiry) must not end a session renewed since
+        if ($expired && hasActiveSession()) {
+            return redirect()->to(base_url('admin/dashboard'));
+        }
         $session = session();
         $token   = $session->get('access_token');
         if (! empty($token)) {
             $this->callPublicApi('v1/logout', [], $token);
         }
         $session->destroy();
-        return redirect()->to(base_url());
+        return redirect()->to($expired ? base_url('?expired=1') : base_url());
     }
 
     public function createAccount(): string|RedirectResponse

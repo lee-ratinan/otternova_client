@@ -5,7 +5,7 @@
             <h1 class="auth-title"><?= lang('Login.main.welcome') ?></h1>
             <p class="auth-subtitle"><?= lang('Login.main.signin-to-continue') ?></p>
         </div>
-        <?php $authAlert = session()->getFlashdata('auth_alert'); // [type, message], e.g. from activate-account ?>
+        <?php $authAlert = session()->getFlashdata('auth_alert') ?? ($authAlert ?? null); // [type, message], e.g. from activate-account, or an expired session ?>
         <?php if (is_array($authAlert) && count($authAlert) === 2): ?>
             <div id="login-alert" class="alert alert-<?= esc($authAlert[0], 'attr') ?>" role="alert"><?= esc($authAlert[1]) ?></div>
         <?php else: ?>

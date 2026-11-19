@@ -239,6 +239,12 @@
                     <span class="nav-text"><?= lang('System.page.calendar') ?></span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link<?= ('customers' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/customers') ?>">
+                    <span class="nav-icon"><i class="bi bi-person-lines-fill"></i></span>
+                    <span class="nav-text"><?= lang('System.page.customers') ?></span>
+                </a>
+            </li>
             <?php if (isBusinessOwner()): ?>
                 <li class="nav-heading"><span><?= lang('System.page.finance') ?></span></li>
                 <li class="nav-item">
@@ -416,5 +422,7 @@
 <!-- App Sidebar Toggle (for app pages with sidebars) -->
 <script src="<?= assets_url('themes/client/js/apps-sidebar-toggle.js') ?>"></script>
 <script src="<?= assets_url('themes/client/js/notification-center.js') ?>"></script>
+<!-- Session expiry: sign out and go to the login page when the session runs out -->
+<script><?= view('scripts/session_expiry') ?></script>
 </body>
 </html>

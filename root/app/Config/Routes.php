@@ -219,6 +219,13 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->get('revenue-report', 'RevenueReport::index');
     $routes->get('salary-and-commission', 'SalaryAndCommission::index');
     $routes->get('salary-and-commission/(:segment)', 'SalaryAndCommission::person/$1');
+    // the customers of the session business, read only, and the notes about them: anyone working in it, as the API
+    // allows (a note deleted by its writer or an owner or manager); see App\Controllers\Customers
+    $routes->get('customers', 'Customers::index');
+    $routes->post('customers/data', 'Customers::data');
+    $routes->get('customers/view/(:segment)', 'Customers::customer/$1');
+    $routes->post('customers/note/add', 'Customers::addNote');
+    $routes->post('customers/note/delete', 'Customers::deleteNote');
     // the reviews of the session business's products and services: anyone working in it, as the API allows
     $routes->get('reviews', 'Reviews::index');
     $routes->post('reviews/data', 'Reviews::data');

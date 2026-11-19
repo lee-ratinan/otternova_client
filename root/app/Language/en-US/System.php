@@ -42,6 +42,7 @@ return [
         'artifact-attribute-create' => 'Create Variant Option',
         'sales'                 => 'Sales',
         'calendar'              => 'Calendar',
+        'customers'             => 'Customers',
         'finance'               => 'Finance',
         'revenue-report'        => 'Revenue report',
         'salary-and-commission' => 'Salary and commission',
