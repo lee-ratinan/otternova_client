@@ -39,28 +39,40 @@ $share    = static fn (string $amount, string $total): float => (float) $total >
         <small class="text-muted"><?= esc(lang('RevenueReport.subtitle', [$businessName])) ?></small>
     </div>
     <div class="card-body">
-        <div class="d-flex flex-wrap gap-2 align-items-end">
-            <div class="btn-group" role="group">
-                <a class="btn btn-outline-secondary" href="<?= esc($previous, 'attr') ?>" title="<?= esc(lang('RevenueReport.previous'), 'attr') ?>"
-                   aria-label="<?= esc(lang('RevenueReport.previous'), 'attr') ?>"><i class="bi bi-chevron-left"></i></a>
+        <div class="d-md-none">
+            <button type="button" class="btn btn-outline-secondary w-100" data-bs-toggle="collapse" data-bs-target="#revenue-filters"
+                    aria-expanded="false" aria-controls="revenue-filters"><i class="bi bi-funnel"></i> <?= esc(lang('System.filters')) ?></button>
+        </div>
+        <div class="collapse d-md-block" id="revenue-filters">
+        <div class="d-flex flex-wrap gap-2 align-items-end pt-2 pt-md-0">
+            <div class="btn-group col-12 col-md-auto" role="group">
                 <?php foreach ((array) lang('RevenueReport.period') as $key => $name) : ?>
-                    <a class="btn <?= $period === $key ? 'btn-primary' : 'btn-outline-secondary' ?>" href="<?= esc($base . '?period=' . $key, 'attr') ?>"><?= esc($name) ?></a>
+                    <a class="btn px-2 px-sm-3 text-nowrap <?= $period === $key ? 'btn-primary' : 'btn-outline-secondary' ?>" href="<?= esc($base . '?period=' . $key, 'attr') ?>"><?= esc($name) ?></a>
                 <?php endforeach; ?>
-                <a class="btn btn-outline-secondary" href="<?= esc($next, 'attr') ?>" title="<?= esc(lang('RevenueReport.next'), 'attr') ?>"
-                   aria-label="<?= esc(lang('RevenueReport.next'), 'attr') ?>"><i class="bi bi-chevron-right"></i></a>
             </div>
-            <form method="get" action="<?= esc($base, 'attr') ?>" class="d-flex flex-wrap gap-2 align-items-end ms-md-auto">
+            <div class="btn-group col-12 col-md-auto" role="group">
+                <a class="btn btn-outline-secondary text-nowrap" href="<?= esc($previous, 'attr') ?>" title="<?= esc(lang('RevenueReport.previous'), 'attr') ?>"
+                   aria-label="<?= esc(lang('RevenueReport.previous'), 'attr') ?>"><i class="bi bi-chevron-left"></i><span class="d-md-none ms-1"><?= esc(lang('RevenueReport.previous')) ?></span></a>
+                <a class="btn btn-outline-secondary text-nowrap" href="<?= esc($next, 'attr') ?>" title="<?= esc(lang('RevenueReport.next'), 'attr') ?>"
+                   aria-label="<?= esc(lang('RevenueReport.next'), 'attr') ?>"><span class="d-md-none me-1"><?= esc(lang('RevenueReport.next')) ?></span><i class="bi bi-chevron-right"></i></a>
+            </div>
+            <form method="get" action="<?= esc($base, 'attr') ?>" class="d-flex flex-wrap gap-2 align-items-end col-12 col-md-auto ms-md-auto">
                 <input type="hidden" name="period" value="custom">
-                <div>
+                <div class="col col-md-auto">
                     <label for="revenue-from" class="form-label small mb-1"><?= esc(lang('RevenueReport.from')) ?></label>
                     <input type="date" class="form-control" id="revenue-from" name="from" value="<?= esc($from, 'attr') ?>" required>
                 </div>
-                <div>
+                <div class="col col-md-auto">
                     <label for="revenue-to" class="form-label small mb-1"><?= esc(lang('RevenueReport.to')) ?></label>
                     <input type="date" class="form-control" id="revenue-to" name="to" value="<?= esc($to, 'attr') ?>" required>
                 </div>
-                <button type="submit" class="btn <?= 'custom' === $period ? 'btn-primary' : 'btn-outline-primary' ?>"><?= esc(lang('RevenueReport.go')) ?></button>
+                <button type="submit" class="btn col-12 col-md-auto <?= 'custom' === $period ? 'btn-primary' : 'btn-outline-primary' ?>"><?= esc(lang('RevenueReport.go')) ?></button>
             </form>
+            <?php if (null === $error) : ?>
+                <a class="btn btn-outline-secondary col-12 col-md-auto text-nowrap" target="_blank" rel="noopener" id="revenue-export-link"
+                   href="<?= esc($base . '/export?' . http_build_query('custom' === $period ? ['period' => 'custom', 'from' => $from, 'to' => $to] : ['period' => $period, 'date' => $from]), 'attr') ?>"><i class="bi bi-printer"></i> <?= esc(lang('System.print.export')) ?></a>
+            <?php endif; ?>
+        </div>
         </div>
     </div>
 </div>

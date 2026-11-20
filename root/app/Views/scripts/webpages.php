@@ -216,7 +216,7 @@ $config = [
     create.disabled = !!reason;
     create.title = reason || '';
     document.getElementById('page-create-reason-text').textContent = reason || '';
-    document.getElementById('page-create-reason').hidden = !reason;
+    document.getElementById('page-create-reason').classList.toggle('d-none', !reason);
   }
 
   /** Why no page can be added now, or null when one can */

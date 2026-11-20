@@ -67,4 +67,15 @@ return [
         'kind'           => ['A' => 'Appointment', 'G' => 'Group session'],
         'total'          => 'Total pay',
     ],
+    'export'      => [
+        'title'     => 'Salary and commission report',
+        'period'    => 'Pay period',
+        'cycle'     => 'Pay cycle',
+        'no'        => '#',
+        'role'      => 'Role',
+        'started'   => 'Started',
+        'left'      => 'Left',
+        'currency'  => 'Currency',
+        'legend'    => '* pro rata salary; † commission below the threshold, so none is paid.',
+    ],
 ];

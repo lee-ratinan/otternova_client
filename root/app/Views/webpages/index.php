@@ -49,7 +49,7 @@ $languageNames = listLanguages();
                 </button>
             </div>
         </div>
-        <div class="alert alert-warning d-flex align-items-center gap-2 mx-3 mt-3 mb-0" id="page-create-reason" role="status" hidden>
+        <div class="alert alert-warning d-flex d-none align-items-center gap-2 mx-3 mt-3 mb-0" id="page-create-reason" role="status">
             <i class="bi bi-exclamation-triangle"></i> <span id="page-create-reason-text"></span>
         </div>
         <div class="card-body">

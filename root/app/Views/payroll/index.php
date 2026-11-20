@@ -31,27 +31,37 @@ $sum   = static fn (string $key): string => number_format(array_sum(array_map(st
         <small class="text-muted"><?= esc(lang('SalaryAndCommission.subtitle', [$businessName])) ?></small>
     </div>
     <div class="card-body">
+        <div class="d-md-none mb-3">
+            <button type="button" class="btn btn-outline-secondary w-100" data-bs-toggle="collapse" data-bs-target="#payroll-filters"
+                    aria-expanded="false" aria-controls="payroll-filters"><i class="bi bi-funnel"></i> <?= esc(lang('System.filters')) ?></button>
+        </div>
+        <div class="collapse d-md-block" id="payroll-filters">
         <div class="d-flex flex-wrap gap-2 align-items-end mb-3">
-            <div class="btn-group" role="group">
+            <div class="btn-group col-12 col-md-auto" role="group">
                 <?php foreach ((array) lang('SalaryAndCommission.cycle') as $key => $name) : ?>
-                    <a class="btn <?= $cycle === $key ? 'btn-primary' : 'btn-outline-secondary' ?>" href="<?= esc(base_url('admin/salary-and-commission') . '?cycle=' . $key, 'attr') ?>"><?= esc($name) ?></a>
+                    <a class="btn px-2 px-sm-3 text-nowrap <?= $cycle === $key ? 'btn-primary' : 'btn-outline-secondary' ?>" href="<?= esc(base_url('admin/salary-and-commission') . '?cycle=' . $key, 'attr') ?>"><?= esc($name) ?></a>
                 <?php endforeach; ?>
             </div>
-            <div class="btn-group" role="group">
-                <a class="btn btn-outline-secondary" href="<?= esc($previous, 'attr') ?>" title="<?= esc(lang('SalaryAndCommission.previous'), 'attr') ?>"
+            <div class="btn-group col-12 col-md-auto" role="group">
+                <a class="btn btn-outline-secondary flex-grow-0" href="<?= esc($previous, 'attr') ?>" title="<?= esc(lang('SalaryAndCommission.previous'), 'attr') ?>"
                    aria-label="<?= esc(lang('SalaryAndCommission.previous'), 'attr') ?>"><i class="bi bi-chevron-left"></i></a>
-                <a class="btn btn-outline-secondary" href="<?= esc(base_url('admin/salary-and-commission') . '?cycle=' . $cycle, 'attr') ?>"><?= esc(lang('SalaryAndCommission.this.' . $cycle)) ?></a>
-                <a class="btn btn-outline-secondary" href="<?= esc($next, 'attr') ?>" title="<?= esc(lang('SalaryAndCommission.next'), 'attr') ?>"
+                <a class="btn btn-outline-secondary text-nowrap" href="<?= esc(base_url('admin/salary-and-commission') . '?cycle=' . $cycle, 'attr') ?>"><?= esc(lang('SalaryAndCommission.this.' . $cycle)) ?></a>
+                <a class="btn btn-outline-secondary flex-grow-0" href="<?= esc($next, 'attr') ?>" title="<?= esc(lang('SalaryAndCommission.next'), 'attr') ?>"
                    aria-label="<?= esc(lang('SalaryAndCommission.next'), 'attr') ?>"><i class="bi bi-chevron-right"></i></a>
             </div>
-            <form method="get" action="<?= esc(base_url('admin/salary-and-commission'), 'attr') ?>" class="d-flex gap-2 align-items-end ms-md-auto">
+            <form method="get" action="<?= esc(base_url('admin/salary-and-commission'), 'attr') ?>" class="d-flex gap-2 align-items-end col-12 col-md-auto ms-md-auto">
                 <input type="hidden" name="cycle" value="<?= esc($cycle, 'attr') ?>">
-                <div>
+                <div class="flex-fill">
                     <label for="payroll-date" class="form-label small mb-1"><?= esc(lang('SalaryAndCommission.date')) ?></label>
                     <input type="date" class="form-control" id="payroll-date" name="date" value="<?= esc($from, 'attr') ?>" required onchange="this.form.submit()">
                 </div>
                 <button type="submit" class="btn btn-outline-primary"><?= esc(lang('SalaryAndCommission.go')) ?></button>
             </form>
+            <?php if (null === $error) : ?>
+                <a class="btn btn-outline-secondary col-12 col-md-auto text-nowrap" target="_blank" rel="noopener" id="payroll-export-link"
+                   href="<?= esc(base_url('admin/salary-and-commission/export') . '?' . http_build_query(['cycle' => $cycle, 'date' => $from]), 'attr') ?>"><i class="bi bi-printer"></i> <?= esc(lang('System.print.export')) ?></a>
+            <?php endif; ?>
+        </div>
         </div>
 
         <?php if ([] !== $commission) : ?>

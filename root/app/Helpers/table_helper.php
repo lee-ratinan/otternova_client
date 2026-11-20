@@ -27,8 +27,8 @@
  *   ],
  *   'edit_key' => 'edit_url',            // JSON key holding each row's edit URL (always the FIRST column)
  *   'add_disabled' => '',                // non-empty = the Add button is shown disabled, with this text as the reason
- *   'labels'   => ['add'=>'Add New','edit'=>'Edit','reset'=>'Reset','all'=>'All'],
- *   'icons'    => ['add'=>'bi-plus-circle','edit'=>'bi-eye','reset'=>'bi-arrow-counterclockwise'],
+ *   'labels'   => ['add'=>'Add New','edit'=>'Edit','reset'=>'Reset','all'=>'All','filters'=>lang('System.filters')],
+ *   'icons'    => ['add'=>'bi-plus-circle','edit'=>'bi-eye','reset'=>'bi-arrow-counterclockwise','filters'=>'bi-funnel'],
  *   'messages' => ['loadFailed'=>...],
  *   'values'   => ['status' => 'A'],     // initial filter values (keyed by filter name)
  *   'columns'  => [ <column>, <column>, ... ],
@@ -223,8 +223,9 @@ if (! function_exists('lb_defaults')) {
             'urls'            => ['data' => '', 'create' => '', 'edit' => ''],
             'edit_key'        => 'edit_url',
             'add_disabled'    => '',
-            'labels'          => ['add' => 'Add New', 'edit' => 'Edit', 'reset' => 'Reset', 'all' => 'All'],
-            'icons'           => ['add' => 'bi-plus-circle', 'edit' => 'bi-eye', 'reset' => 'bi-arrow-counterclockwise'],
+            'labels'          => ['add' => 'Add New', 'edit' => 'Edit', 'reset' => 'Reset', 'all' => 'All',
+                                  'filters' => function_exists('lang') ? lang('System.filters') : 'Filters'],
+            'icons'           => ['add' => 'bi-plus-circle', 'edit' => 'bi-eye', 'reset' => 'bi-arrow-counterclockwise', 'filters' => 'bi-funnel'],
             'messages'        => ['loadFailed' => 'Could not load data. Please try again.'],
             'values'          => [],
             'columns'         => [],
@@ -402,7 +403,10 @@ if (! function_exists('lb_filter_control')) {
 }
 
 if (! function_exists('lb_filters')) {
-    /** The filter area. Returns '' when the controller passed no filters. */
+    /**
+     * The filter area. Returns '' when the controller passed no filters. On small screens it is collapsed behind a
+     * "Filters" toggle button (Bootstrap collapse); from md up it is always shown and the button is hidden.
+     */
     function lb_filters(array $cfg): string
     {
         $cfg     = lb_defaults($cfg);
@@ -410,13 +414,18 @@ if (! function_exists('lb_filters')) {
         if (! $filters) {
             return '';
         }
-        $html = '<form id="' . lb_esc($cfg['table_id'], 'attr') . '-filters" class="row g-2 align-items-end mb-3 mx-3" autocomplete="off">';
+        $collapse = lb_esc($cfg['table_id'], 'attr') . '-filters-collapse';
+        $html     = '<div class="d-md-none mb-3 mx-3"><button type="button" class="btn btn-outline-secondary w-100" data-bs-toggle="collapse"'
+            . ' data-bs-target="#' . $collapse . '" aria-expanded="false" aria-controls="' . $collapse . '">'
+            . '<i class="bi ' . lb_esc($cfg['icons']['filters'], 'attr') . '"></i> ' . lb_esc($cfg['labels']['filters']) . '</button></div>'
+            . '<div class="collapse d-md-block" id="' . $collapse . '">'
+            . '<form id="' . lb_esc($cfg['table_id'], 'attr') . '-filters" class="row g-2 align-items-end mb-3 mx-3" autocomplete="off">';
         foreach ($filters as $f) {
             $html .= lb_filter_control($f, $cfg);
         }
 
         return $html . '<div class="col-auto"><button type="reset" class="btn btn-outline-secondary"><i class="bi ' . lb_esc($cfg['icons']['reset'], 'attr') . '"></i> '
-            . lb_esc($cfg['labels']['reset']) . '</button></div></form>';
+            . lb_esc($cfg['labels']['reset']) . '</button></div></form></div>';
     }
 }
 

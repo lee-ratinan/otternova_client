@@ -55,4 +55,17 @@ return [
         'cancelled' => 'Cancelled',
         'counter'   => 'Counter',
     ],
+    'export'      => [
+        'title'    => 'Revenue report',
+        'period'   => 'Period',
+        'orders'   => 'Orders',
+        'no'       => '#',
+        'currency' => 'Currency',
+        'summary'  => 'Summary',
+        'count'    => 'Orders',
+        'cancelled'=> 'Cancelled',
+        'refunded' => 'Refunded',
+        'shown'    => 'Only the latest {0} of the {1} orders of this period are listed. Choose a shorter period to list them all.',
+        'note'     => 'Sales, collected and still to pay leave cancelled orders out; cancelled orders are marked (C).',
+    ],
 ];

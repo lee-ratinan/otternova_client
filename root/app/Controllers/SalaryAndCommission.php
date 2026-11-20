@@ -34,6 +34,28 @@ class SalaryAndCommission extends BaseController
     }
 
     /**
+     * GET admin/salary-and-commission/export?cycle=&date=: everyone's pay in the period as a black-and-white table on
+     * a page of its own, made to be printed on A4
+     */
+    public function export(): string|RedirectResponse
+    {
+        if (null === currentBusinessSlug() || ! isBusinessOwner()) {
+            return redirect()->to(base_url('admin/dashboard'));
+        }
+        [$cycle, $payload] = $this->period();
+        [$code, $body] = $this->callApi('v1/client/payroll', $payload);
+        $ok     = $code === 200 && ($body['status'] ?? '') === 'success';
+        $data   = $ok ? (array) $body['data'] : [];
+        $common = $this->common($cycle, $data, $payload);
+
+        return view('payroll/export', $common + [
+            'people' => array_values((array) ($data['people'] ?? [])),
+            'error'  => $ok ? null : (string) ($body['message'] ?? lang('SalaryAndCommission.load-failed')),
+            'back'   => self::link($cycle, $common['from']),
+        ]);
+    }
+
+    /**
      * GET admin/salary-and-commission/{uid}?cycle=&date=: one person's pay in the period, worked out
      * @param string $uid auth_master.uid
      */

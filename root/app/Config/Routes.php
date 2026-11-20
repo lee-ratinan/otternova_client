@@ -217,7 +217,9 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->get('calendar', 'Calendar::index');
     $routes->get('calendar/session/(:segment)', 'Calendar::session/$1');
     $routes->get('revenue-report', 'RevenueReport::index');
+    $routes->get('revenue-report/export', 'RevenueReport::export');
     $routes->get('salary-and-commission', 'SalaryAndCommission::index');
+    $routes->get('salary-and-commission/export', 'SalaryAndCommission::export');
     $routes->get('salary-and-commission/(:segment)', 'SalaryAndCommission::person/$1');
     // the customers of the session business, read only, and the notes about them: anyone working in it, as the API
     // allows (a note deleted by its writer or an owner or manager); see App\Controllers\Customers

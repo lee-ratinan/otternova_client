@@ -71,5 +71,13 @@ return [
         'privacy-policy' => 'Privacy Policy',
         'terms'          => 'Terms of Service',
         'help'           => 'Help'
-    ]
+    ],
+    'filters'    => 'Filters',
+    'print'      => [
+        'export'     => 'Export',
+        'print'      => 'Print',
+        'back'       => 'Back',
+        'printed-at' => 'Printed {0}',
+        'printed-by' => 'by {0}',
+    ],
 ];

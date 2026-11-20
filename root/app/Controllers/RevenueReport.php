@@ -24,6 +24,35 @@ class RevenueReport extends BaseController
         if (null === currentBusinessSlug() || ! isBusinessOwner()) {
             return redirect()->to(base_url('admin/dashboard'));
         }
+        $report = $this->report();
+
+        return view('revenue/index', $report + [
+            'slug'     => 'revenue-report',
+            'user'     => (array) session('user'),
+            'previous' => $this->shifted($report['period'], $report['from'], $report['to'], -1),
+            'next'     => $this->shifted($report['period'], $report['from'], $report['to'], 1),
+        ]);
+    }
+
+    /**
+     * GET admin/revenue-report/export, with the query of index(): the orders of the period as a black-and-white
+     * table on a page of its own, made to be printed on A4
+     */
+    public function export(): string|RedirectResponse
+    {
+        if (null === currentBusinessSlug() || ! isBusinessOwner()) {
+            return redirect()->to(base_url('admin/dashboard'));
+        }
+        $report = $this->report();
+        // oldest first, as a ledger reads
+        usort($report['orders'], static fn (array $a, array $b): int => strcmp((string) $a['local_created_at'], (string) $b['local_created_at']));
+
+        return view('revenue/export', $report + ['back' => $this->link($report)]);
+    }
+
+    /** The period asked for, from v1/client/revenue: what both index() and export() show */
+    private function report(): array
+    {
         $get    = fn (string $name): string => trim((string) $this->request->getGet($name));
         $period = in_array($get('period'), self::PERIODS, true) ? $get('period') : 'day';
         $from   = $get('from');
@@ -40,22 +69,27 @@ class RevenueReport extends BaseController
         $from = (string) ($data['from'] ?? $payload['from'] ?? $payload['date'] ?? gmdate('Y-m-d'));
         $to   = (string) ($data['to'] ?? $payload['to'] ?? $from);
 
-        return view('revenue/index', [
+        return [
             'locale'       => $this->request->getLocale(),
-            'slug'         => 'revenue-report',
-            'user'         => (array) session('user'),
             'period'       => $period,
             'from'         => $from,
             'to'           => $to,
-            'previous'     => $this->shifted($period, $from, $to, -1),
-            'next'         => $this->shifted($period, $from, $to, 1),
             'granularity'  => (string) ($data['granularity'] ?? 'day'),
             'currencies'   => array_values((array) ($data['currencies'] ?? [])),
             'orders'       => array_values((array) ($data['orders'] ?? [])),
             'orderCount'   => (int) ($data['order_count'] ?? 0),
             'error'        => $ok ? null : (string) ($body['message'] ?? lang('RevenueReport.load-failed')),
             'businessName' => (string) currentBusinessName(),
-        ]);
+        ];
+    }
+
+    /** The link to the report on screen of the period shown */
+    private function link(array $report): string
+    {
+        $query = 'custom' === $report['period'] ? ['period' => 'custom', 'from' => $report['from'], 'to' => $report['to']]
+            : ['period' => $report['period'], 'date' => $report['from']];
+
+        return base_url('admin/revenue-report') . '?' . http_build_query($query);
     }
 
     /**
