@@ -17,6 +17,9 @@ $config = [
         'createHome'      => lang('Webpages.create.home'),
         'createPage'      => lang('Webpages.create.page'),
         'count'           => lang('Webpages.list.count'),
+        'limitReached'    => lang('Webpages.list.limit-reached'),
+        'noWebsite'       => lang('Webpages.list.create-no-website'),
+        'noPlan'          => lang('Webpages.list.create-no-plan'),
         'home'            => lang('Webpages.list.home'),
         'draft'           => lang('Webpages.status.D'),
         'published'       => lang('Webpages.status.P'),
@@ -52,7 +55,8 @@ $config = [
   var csrfHash = cfg.csrf.hash;
   var root = document.getElementById('webpages-page');
   var modalNode = document.getElementById('create-modal');
-  var modal = window.bootstrap ? new window.bootstrap.Modal(modalNode) : null;
+  // this script runs before the layout loads Bootstrap: take the modal when it is first opened
+  function modal() { return window.bootstrap ? window.bootstrap.Modal.getOrCreateInstance(modalNode) : null; }
 
   function el(tag, attrs, children) {
     var node = document.createElement(tag);
@@ -208,7 +212,19 @@ $config = [
     document.getElementById('page-count').textContent = M.count.replace('{0}', pages.length).replace('{1}', maxPages);
     document.getElementById('page-create-label').textContent = pages.length === 0 ? M.createHome : M.createPage;
     var create = document.getElementById('page-create');
-    create.disabled = !options.website_ready || pages.length >= maxPages;
+    var reason = createBlocked();
+    create.disabled = !!reason;
+    create.title = reason || '';
+    document.getElementById('page-create-reason-text').textContent = reason || '';
+    document.getElementById('page-create-reason').hidden = !reason;
+  }
+
+  /** Why no page can be added now, or null when one can */
+  function createBlocked() {
+    if (!options.website_ready) { return M.noWebsite; }
+    if (maxPages <= 0) { return M.noPlan; }
+    if (pages.length >= maxPages) { return M.limitReached.replace('{0}', maxPages); }
+    return null;
   }
 
   function created(r) {
@@ -218,6 +234,7 @@ $config = [
   }
 
   document.getElementById('page-create').addEventListener('click', function () {
+    if (createBlocked()) { draw(); return; }
     if (pages.length === 0) {
       // the first page is always the home page: no name, no address to ask for
       this.disabled = true;
@@ -229,7 +246,8 @@ $config = [
     }
     clearErrors(modalNode);
     document.getElementById('create-form').reset();
-    if (modal) { modal.show(); }
+    var dialog = modal();
+    if (dialog) { dialog.show(); }
   });
 
   document.getElementById('create-form').addEventListener('submit', function (event) {

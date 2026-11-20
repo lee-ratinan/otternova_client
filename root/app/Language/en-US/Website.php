@@ -19,6 +19,8 @@ return [
         'add'             => 'Add',
         'add-placeholder' => 'Choose a language to add…',
         'all-added'       => 'Every available language is added.',
+        'limit-reached'   => 'The {1} plan allows up to {0} languages. Remove one, or upgrade your plan to add more.',
+        'upgrade'         => 'See plans',
     ],
     'content'       => [
         'title'                 => 'Fonts and Text',

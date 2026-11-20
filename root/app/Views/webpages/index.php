@@ -44,10 +44,13 @@ $languageNames = listLanguages();
             </div>
             <div class="d-flex align-items-center gap-3">
                 <span class="small text-muted" id="page-count"></span>
-                <button type="button" class="btn btn-primary" id="page-create"<?= $ready && $maxPages > 0 ? '' : ' disabled' ?>>
+                <button type="button" class="btn btn-primary" id="page-create" aria-describedby="page-create-reason-text"<?= $ready && $maxPages > 0 ? '' : ' disabled' ?>>
                     <i class="bi bi-plus-lg"></i> <span id="page-create-label"></span>
                 </button>
             </div>
+        </div>
+        <div class="alert alert-warning d-flex align-items-center gap-2 mx-3 mt-3 mb-0" id="page-create-reason" role="status" hidden>
+            <i class="bi bi-exclamation-triangle"></i> <span id="page-create-reason-text"></span>
         </div>
         <div class="card-body">
             <p class="text-muted mb-0" id="pages-empty" hidden><?= lang('Webpages.list.empty') ?></p>

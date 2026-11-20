@@ -38,6 +38,7 @@ class Website extends BaseController
             'user'        => (array) session('user'),
             'settings'    => (array) ($body['data'] ?? []),
             'names'       => $this->businessNames(),
+            'languageCap' => self::languageCap((array) ($body['data']['options'] ?? [])),
             'urls'        => [
                 'save'       => base_url('admin/business/website/save'),
                 'logoUpload' => base_url('admin/business/website/logo-upload'),
@@ -51,7 +52,7 @@ class Website extends BaseController
      * the page's script posts them as JSON { colors, languages, featured, names? }. names (language_code =>
      * business_name), sent only when changed, are saved first through v1/client/business/edit, which only owners may
      * do (a manager's are ignored: the page shows them disabled); the names in languages not posted are kept (fetched
-     * afresh, as the API replaces them all).
+     * afresh, as the API replaces them all). The API refuses more languages than the plan allows (409, errors.languages).
      * @return ResponseInterface { success, message, settings } or { success: false, message, errors } with the API's
      *                           field names (languages.0.heading_font, translations.th), which the script shows by them
      */
@@ -131,6 +132,17 @@ class Website extends BaseController
             'message'   => $body['message'] ?? lang('Website.logo.deleted'),
             'csrf_hash' => csrf_hash(),
         ]);
+    }
+
+    /**
+     * The business's plan and how many languages it allows, from the options of v1/client/website (the API's
+     * PlanLimits, which the save keeps to): { plan, name, max }, max 0 when the API gives none
+     * @param array $options
+     */
+    private static function languageCap(array $options): array
+    {
+        $plan = (string) ($options['plan_code'] ?? '');
+        return ['plan' => $plan, 'name' => planName($plan), 'max' => (int) ($options['max_languages'] ?? 0)];
     }
 
     /**

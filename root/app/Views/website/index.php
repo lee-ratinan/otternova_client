@@ -7,6 +7,7 @@
  * @var array $settings v1/client/website: colors, logo, languages, featured, options
  * @var array|null $names the business's names in other languages (language_code => business_name); null when they
  *                        could not be fetched, and then the page has no fields for them
+ * @var array $languageCap the business's plan and how many languages it allows: { plan, name, max }
  * @var array $urls     save, logoUpload, logoDelete
  */
 $this->extend('_layout_admin');
@@ -57,6 +58,8 @@ $maxFeatured = (int) ($settings['options']['max_featured'] ?? 3);
                         <button type="button" class="btn btn-outline-primary" id="language-add-button"><i class="bi bi-plus-lg"></i> <?= lang('Website.languages.add') ?></button>
                     </div>
                     <p class="form-text mb-0 d-none" id="language-all-added"><?= lang('Website.languages.all-added') ?></p>
+                    <p class="form-text mb-0 d-none" id="language-limit-reached"><i class="bi bi-info-circle"></i> <?= esc(lang('Website.languages.limit-reached', [$languageCap['max'], $languageCap['name']])) ?>
+                        <a href="<?= base_url('admin/plans') ?>"><?= lang('Website.languages.upgrade') ?></a></p>
                 </div>
             </div>
 
@@ -195,6 +198,6 @@ $maxFeatured = (int) ($settings['options']['max_featured'] ?? 3);
 </section>
 
 <script>
-<?= view('scripts/website', ['settings' => $settings, 'names' => $names, 'urls' => $urls]) ?>
+<?= view('scripts/website', ['settings' => $settings, 'names' => $names, 'languageCap' => $languageCap, 'urls' => $urls]) ?>
 </script>
 <?= $this->endSection() ?>

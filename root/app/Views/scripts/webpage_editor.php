@@ -2,9 +2,11 @@
 /**
  * The script of webpages/edit.php. It keeps the page as the API last answered it, and draws from it:
  * - the details card: the names per language and the address (the home page has neither, only its fixed name)
- * - one card per section type (the hero first, then the others in the API's order): a picker of the type's designs, each with its thumbnail
- *   ({LINK_ASSETS}img/sections/{design_code}.webp, an icon while there is none) and a preview on the storefront in a
- *   modal; the design's text fields in a tab per language; and, once saved with that design, its picture slots
+ * - one card per section the page has, in the API's order, then the one being added: a picker of the type's designs,
+ *   each with its thumbnail ({LINK_ASSETS}img/sections/{design_code}.webp, an icon while there is none) and a preview
+ *   on the storefront in a modal; the design's text fields in a tab per language; and its picture slots (for a section
+ *   not saved yet, the chosen files are uploaded right after it is added)
+ * - below them, a chooser of the next section type: the page starts empty and the user adds one section at a time
  * - the status and preview buttons
  * Changing a section's design keeps the texts of the slots both designs have; the API deletes the pictures that do
  * not fit the new design, which the page asks about first. Errors come back by the API's field names.
@@ -51,6 +53,15 @@ $config       = [
         'confirmDeleteSection' => lang('Webpages.sections.confirm-delete'),
         'confirmDesign'    => lang('Webpages.sections.confirm-design'),
         'notYet'           => lang('Webpages.sections.not-yet'),
+        'pickFirst'        => lang('Webpages.sections.pick-first'),
+        'pickFirstHelp'    => lang('Webpages.sections.pick-first-help'),
+        'pickNext'         => lang('Webpages.sections.pick-next'),
+        'pickNextHelp'     => lang('Webpages.sections.pick-next-help'),
+        'allAdded'         => lang('Webpages.sections.all-added'),
+        'finishFirst'      => lang('Webpages.sections.finish-first'),
+        'discard'          => lang('Webpages.sections.discard'),
+        'newSection'       => lang('Webpages.sections.new'),
+        'uploadOnSave'     => lang('Webpages.images.upload-on-save'),
         'pictures'         => lang('Webpages.images.title'),
         'picturesFirst'    => lang('Webpages.images.save-first'),
         'slotHelp'         => lang('Webpages.images.slot-help'),
@@ -95,8 +106,10 @@ $config       = [
   var page = cfg.page;
   var csrfHash = cfg.csrf.hash;
   var root = document.getElementById('webpage-editor');
-  // what is being edited in each section type's card and not saved yet: { design, texts }
+  // what is being edited in each section type's card and not saved yet: { design, texts, files: { slot: [File] } }
   var drafts = {};
+  // the section type the user picked to add and has not saved yet
+  var adding = null;
   var dirty = false;
 
   // ---------------------------------------------------------------- helpers
@@ -306,7 +319,7 @@ $config       = [
     if (!drafts[type]) {
       var section = sectionOf(type);
       var first = designsOf(type).filter(function (code) { return designs[code].fits_plan; })[0] || null;
-      drafts[type] = { design: section ? section.design_code : first, texts: JSON.parse(JSON.stringify(section ? section.texts : {})) };
+      drafts[type] = { design: section ? section.design_code : first, texts: JSON.parse(JSON.stringify(section ? section.texts : {})), files: {} };
     }
     return drafts[type];
   }
@@ -424,6 +437,60 @@ $config       = [
     return box;
   }
 
+  /** The picture slots of a section not saved yet: the files chosen are kept and uploaded once it is added */
+  function pendingSlots(draft) {
+    var design = designs[draft.design];
+    var total = (page.sections || []).reduce(function (n, s) { return n + (s.images || []).length; }, 0);
+    var box = el('div', { class: 'border-top pt-3 mt-3' }, [
+      el('div', { class: 'd-flex justify-content-between align-items-center' }, [
+        el('h6', { class: 'fw-semibold mb-0', text: M.pictures }),
+        el('span', { class: 'small text-muted', text: fill(M.pageImages, [total, maxImages]) }),
+      ]),
+      el('p', { class: 'small text-muted mb-0' }, [el('i', { class: 'bi bi-info-circle' }), ' ' + M.uploadOnSave]),
+    ]);
+    Object.keys(design.images).forEach(function (slot) {
+      var rule = design.images[slot];
+      var max = rule.max === null || rule.max === undefined ? null : rule.max;
+      var file = el('input', { type: 'file', class: 'form-control', accept: 'image/jpeg,image/png,image/webp', multiple: max !== 1,
+        disabled: total >= maxImages, 'aria-label': M.upload + ': ' + slotName(slot) });
+      file.addEventListener('change', function () {
+        var files = Array.prototype.slice.call(file.files);
+        draft.files[slot] = max === null ? files : files.slice(0, max);
+        markDirty();
+      });
+      box.appendChild(el('div', { class: 'mt-3' }, [
+        el('div', { class: 'fw-semibold small', text: slotName(slot) }),
+        el('div', { class: 'form-text mt-0 mb-2', text: max === null ? fill(M.slotHelpAny, [rule.width, rule.height]) : fill(M.slotHelp, [rule.width, rule.height, max]) }),
+        file,
+      ]));
+    });
+    return box;
+  }
+
+  /** Upload the files picked before the section existed, one after another; resolves once all are tried */
+  function uploadPending(section, files) {
+    var queue = [];
+    Object.keys(files || {}).forEach(function (slot) {
+      if (!(designs[section.design_code].images || {})[slot]) { return; }
+      (files[slot] || []).forEach(function (f) { queue.push({ slot: slot, file: f }); });
+    });
+    var failed = 0;
+    return queue.reduce(function (chain, item) {
+      return chain.then(function () {
+        var form = new FormData();
+        form.append('page_public_id', page.public_id);
+        form.append('section_public_id', section.public_id);
+        form.append('slot_code', item.slot);
+        form.append('image', item.file);
+        return post(cfg.urls.imageUpload, form).then(function (r) {
+          if (!r.ok) { failed++; notify('error', (r.json.message || M.imageFailed) + ' (' + item.file.name + ')'); return; }
+          section.images = (section.images || []).concat([r.json.data]);
+          page.image_count = (page.image_count || 0) + 1;
+        });
+      });
+    }, Promise.resolve()).then(function () { return failed; });
+  }
+
   function uploadImage(section, slot, file, button) {
     var form = new FormData();
     form.append('page_public_id', page.public_id);
@@ -484,9 +551,17 @@ $config       = [
           return;
         }
         page = r.json.data;
+        var files = draft.files;
         delete drafts[type];
+        if (adding === type) { adding = null; }
         dirty = false;
         notify('success', r.json.message);
+        var saved = sectionOf(type);
+        if (!section && saved && Object.keys(files || {}).length) {
+          busy(button, true);
+          uploadPending(saved, files).then(function () { drawSections(); });
+          return;
+        }
         drawSections();
       });
     });
@@ -506,43 +581,98 @@ $config       = [
     });
   }
 
+  /** The section types of the API's designs, in its order (the hero first) */
+  function allTypes() {
+    var types = [];
+    Object.keys(designs).forEach(function (code) { if (types.indexOf(designs[code].section_type) === -1) { types.push(designs[code].section_type); } });
+    return types;
+  }
+
+  function sectionCard(type) {
+    var section = sectionOf(type);
+    var draft = draftOf(type);
+    var body = el('div', { class: 'card-body' });
+    if (!section) { body.appendChild(el('p', { class: 'small text-muted', text: M.notYet })); }
+    body.appendChild(designPicker(type, draft, section));
+    if (draft.design) {
+      body.appendChild(textFields(type, draft));
+      body.appendChild(el('div', { class: 'invalid-feedback d-block mb-2', 'data-error-for': 'design_code' }));
+      body.appendChild(el('div', { class: 'invalid-feedback d-block mb-2', 'data-error-for': 'texts' }));
+    }
+    // a design without pictures (services_01) has no picture slots to show
+    var hasPictures = !!draft.design && Object.keys(designs[draft.design].images || {}).length > 0;
+    if (hasPictures && section && section.design_code === draft.design) {
+      body.appendChild(imageSlots(section));
+    } else if (hasPictures && section) {
+      body.appendChild(el('p', { class: 'small text-muted border-top pt-3 mt-3 mb-0' }, [el('i', { class: 'bi bi-image' }), ' ' + M.picturesFirst]));
+    } else if (hasPictures) {
+      body.appendChild(pendingSlots(draft));
+    }
+    if (draft.design) {
+      var save = el('button', { type: 'button', class: 'btn btn-primary' }, [el('i', { class: 'bi bi-check-lg' }), ' ' + (section ? M.saveSection : M.addSection)]);
+      save.addEventListener('click', function () { saveSection(type, save); });
+      body.appendChild(el('div', { class: 'd-flex justify-content-between border-top pt-3 mt-3' }, [
+        save,
+        section
+          ? el('button', { type: 'button', class: 'btn btn-outline-danger', onclick: function () { deleteSection(type); } }, [el('i', { class: 'bi bi-trash' }), ' ' + M.deleteSection])
+          : el('button', { type: 'button', class: 'btn btn-outline-secondary', onclick: function () { adding = null; delete drafts[type]; drawSections(); } },
+            [el('i', { class: 'bi bi-x-lg' }), ' ' + M.discard]),
+      ]));
+    }
+    return el('div', { class: 'card mb-4', 'data-section-type': type }, [
+      el('div', { class: 'card-header' }, [
+        el('div', { class: 'd-flex align-items-center gap-2' }, [
+          el('h5', { class: 'card-title mb-0', text: M.sectionTypes[type] || humanize(type) }),
+          section ? null : el('span', { class: 'badge text-bg-primary', text: M.newSection }),
+        ]),
+        M.sectionHelp[type] ? el('p', { class: 'card-subtitle mb-0', text: M.sectionHelp[type] }) : null,
+      ]),
+      body,
+    ]);
+  }
+
+  /** The chooser of the next section: the types the page does not have yet */
+  function typeChooser(first) {
+    var used = (page.sections || []).map(function (s) { return s.section_type; });
+    var left = allTypes().filter(function (type) { return used.indexOf(type) === -1; });
+    var body = el('div', { class: 'card-body' });
+    if (!left.length) {
+      body.appendChild(el('p', { class: 'small text-muted mb-0', text: M.allAdded }));
+    } else if (adding) {
+      body.appendChild(el('p', { class: 'small text-muted mb-0', text: M.finishFirst }));
+    } else {
+      var grid = el('div', { class: 'row g-3' });
+      left.forEach(function (type) {
+        var card = el('button', { type: 'button', class: 'card h-100 w-100 text-start wpe-design', onclick: function () {
+          adding = type;
+          drawSections();
+          var added = document.querySelector('#sections [data-section-type="' + type + '"]');
+          if (added) { added.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+        } }, [
+          el('div', { class: 'card-body p-3' }, [
+            el('div', { class: 'fw-semibold', text: M.sectionTypes[type] || humanize(type) }),
+            M.sectionHelp[type] ? el('div', { class: 'small text-muted', text: M.sectionHelp[type] }) : null,
+          ]),
+        ]);
+        grid.appendChild(el('div', { class: 'col-sm-6 col-lg-4' }, [card]));
+      });
+      body.appendChild(grid);
+    }
+    return el('div', { class: 'card mb-4' + (first ? ' border-primary' : '') }, [
+      el('div', { class: 'card-header' }, [
+        el('h5', { class: 'card-title mb-0' }, [el('i', { class: 'bi bi-plus-circle' }), ' ' + (first ? M.pickFirst : M.pickNext)]),
+        el('p', { class: 'card-subtitle mb-0', text: first ? M.pickFirstHelp : M.pickNextHelp }),
+      ]),
+      body,
+    ]);
+  }
+
   function drawSections() {
     var holder = document.getElementById('sections');
     holder.textContent = '';
-    var types = [];
-    Object.keys(designs).forEach(function (code) { if (types.indexOf(designs[code].section_type) === -1) { types.push(designs[code].section_type); } });
-    types.forEach(function (type) {
-      var section = sectionOf(type);
-      var draft = draftOf(type);
-      var body = el('div', { class: 'card-body' });
-      if (!section) { body.appendChild(el('p', { class: 'small text-muted', text: M.notYet })); }
-      body.appendChild(designPicker(type, draft, section));
-      if (draft.design) {
-        body.appendChild(textFields(type, draft));
-        body.appendChild(el('div', { class: 'invalid-feedback d-block mb-2', 'data-error-for': 'design_code' }));
-        body.appendChild(el('div', { class: 'invalid-feedback d-block mb-2', 'data-error-for': 'texts' }));
-        var save = el('button', { type: 'button', class: 'btn btn-primary' }, [el('i', { class: 'bi bi-check-lg' }), ' ' + (section ? M.saveSection : M.addSection)]);
-        save.addEventListener('click', function () { saveSection(type, save); });
-        body.appendChild(el('div', { class: 'd-flex justify-content-between' }, [
-          save,
-          section ? el('button', { type: 'button', class: 'btn btn-outline-danger', onclick: function () { deleteSection(type); } }, [el('i', { class: 'bi bi-trash' }), ' ' + M.deleteSection]) : null,
-        ]));
-      }
-      // a design without pictures (services_01) has no picture slots to show
-      var hasPictures = !!draft.design && Object.keys(designs[draft.design].images || {}).length > 0;
-      if (hasPictures && section && section.design_code === draft.design) {
-        body.appendChild(imageSlots(section));
-      } else if (hasPictures) {
-        body.appendChild(el('p', { class: 'small text-muted border-top pt-3 mt-3 mb-0' }, [el('i', { class: 'bi bi-image' }), ' ' + M.picturesFirst]));
-      }
-      holder.appendChild(el('div', { class: 'card mb-4' }, [
-        el('div', { class: 'card-header' }, [
-          el('h5', { class: 'card-title mb-0', text: M.sectionTypes[type] || humanize(type) }),
-          M.sectionHelp[type] ? el('p', { class: 'card-subtitle mb-0', text: M.sectionHelp[type] }) : null,
-        ]),
-        body,
-      ]));
-    });
+    (page.sections || []).forEach(function (section) { holder.appendChild(sectionCard(section.section_type)); });
+    if (adding && !sectionOf(adding)) { holder.appendChild(sectionCard(adding)); } else { adding = null; }
+    holder.appendChild(typeChooser(!(page.sections || []).length && !adding));
   }
 
   // ---------------------------------------------------------------- status and preview

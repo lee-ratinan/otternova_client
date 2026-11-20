@@ -19,9 +19,6 @@ $maxNote  = 2000; // BusinessCustomerNoteModel::MAX_LENGTH of the API
 ?>
 <?= $this->section('content') ?>
 <section class="section" id="customer-view" data-public-id="<?= esc($publicId, 'attr') ?>">
-    <div class="mb-3">
-        <a href="<?= base_url('admin/customers') ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> <?= esc(lang('Customers.view.back')) ?></a>
-    </div>
     <div class="row g-3">
         <div class="col-lg-5">
             <div class="card mb-3">

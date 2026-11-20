@@ -9,6 +9,7 @@
  *
  * @var array $settings v1/client/website
  * @var array|null $names    the business's names in other languages; null: no fields for them
+ * @var array $languageCap the business's plan and how many languages it allows: { plan, name, max }
  * @var array $urls     Website::index() urls
  */
 helper('list');
@@ -27,6 +28,7 @@ $config = [
     'names'         => null === $names ? null : (object) $names,
     'businessName'  => (string) (currentBusinessName() ?? ''),
     'canEditNames'  => isBusinessOwner(), // the API lets only owners change them; managers see them disabled
+    'maxLanguages'  => (int) $languageCap['max'], // the plan's (0: none given); the API refuses more, unless saved before
     'urls'          => $urls,
     'csrf'          => ['header' => csrf_header(), 'hash' => csrf_hash()],
     'defaultColors' => $defaultColors,
@@ -271,8 +273,10 @@ $config = [
     select.appendChild(el('option', { value: '', text: M.addPlaceholder }));
     var left = Object.keys(languageNames).filter(function (code) { return chosen.indexOf(code) === -1; });
     left.forEach(function (code) { select.appendChild(el('option', { value: code, text: languageNames[code] })); });
-    document.getElementById('language-add-group').classList.toggle('d-none', !left.length);
-    document.getElementById('language-all-added').classList.toggle('d-none', !!left.length);
+    var full = cfg.maxLanguages > 0 && chosen.length >= cfg.maxLanguages;
+    document.getElementById('language-add-group').classList.toggle('d-none', !left.length || full);
+    document.getElementById('language-all-added').classList.toggle('d-none', !!left.length || full);
+    document.getElementById('language-limit-reached').classList.toggle('d-none', !full);
 
     var preview = document.getElementById('preview-language');
     preview.textContent = '';
@@ -299,7 +303,7 @@ $config = [
 
   function addLanguage() {
     var code = document.getElementById('language-add').value;
-    if (!code) { return; }
+    if (!code || (cfg.maxLanguages > 0 && state.languages.length >= cfg.maxLanguages)) { return; }
     var language = Object.assign({ language_code: code }, startingFonts(code));
     cfg.textFields.forEach(function (f) { language[f] = null; });
     state.languages.push(language);
