@@ -271,8 +271,6 @@
                     </a>
                     <ul class="nav-submenu">
                         <li><a class="nav-link<?= ('business' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business') ?>"><?= lang('System.page.business') ?></a></li>
-                        <li><a class="nav-link<?= ('website' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/website') ?>"><?= lang('System.page.website') ?></a></li>
-                        <li><a class="nav-link<?= ('webpages' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/webpages') ?>"><?= lang('System.page.webpages') ?></a></li>
                         <li><a class="nav-link<?= ('stores' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/stores') ?>"><?= lang('System.page.stores') ?></a></li>
                         <li><a class="nav-link<?= ('resource-types' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/resource-types') ?>"><?= lang('System.page.resource-types') ?></a></li>
                         <li><a class="nav-link<?= ('resources' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/resources') ?>"><?= lang('System.page.resources') ?></a></li>
@@ -281,9 +279,22 @@
                         <li><a class="nav-link<?= ('discounts' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/discounts') ?>"><?= lang('System.page.discounts') ?></a></li>
                         <li><a class="nav-link<?= ('order-numbers' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/order-numbers') ?>"><?= lang('System.page.order-numbers') ?></a></li>
                         <li><a class="nav-link<?= ('commission' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/commission') ?>"><?= lang('System.page.commission') ?></a></li>
+                        <li><a class="nav-link<?= ('social-media' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/social-media') ?>"><?= lang('System.page.social-media') ?></a></li>
+                        <li><a class="nav-link<?= ('tags' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/tags') ?>"><?= lang('System.page.tags') ?></a></li>
                         <?php if (isBusinessOwner()): ?>
                             <li><a class="nav-link<?= ('plans' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/plans') ?>"><?= lang('System.page.plans') ?></a></li>
                         <?php endif ?>
+                    </ul>
+                </li>
+                <li class="nav-item has-submenu">
+                    <a class="nav-link" href="#" aria-expanded="false">
+                        <span class="nav-icon"><i class="bi bi-globe"></i></span>
+                        <span class="nav-text"><?= lang('System.page.website') ?></span>
+                        <i class="bi bi-chevron-right nav-arrow"></i>
+                    </a>
+                    <ul class="nav-submenu">
+                        <li><a class="nav-link<?= ('website' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/website') ?>"><?= lang('System.page.website') ?></a></li>
+                        <li><a class="nav-link<?= ('webpages' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/business/webpages') ?>"><?= lang('System.page.webpages') ?></a></li>
                     </ul>
                 </li>
                 <li class="nav-item has-submenu">
@@ -332,6 +343,12 @@
                 <a class="nav-link<?= ('reviews' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/reviews') ?>">
                     <span class="nav-icon"><i class="bi bi-star"></i></span>
                     <span class="nav-text"><?= lang('System.page.reviews') ?></span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link<?= ('messages' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/messages') ?>">
+                    <span class="nav-icon"><i class="bi bi-chat-left-dots"></i></span>
+                    <span class="nav-text"><?= lang('System.page.messages') ?></span>
                 </a>
             </li>
         </ul>

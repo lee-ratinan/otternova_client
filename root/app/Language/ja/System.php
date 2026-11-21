@@ -50,6 +50,8 @@ return [
         'staff-attributes'      => 'スタッフ属性',
         'staff-attribute-create' => 'スタッフ属性を追加',
         'commission'            => '歩合',
+        'social-media'          => 'SNS',
+        'tags'                  => 'タグ',
         'website'               => 'ウェブサイト',
         'webpages'              => 'ウェブページ',
         'reviews'               => 'レビュー',

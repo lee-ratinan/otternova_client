@@ -50,6 +50,8 @@ return [
         'staff-attributes'      => '员工属性',
         'staff-attribute-create' => '添加员工属性',
         'commission'            => '佣金',
+        'social-media'          => '社交媒体',
+        'tags'                  => '标签',
         'website'               => '网站',
         'webpages'              => '网页',
         'reviews'               => '评价',

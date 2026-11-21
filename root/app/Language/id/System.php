@@ -50,6 +50,8 @@ return [
         'staff-attributes'      => 'Atribut Staf',
         'staff-attribute-create' => 'Tambah Atribut Staf',
         'commission'            => 'Komisi',
+        'social-media'          => 'Media Sosial',
+        'tags'                  => 'Tag',
         'website'               => 'Situs Web',
         'webpages'              => 'Halaman Web',
         'reviews'               => 'Ulasan',

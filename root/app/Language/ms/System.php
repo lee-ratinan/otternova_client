@@ -50,6 +50,8 @@ return [
         'staff-attributes'      => 'Atribut Kakitangan',
         'staff-attribute-create' => 'Tambah Atribut Kakitangan',
         'commission'            => 'Komisen',
+        'social-media'          => 'Media Sosial',
+        'tags'                  => 'Tag',
         'website'               => 'Laman Web',
         'webpages'              => 'Halaman Web',
         'reviews'               => 'Ulasan',

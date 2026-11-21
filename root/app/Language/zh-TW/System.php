@@ -50,6 +50,8 @@ return [
         'staff-attributes'      => '員工屬性',
         'staff-attribute-create' => '新增員工屬性',
         'commission'            => '佣金',
+        'social-media'          => '社群媒體',
+        'tags'                  => '標籤',
         'website'               => '網站',
         'webpages'              => '網頁',
         'reviews'               => '評價',

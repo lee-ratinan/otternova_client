@@ -50,6 +50,8 @@ return [
         'staff-attributes'      => 'คุณสมบัติพนักงาน',
         'staff-attribute-create' => 'เพิ่มคุณสมบัติพนักงาน',
         'commission'            => 'ค่าคอมมิชชัน',
+        'social-media'          => 'โซเชียลมีเดีย',
+        'tags'                  => 'แท็ก',
         'website'               => 'เว็บไซต์',
         'webpages'              => 'หน้าเว็บ',
         'reviews'               => 'รีวิว',

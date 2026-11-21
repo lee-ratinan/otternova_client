@@ -101,6 +101,13 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         // how the business's order numbers look; see App\Controllers\OrderNumbers
         $routes->get('order-numbers', 'OrderNumbers::index');
         $routes->post('order-numbers/save', 'OrderNumbers::save');
+        // the business's social media accounts; see App\Controllers\SocialMedia
+        $routes->get('social-media', 'SocialMedia::index');
+        $routes->post('social-media/save', 'SocialMedia::save');
+        // the tags people search the business by; see App\Controllers\Tags
+        $routes->get('tags', 'Tags::index');
+        $routes->post('tags/save', 'Tags::save');
+        $routes->post('tags/suggest', 'Tags::suggest');
     });
     // where the people of the session business work and what they are paid: its owners and managers, as the API allows
     $routes->group('staff', ['filter' => 'manager'], static function ($routes) {
