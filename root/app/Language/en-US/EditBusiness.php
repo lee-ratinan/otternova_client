@@ -17,4 +17,20 @@ return [
         'cancel'  => 'Cancel',
     ],
     'managers-only' => 'Only the owners and managers of this business can manage it and its stores.',
+    // whether the business shows on OtterNovaMart (partials/business_open, Admin::businessOpenPost()): owners only
+    'open'          => [
+        'title'         => 'Open on OtterNovaMart',
+        'subtitle'      => 'Whether customers can find and order from your shop. Only owners can change this.',
+        'state-open'    => 'Open: customers can find your shop and order',
+        'state-closed'  => 'Closed: your shop is hidden',
+        'help'          => 'While closed, your shop is left out of the search, its pages say it is not open yet, and no orders can be placed. Orders placed already can still be checked and paid.',
+        'view-shop'     => 'View your shop',
+        'opened'        => 'Your shop is open on OtterNovaMart.',
+        'closed'        => 'Your shop is closed on OtterNovaMart.',
+        'failed'        => 'Could not change whether your shop is open. Please try again.',
+        'confirm-close' => 'Close your shop? Customers will not be able to find it or place orders until you open it again.',
+        'confirm-yes'   => 'Yes, close it',
+        'confirm-no'    => 'Keep it open',
+        'owner-only'    => 'Only the owners of this business can open or close it.',
+    ],
 ];

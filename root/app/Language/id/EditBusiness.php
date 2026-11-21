@@ -17,4 +17,20 @@ return [
         'cancel'  => 'Batal',
     ],
     'managers-only' => 'Hanya pemilik dan manajer bisnis ini yang dapat mengelola bisnis dan tokonya.',
+    // whether the business shows on OtterNovaMart (partials/business_open, Admin::businessOpenPost()): owners only
+    'open'          => [
+        'title'         => 'Buka di OtterNovaMart',
+        'subtitle'      => 'Apakah pelanggan dapat menemukan dan memesan dari toko Anda. Hanya pemilik yang dapat mengubahnya.',
+        'state-open'    => 'Buka: pelanggan dapat menemukan toko Anda dan memesan',
+        'state-closed'  => 'Tutup: toko Anda disembunyikan',
+        'help'          => 'Selama tutup, toko Anda tidak muncul di pencarian, halamannya menyatakan belum buka, dan tidak ada pesanan yang dapat dibuat. Pesanan yang sudah ada masih dapat diperiksa dan dibayar.',
+        'view-shop'     => 'Lihat toko Anda',
+        'opened'        => 'Toko Anda kini buka di OtterNovaMart.',
+        'closed'        => 'Toko Anda kini tutup di OtterNovaMart.',
+        'failed'        => 'Tidak dapat mengubah status buka toko Anda. Silakan coba lagi.',
+        'confirm-close' => 'Tutup toko Anda? Pelanggan tidak akan dapat menemukannya atau memesan sampai Anda membukanya lagi.',
+        'confirm-yes'   => 'Ya, tutup',
+        'confirm-no'    => 'Tetap buka',
+        'owner-only'    => 'Hanya pemilik bisnis ini yang dapat membuka atau menutupnya.',
+    ],
 ];

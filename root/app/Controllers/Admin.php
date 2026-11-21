@@ -597,7 +597,48 @@ class Admin extends BaseController
                 ],
             ]) . view('scripts/notice_time', ['formId' => $formId, 'days' => BusinessMasterModel::NOTICE_DAYS, 'pairs' => self::NOTICE_TIMES]),
         ];
+        // whether the business shows on OtterNovaMart: its owners only see and switch it (the API refuses others)
+        if (isBusinessOwner()) {
+            $data['extraHtml'] = view('partials/business_open', [
+                'open'    => 'Y' === (string) ($values['is_business_open'] ?? 'N'),
+                'shopUrl' => $this->storeBaseUrl() . rawurlencode($slug),
+                'url'     => base_url('admin/business/open'),
+            ]);
+        }
         return view('generic_form', $data);
+    }
+
+    /**
+     * Open the session business on OtterNovaMart, or close it, through LINK_INTERNAL_API v1/client/business/open
+     * { business_slug, is_business_open }; the page's switch posts JSON { is_business_open: "Y"|"N" }. Its owners
+     * only: 403 for anyone else, before the API is asked. The session business follows.
+     * @return ResponseInterface { success, message, is_business_open } or { success: false, message }
+     */
+    public function businessOpenPost(): ResponseInterface
+    {
+        if (! isBusinessOwner()) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => lang('EditBusiness.open.owner-only'), 'csrf_hash' => csrf_hash()]);
+        }
+        $open = (string) (((array) ($this->request->getJSON(true) ?? []))['is_business_open'] ?? '');
+        [$code, $body] = $this->callApi('v1/client/business/open', ['business_slug' => (string) currentBusinessSlug(), 'is_business_open' => $open]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            return $this->response->setStatusCode($code === 200 ? 502 : $code)->setJSON([
+                'success'   => false,
+                'message'   => $body['message'] ?? lang('EditBusiness.open.failed'),
+                'csrf_hash' => csrf_hash(),
+            ]);
+        }
+        $saved   = (string) ($body['data']['is_business_open'] ?? $open);
+        $session = (array) session('business');
+        $session['business'] = ['is_business_open' => $saved] + (array) ($session['business'] ?? []);
+        session()->set('business', $session);
+
+        return $this->response->setJSON([
+            'success'          => true,
+            'message'          => $body['message'] ?? lang('Y' === $saved ? 'EditBusiness.open.opened' : 'EditBusiness.open.closed'),
+            'is_business_open' => $saved,
+            'csrf_hash'        => csrf_hash(),
+        ]);
     }
 
     /**

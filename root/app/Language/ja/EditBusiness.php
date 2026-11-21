@@ -17,4 +17,20 @@ return [
         'cancel'  => 'キャンセル',
     ],
     'managers-only' => 'このビジネスと店舗を管理できるのは、オーナーとマネージャーのみです。',
+    // whether the business shows on OtterNovaMart (partials/business_open, Admin::businessOpenPost()): owners only
+    'open'          => [
+        'title'         => 'OtterNovaMartで公開',
+        'subtitle'      => 'お客様がショップを見つけて注文できるかどうかを設定します。変更できるのはオーナーのみです。',
+        'state-open'    => '公開中：お客様がショップを見つけて注文できます',
+        'state-closed'  => '非公開：ショップは表示されません',
+        'help'          => '非公開の間、ショップは検索に表示されず、ページには「まだ公開されていません」と表示され、注文もできません。すでにある注文の確認と支払いはできます。',
+        'view-shop'     => 'ショップを見る',
+        'opened'        => 'ショップをOtterNovaMartで公開しました。',
+        'closed'        => 'ショップをOtterNovaMartで非公開にしました。',
+        'failed'        => 'ショップの公開状態を変更できませんでした。もう一度お試しください。',
+        'confirm-close' => 'ショップを非公開にしますか？再び公開するまで、お客様はショップを見つけることも注文することもできません。',
+        'confirm-yes'   => '非公開にする',
+        'confirm-no'    => '公開のままにする',
+        'owner-only'    => 'このビジネスを公開・非公開にできるのはオーナーのみです。',
+    ],
 ];

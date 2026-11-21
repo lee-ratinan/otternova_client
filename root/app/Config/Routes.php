@@ -39,6 +39,7 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->group('business', ['filter' => 'manager'], static function ($routes) {
         $routes->get('/', 'Admin::business');
         $routes->post('save', 'Admin::businessEditPost');
+        $routes->post('open', 'Admin::businessOpenPost'); // on OtterNovaMart or not: owners only, see Admin::businessOpenPost()
         $routes->get('stores', 'Admin::stores');
         $routes->post('stores/data', 'Admin::storesData');
         $routes->get('stores/create', 'Admin::storeForm');

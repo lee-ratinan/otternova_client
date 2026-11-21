@@ -17,4 +17,20 @@ return [
         'cancel'  => '取消',
     ],
     'managers-only' => '只有此商家的負責人和經理才能管理商家及其門市。',
+    // whether the business shows on OtterNovaMart (partials/business_open, Admin::businessOpenPost()): owners only
+    'open'          => [
+        'title'         => '在 OtterNovaMart 上開放',
+        'subtitle'      => '顧客是否能找到您的商店並下單。只有負責人可以變更。',
+        'state-open'    => '開放：顧客可以找到您的商店並下單',
+        'state-closed'  => '關閉：您的商店已隱藏',
+        'help'          => '關閉期間，您的商店不會出現在搜尋結果中，頁面會顯示尚未開放，也無法下單。既有的訂單仍可查詢和付款。',
+        'view-shop'     => '查看您的商店',
+        'opened'        => '您的商店已在 OtterNovaMart 上開放。',
+        'closed'        => '您的商店已在 OtterNovaMart 上關閉。',
+        'failed'        => '無法變更商店的開放狀態。請再試一次。',
+        'confirm-close' => '要關閉您的商店嗎？在您重新開放之前，顧客將無法找到它或下單。',
+        'confirm-yes'   => '是，關閉',
+        'confirm-no'    => '保持開放',
+        'owner-only'    => '只有此商家的負責人可以開放或關閉它。',
+    ],
 ];
