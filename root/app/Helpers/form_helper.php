@@ -953,7 +953,7 @@ if (! function_exists('fb_label')) {
         $col   = $form['layout']['label_col'];
         $for   = $f['group'] ? $f['id'] . '_0' : $f['id'];
         $class = "col-sm-{$col} text-sm-end col-form-label" . (! empty($f['rules_client']['required']) ? ' required' : '');
-        $html  = '<label for="' . fb_esc($for, 'attr') . '" class="' . $class . '">' . fb_esc($f['label']);
+        $html  = '<label for="' . fb_esc($for, 'attr') . '" class="' . $class . ' fw-bold">' . fb_esc($f['label']);
 
         if (! empty($f['badge'])) {
             $b     = is_array($f['badge']) ? $f['badge'] : ['text' => $f['badge']];
@@ -1013,7 +1013,7 @@ if (! function_exists('fb_edit_row')) {
         $col     = 12 - $form['layout']['label_col'];
         $padding = ($f['group'] || $f['single']) ? ' pt-2' : '';
 
-        return '<div class="row mb-3' . (! empty($f['row_class']) ? ' ' . fb_esc($f['row_class'], 'attr') : '') . '" data-fb-row="' . fb_esc($f['name'], 'attr') . '">'
+        return '<div class="row mb-3' . (! empty($f['row_class']) ? ' ' . fb_esc($f['row_class'], 'attr') : '') . '" style="--bs-gutter-y: 0;" data-fb-row="' . fb_esc($f['name'], 'attr') . '">'
             . fb_label($f, $form)
             . '<div class="col-sm-' . $col . $padding . '">'
             . fb_control($f) . fb_error_slot($f) . fb_help($f)
@@ -1099,8 +1099,8 @@ if (! function_exists('fb_view_row')) {
         $form = fb_defaults($form);
         $col  = $form['layout']['label_col'];
 
-        return '<div class="row mb-3" data-fb-view="' . fb_esc($f['name'], 'attr') . '">'
-            . '<div class="col-sm-' . $col . ' text-sm-end">' . fb_esc($f['label']) . '</div>'
+        return '<div class="row mb-3" style="--bs-gutter-y: 0;" data-fb-view="' . fb_esc($f['name'], 'attr') . '">'
+            . '<div class="col-sm-' . $col . ' text-sm-end fw-bold">' . fb_esc($f['label']) . '</div>'
             . '<div class="col-sm-' . (12 - $col) . '">' . fb_view_value($f) . '</div></div>';
     }
 }
