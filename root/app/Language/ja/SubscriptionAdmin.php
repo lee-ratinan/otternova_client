@@ -1,0 +1,21 @@
+<?php
+return [
+    'invalidRequest'       => 'リクエストを読み取れませんでした。ページを再読み込みして、もう一度お試しください。',
+    'invalidFields'        => '強調表示された項目を修正してください。',
+    'loadFailed'           => 'データを読み込めませんでした。もう一度お試しください。',
+    'saveFailed'           => '保存できませんでした。もう一度お試しください。',
+    'subscriptionNotFound' => 'サブスクリプションが見つかりません。',
+    'paymentNotFound'      => '支払いが見つかりません。',
+    'invoiceNotFound'      => '請求書が見つかりません。',
+    'paymentNotPending'    => 'この支払いはすでに審査済みです。',
+    'invoiceNotPending'    => 'この支払いの請求書は、もう支払い待ちではありません。',
+    'reasonRequired'       => '理由を255文字以内で入力してください。',
+    'paymentApproved'      => '支払いを承認しました。',
+    'paymentRejected'      => '支払いを却下しました。',
+    'noSlip'               => 'この支払いには振込明細がありません。',
+    'invalidStatus'        => 'S（停止）、A（再開）、C（解約）のいずれかを選択してください。',
+    'cannotSuspend'        => '停止できるのは有効なサブスクリプションのみです。',
+    'cannotReactivate'     => '再開できるのは、期間が終了していない停止中のサブスクリプションのみです。',
+    'alreadyEnded'         => 'このサブスクリプションはすでに終了しています。',
+    'statusChanged'        => 'サブスクリプションを更新しました。',
+];

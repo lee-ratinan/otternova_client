@@ -1,0 +1,53 @@
+<?php
+return [
+    'all-stores'  => '所有門市',
+    'list'        => [
+        'title'       => '付款方式',
+        'subtitle'    => '{0}的顧客可以使用的付款方式',
+        'add'         => '新增付款方式',
+        'load-failed' => '無法載入付款方式。請再試一次。',
+    ],
+    'form'        => [
+        'create-title' => '新增付款方式',
+        'edit-title'   => '付款方式',
+        'subtitle'     => '{0}的顧客可以使用的付款方式',
+        'not-found'    => '找不到付款方式。',
+        'created'      => '付款方式已新增。',
+        'saved'        => '付款方式已儲存。',
+        'failed'       => '無法儲存付款方式。請再試一次。',
+    ],
+    'heading'     => [
+        'method'      => '付款方式',
+        'translation' => '{0}',
+    ],
+    'fields'      => [
+        'store'        => '門市',
+        'method_code'  => '顧客付款方式',
+        'handler_code' => '處理方式',
+        'promptpay_id' => 'PromptPay ID',
+        'method_name'  => '名稱',
+        'instruction'  => '說明',
+        'is_active'    => '狀態',
+        'sort_order'   => '排序',
+    ],
+    'translation' => [
+        'method_name' => '{0}名稱',
+        'instruction' => '{0}說明',
+    ],
+    'enum'        => [
+        'method'    => ['cash' => '現金', 'bank_transfer' => '銀行轉帳', 'promptpay' => 'PromptPay', 'other' => '其他'],
+        'handler'   => ['instruction' => '顯示說明', 'promptpay_qr' => 'PromptPay QR 碼'],
+        'is_active' => ['Y' => '啟用', 'N' => '停用'],
+    ],
+    'help'        => [
+        'store'            => '所有門市：商家的每間門市均提供。選擇門市則只在該門市提供，例如該分店的銀行帳戶。',
+        'method-code'      => '顧客用什麼付款。',
+        'handler-code'     => '如何告知顧客付款。PromptPay QR 碼已包含金額；您的員工仍需核對付款。',
+        'promptpay-id'     => 'QR 碼收款的手機號碼（10 位）、身分證或統一編號（13 位）或電子錢包 ID（15 位）。',
+        'method-name'      => '顧客看到的名稱，例如「現金」或「銀行轉帳 – KBank」。',
+        'instruction'      => '告知顧客的內容，例如「請攜帶現金，在服務前於櫃檯付款」，或銀行、帳號及戶名。',
+        'is-active'        => '停用的付款方式不會提供給顧客。',
+        'sort-order'       => '數字越小越前面。',
+        'translation-name' => '留空時，此語言將顯示上方的名稱。',
+    ],
+];

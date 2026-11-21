@@ -1,0 +1,21 @@
+<?php
+return [
+    'invalidRequest'       => 'Permintaan tidak dapat dibaca. Sila muat semula halaman dan cuba lagi.',
+    'invalidFields'        => 'Sila betulkan medan yang ditanda.',
+    'loadFailed'           => 'Tidak dapat memuatkan rekod. Sila cuba lagi.',
+    'saveFailed'           => 'Tidak dapat menyimpan. Sila cuba lagi.',
+    'subscriptionNotFound' => 'Langganan tidak ditemui.',
+    'paymentNotFound'      => 'Pembayaran tidak ditemui.',
+    'invoiceNotFound'      => 'Invois tidak ditemui.',
+    'paymentNotPending'    => 'Pembayaran ini telah disemak.',
+    'invoiceNotPending'    => 'Invois bagi pembayaran ini tidak lagi menunggu pembayaran.',
+    'reasonRequired'       => 'Sila berikan sebabnya, paling banyak 255 aksara.',
+    'paymentApproved'      => 'Pembayaran diluluskan.',
+    'paymentRejected'      => 'Pembayaran ditolak.',
+    'noSlip'               => 'Pembayaran ini tiada slip.',
+    'invalidStatus'        => 'Sila pilih S (gantung), A (aktifkan semula) atau C (batal).',
+    'cannotSuspend'        => 'Hanya langganan aktif boleh digantung.',
+    'cannotReactivate'     => 'Hanya langganan yang digantung dan tempohnya belum tamat boleh diaktifkan semula.',
+    'alreadyEnded'         => 'Langganan ini telah tamat.',
+    'statusChanged'        => 'Langganan dikemas kini.',
+];

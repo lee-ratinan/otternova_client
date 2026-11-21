@@ -1,0 +1,21 @@
+<?php
+return [
+    'invalidRequest'       => 'Permintaan tidak dapat dibaca. Silakan muat ulang halaman dan coba lagi.',
+    'invalidFields'        => 'Silakan perbaiki kolom yang ditandai.',
+    'loadFailed'           => 'Tidak dapat memuat data. Silakan coba lagi.',
+    'saveFailed'           => 'Tidak dapat menyimpan. Silakan coba lagi.',
+    'subscriptionNotFound' => 'Langganan tidak ditemukan.',
+    'paymentNotFound'      => 'Pembayaran tidak ditemukan.',
+    'invoiceNotFound'      => 'Faktur tidak ditemukan.',
+    'paymentNotPending'    => 'Pembayaran ini sudah ditinjau.',
+    'invoiceNotPending'    => 'Faktur untuk pembayaran ini tidak lagi menunggu pembayaran.',
+    'reasonRequired'       => 'Silakan berikan alasannya, maksimal 255 karakter.',
+    'paymentApproved'      => 'Pembayaran disetujui.',
+    'paymentRejected'      => 'Pembayaran ditolak.',
+    'noSlip'               => 'Pembayaran ini tidak memiliki bukti transfer.',
+    'invalidStatus'        => 'Silakan pilih S (tangguhkan), A (aktifkan kembali), atau C (batalkan).',
+    'cannotSuspend'        => 'Hanya langganan aktif yang dapat ditangguhkan.',
+    'cannotReactivate'     => 'Hanya langganan yang ditangguhkan dan periodenya belum berakhir yang dapat diaktifkan kembali.',
+    'alreadyEnded'         => 'Langganan ini sudah berakhir.',
+    'statusChanged'        => 'Langganan diperbarui.',
+];

@@ -1,0 +1,53 @@
+<?php
+return [
+    'all-stores'  => 'すべての店舗',
+    'list'        => [
+        'title'       => '支払方法',
+        'subtitle'    => '{0}のお客様が利用できる支払方法',
+        'add'         => '支払方法を追加',
+        'load-failed' => '支払方法を読み込めませんでした。もう一度お試しください。',
+    ],
+    'form'        => [
+        'create-title' => '支払方法を追加',
+        'edit-title'   => '支払方法',
+        'subtitle'     => '{0}のお客様が利用できる支払方法',
+        'not-found'    => '支払方法が見つかりません。',
+        'created'      => '支払方法を追加しました。',
+        'saved'        => '支払方法を保存しました。',
+        'failed'       => '支払方法を保存できませんでした。もう一度お試しください。',
+    ],
+    'heading'     => [
+        'method'      => '支払方法',
+        'translation' => '{0}',
+    ],
+    'fields'      => [
+        'store'        => '店舗',
+        'method_code'  => 'お客様の支払手段',
+        'handler_code' => '処理方法',
+        'promptpay_id' => 'PromptPay ID',
+        'method_name'  => '名前',
+        'instruction'  => '案内',
+        'is_active'    => 'ステータス',
+        'sort_order'   => '表示順',
+    ],
+    'translation' => [
+        'method_name' => '{0}での名前',
+        'instruction' => '{0}での案内',
+    ],
+    'enum'        => [
+        'method'    => ['cash' => '現金', 'bank_transfer' => '銀行振込', 'promptpay' => 'PromptPay', 'other' => 'その他'],
+        'handler'   => ['instruction' => '案内を表示', 'promptpay_qr' => 'PromptPay QRコード'],
+        'is_active' => ['Y' => '有効', 'N' => '無効'],
+    ],
+    'help'        => [
+        'store'            => 'すべての店舗：ビジネスのすべての店舗で利用できます。特定の店舗でのみ利用する場合（その支店の銀行口座など）は店舗を選択してください。',
+        'method-code'      => 'お客様が何で支払うか。',
+        'handler-code'     => 'お客様への支払いの案内方法。PromptPay QRコードには金額が含まれますが、スタッフによる支払いの確認は必要です。',
+        'promptpay-id'     => 'QRコードの支払先となる携帯電話番号（10桁）、国民IDまたは納税者番号（13桁）、または電子ウォレットID（15桁）。',
+        'method-name'      => 'お客様に表示される名前（例：「現金」「銀行振込 – KBank」）。',
+        'instruction'      => 'お客様への案内（例：「現金をお持ちになり、サービス前にカウンターでお支払いください」、または銀行名・口座番号・口座名義）。',
+        'is-active'        => '無効な支払方法はお客様に表示されません。',
+        'sort-order'       => '小さい数字ほど先に表示されます。',
+        'translation-name' => '空欄の場合、上記の名前がこの言語で表示されます。',
+    ],
+];

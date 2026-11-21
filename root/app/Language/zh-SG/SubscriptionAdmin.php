@@ -1,0 +1,21 @@
+<?php
+return [
+    'invalidRequest'       => '无法读取请求。请重新加载页面后再试。',
+    'invalidFields'        => '请更正标示的栏位。',
+    'loadFailed'           => '无法加载记录。请再试一次。',
+    'saveFailed'           => '无法保存。请再试一次。',
+    'subscriptionNotFound' => '找不到订阅。',
+    'paymentNotFound'      => '找不到付款。',
+    'invoiceNotFound'      => '找不到发票。',
+    'paymentNotPending'    => '此付款已审核。',
+    'invoiceNotPending'    => '此付款的发票已不再等待付款。',
+    'reasonRequired'       => '请填写原因，最多 255 个字符。',
+    'paymentApproved'      => '付款已批准。',
+    'paymentRejected'      => '付款已拒绝。',
+    'noSlip'               => '此付款没有凭证。',
+    'invalidStatus'        => '请选择 S（暂停）、A（重新启用）或 C（取消）。',
+    'cannotSuspend'        => '只有启用中的订阅才能暂停。',
+    'cannotReactivate'     => '只有周期尚未结束的已暂停订阅才能重新启用。',
+    'alreadyEnded'         => '此订阅已结束。',
+    'statusChanged'        => '订阅已更新。',
+];

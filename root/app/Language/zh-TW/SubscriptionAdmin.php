@@ -1,0 +1,21 @@
+<?php
+return [
+    'invalidRequest'       => '無法讀取請求。請重新載入頁面後再試一次。',
+    'invalidFields'        => '請修正標示的欄位。',
+    'loadFailed'           => '無法載入資料。請再試一次。',
+    'saveFailed'           => '無法儲存。請再試一次。',
+    'subscriptionNotFound' => '找不到訂閱。',
+    'paymentNotFound'      => '找不到付款。',
+    'invoiceNotFound'      => '找不到發票。',
+    'paymentNotPending'    => '此付款已審核。',
+    'invoiceNotPending'    => '此付款的發票已不再等待付款。',
+    'reasonRequired'       => '請填寫原因，最多 255 個字元。',
+    'paymentApproved'      => '付款已核准。',
+    'paymentRejected'      => '付款已拒絕。',
+    'noSlip'               => '此付款沒有憑證。',
+    'invalidStatus'        => '請選擇 S（暫停）、A（重新啟用）或 C（取消）。',
+    'cannotSuspend'        => '只有啟用中的訂閱才能暫停。',
+    'cannotReactivate'     => '只有週期尚未結束的已暫停訂閱才能重新啟用。',
+    'alreadyEnded'         => '此訂閱已結束。',
+    'statusChanged'        => '訂閱已更新。',
+];

@@ -1,0 +1,53 @@
+<?php
+return [
+    'all-stores'  => '所有门店',
+    'list'        => [
+        'title'       => '付款方式',
+        'subtitle'    => '{0}的顾客可以使用的付款方式',
+        'add'         => '添加付款方式',
+        'load-failed' => '无法加载付款方式。请再试一次。',
+    ],
+    'form'        => [
+        'create-title' => '添加付款方式',
+        'edit-title'   => '付款方式',
+        'subtitle'     => '{0}的顾客可以使用的付款方式',
+        'not-found'    => '找不到付款方式。',
+        'created'      => '付款方式已添加。',
+        'saved'        => '付款方式已保存。',
+        'failed'       => '无法保存付款方式。请再试一次。',
+    ],
+    'heading'     => [
+        'method'      => '付款方式',
+        'translation' => '{0}',
+    ],
+    'fields'      => [
+        'store'        => '门店',
+        'method_code'  => '顾客付款方式',
+        'handler_code' => '处理方式',
+        'promptpay_id' => 'PromptPay ID',
+        'method_name'  => '名称',
+        'instruction'  => '说明',
+        'is_active'    => '状态',
+        'sort_order'   => '排序',
+    ],
+    'translation' => [
+        'method_name' => '{0}名称',
+        'instruction' => '{0}说明',
+    ],
+    'enum'        => [
+        'method'    => ['cash' => '现金', 'bank_transfer' => '银行转账', 'promptpay' => 'PromptPay', 'other' => '其他'],
+        'handler'   => ['instruction' => '显示说明', 'promptpay_qr' => 'PromptPay 二维码'],
+        'is_active' => ['Y' => '启用', 'N' => '停用'],
+    ],
+    'help'        => [
+        'store'            => '所有门店：商家的每家门店均提供。选择门店则只在该门店提供，例如该分店的银行账户。',
+        'method-code'      => '顾客用什么付款。',
+        'handler-code'     => '如何告知顾客付款。PromptPay 二维码已包含金额；您的员工仍需核对付款。',
+        'promptpay-id'     => '二维码收款的手机号码（10 位）、身份证或税务编号（13 位）或电子钱包 ID（15 位）。',
+        'method-name'      => '顾客看到的名称，例如「现金」或「银行转账 – KBank」。',
+        'instruction'      => '告知顾客的内容，例如「请携带现金，在服务前于柜台付款」，或银行、账号及户名。',
+        'is-active'        => '停用的付款方式不会提供给顾客。',
+        'sort-order'       => '数字越小越靠前。',
+        'translation-name' => '留空时，此语言将显示上方的名称。',
+    ],
+];

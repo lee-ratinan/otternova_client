@@ -1,0 +1,53 @@
+<?php
+return [
+    'all-stores'  => 'Semua toko',
+    'list'        => [
+        'title'       => 'Metode Pembayaran',
+        'subtitle'    => 'Cara pelanggan {0} dapat membayar',
+        'add'         => 'Tambah Metode Pembayaran',
+        'load-failed' => 'Tidak dapat memuat metode pembayaran. Silakan coba lagi.',
+    ],
+    'form'        => [
+        'create-title' => 'Tambah Metode Pembayaran',
+        'edit-title'   => 'Metode Pembayaran',
+        'subtitle'     => 'Cara pelanggan {0} dapat membayar',
+        'not-found'    => 'Metode pembayaran tidak ditemukan.',
+        'created'      => 'Metode pembayaran ditambahkan.',
+        'saved'        => 'Metode pembayaran disimpan.',
+        'failed'       => 'Tidak dapat menyimpan metode pembayaran. Silakan coba lagi.',
+    ],
+    'heading'     => [
+        'method'      => 'Metode Pembayaran',
+        'translation' => 'Dalam {0}',
+    ],
+    'fields'      => [
+        'store'        => 'Toko',
+        'method_code'  => 'Pelanggan Membayar Dengan',
+        'handler_code' => 'Ditangani Oleh',
+        'promptpay_id' => 'ID PromptPay',
+        'method_name'  => 'Nama',
+        'instruction'  => 'Instruksi',
+        'is_active'    => 'Status',
+        'sort_order'   => 'Urutan',
+    ],
+    'translation' => [
+        'method_name' => 'Nama dalam {0}',
+        'instruction' => 'Instruksi dalam {0}',
+    ],
+    'enum'        => [
+        'method'    => ['cash' => 'Tunai', 'bank_transfer' => 'Transfer Bank', 'promptpay' => 'PromptPay', 'other' => 'Lainnya'],
+        'handler'   => ['instruction' => 'Tampilkan instruksi', 'promptpay_qr' => 'Kode QR PromptPay'],
+        'is_active' => ['Y' => 'Aktif', 'N' => 'Tidak Aktif'],
+    ],
+    'help'        => [
+        'store'            => 'Semua toko: tersedia di setiap toko bisnis. Pilih toko untuk menawarkannya hanya di sana, seperti rekening bank cabang tersebut.',
+        'method-code'      => 'Alat pembayaran yang digunakan pelanggan.',
+        'handler-code'     => 'Cara pelanggan diberi tahu untuk membayar. Kode QR PromptPay sudah berisi jumlahnya; staf Anda tetap memeriksa pembayaran.',
+        'promptpay-id'     => 'Nomor ponsel (10 digit), nomor identitas atau NPWP (13 digit), atau ID dompet elektronik (15 digit) yang dibayar oleh kode QR.',
+        'method-name'      => 'Yang dilihat pelanggan, seperti "Tunai" atau "Transfer Bank – KBank".',
+        'instruction'      => 'Yang disampaikan kepada pelanggan, seperti "Bawa uang tunai dan bayar di kasir sebelum layanan" atau bank, nomor rekening, dan nama rekening.',
+        'is-active'        => 'Metode yang tidak aktif tidak ditawarkan kepada pelanggan.',
+        'sort-order'       => 'Angka yang lebih kecil ditampilkan lebih dulu.',
+        'translation-name' => 'Jika dikosongkan, nama di atas ditampilkan dalam bahasa ini.',
+    ],
+];
