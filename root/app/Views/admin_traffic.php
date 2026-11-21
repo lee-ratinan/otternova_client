@@ -16,10 +16,9 @@ foreach (['load-failed', 'compared', 'new', 'pts', 'measure', 'this-period', 'pe
     $text[$key] = lang('Traffic.' . $key);
 }
 $kpis = ['visits', 'visitors', 'pageviews', 'avg_visit_s', 'orders', 'revenue', 'conversion_rate', 'bounce_rate'];
-$asset = static fn (string $path): string => base_url($path) . '?v=' . @filemtime(FCPATH . $path);
 ?>
 <?= $this->section('content') ?>
-<link href="<?= $asset('assets/css/traffic.css') ?>" rel="stylesheet">
+<link href="<?= assets_url('themes/client/css/traffic.css') ?>" rel="stylesheet">
 <div class="page-traffic" id="traffic"
      data-from="<?= esc($from, 'attr') ?>"
      data-to="<?= esc($to, 'attr') ?>"
@@ -159,5 +158,5 @@ $asset = static fn (string $path): string => base_url($path) . '?v=' . @filemtim
         </div>
     </div>
 </div>
-<script src="<?= $asset('assets/js/traffic.js') ?>" defer></script>
+<script src="<?= assets_url('themes/client/js/traffic.js') ?>" defer></script>
 <?= $this->endSection() ?>

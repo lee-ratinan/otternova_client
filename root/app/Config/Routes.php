@@ -249,7 +249,15 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->post('notifications/read-all', 'Notifications::readAll');
     $routes->post('notifications/delete', 'Notifications::delete');
     $routes->post('notifications/delete-read', 'Notifications::deleteRead');
-    $routes->get('messages', 'Admin::messages');
+    // the messages customers send the session business from its contact form on the mart: anyone working in it,
+    // and the unread count of the header's and sidebar's badges; see App\Controllers\Messages
+    $routes->get('messages', 'Messages::index');
+    $routes->post('messages/data', 'Messages::data');
+    $routes->post('messages/unread-count', 'Messages::unreadCount');
+    $routes->get('messages/view/(:segment)', 'Messages::message/$1');
+    $routes->post('messages/status', 'Messages::status');
+    $routes->post('messages/comment/add', 'Messages::addComment');
+    $routes->post('messages/comment/delete', 'Messages::deleteComment');
 
     // JSON lookups for the pages' scripts; see App\Controllers\ApiList
     $routes->post('api/telephone-format-e164', 'ApiList::telephoneFormatE164');

@@ -63,9 +63,10 @@
                     <i class="bi bi-arrows-angle-expand icon-enter"></i>
                     <i class="bi bi-arrows-angle-contract icon-exit"></i>
                 </button>
+                <!-- MESSAGES: the unread count, filled by scripts/message_badge; see App\Controllers\Messages -->
                 <a class="header-action fullscreen-toggle" href="<?= base_url('admin/messages') ?>" title="<?= lang('System.page.messages') ?>">
                     <i class="bi bi-chat-left-dots"></i>
-                    <span class="badge">##</span>
+                    <span class="badge d-none" data-message-badge>0</span>
                 </a>
                 <!-- NOTIFICATIONS: filled by assets/js/notification-center.js; see App\Controllers\Notifications -->
                 <?php
@@ -182,7 +183,7 @@
         </button>
         <a href="<?= base_url('admin/messages') ?>" class="mobile-menu-item">
             <i class="bi bi-chat-left-dots"></i>
-            <span class="badge">##</span>
+            <span class="badge d-none" data-message-badge>0</span>
             <span class="mobile-menu-label"><?= lang('System.page.messages') ?></span>
         </a>
         <a href="<?= base_url('admin/notifications') ?>" class="mobile-menu-item">
@@ -243,6 +244,13 @@
                 <a class="nav-link<?= ('customers' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/customers') ?>">
                     <span class="nav-icon"><i class="bi bi-person-lines-fill"></i></span>
                     <span class="nav-text"><?= lang('System.page.customers') ?></span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link<?= ('messages' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/messages') ?>">
+                    <span class="nav-icon"><i class="bi bi-chat-left-dots"></i></span>
+                    <span class="nav-text"><?= lang('System.page.messages') ?></span>
+                    <span class="nav-badge d-none" data-message-badge>0</span>
                 </a>
             </li>
             <?php if (isBusinessOwner()): ?>
@@ -345,12 +353,6 @@
                     <span class="nav-text"><?= lang('System.page.reviews') ?></span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link<?= ('messages' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/messages') ?>">
-                    <span class="nav-icon"><i class="bi bi-chat-left-dots"></i></span>
-                    <span class="nav-text"><?= lang('System.page.messages') ?></span>
-                </a>
-            </li>
         </ul>
     </nav>
     <!-- Sidebar Footer - User Card -->
@@ -439,6 +441,10 @@
 <!-- App Sidebar Toggle (for app pages with sidebars) -->
 <script src="<?= assets_url('themes/client/js/apps-sidebar-toggle.js') ?>"></script>
 <script src="<?= assets_url('themes/client/js/notification-center.js') ?>"></script>
+<?php if (null !== currentBusinessSlug()): ?>
+    <!-- Unread messages: the badges of the Messages button and menu items -->
+    <script><?= view('scripts/message_badge', ['url' => base_url('admin/messages/unread-count')]) ?></script>
+<?php endif; ?>
 <!-- Session expiry: sign out and go to the login page when the session runs out -->
 <script><?= view('scripts/session_expiry') ?></script>
 </body>

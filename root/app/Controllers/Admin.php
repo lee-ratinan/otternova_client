@@ -841,17 +841,6 @@ class Admin extends BaseController
         ]);
     }
 
-    public function messages(): string
-    {
-        $locale = $this->request->getLocale();
-        $data   = [
-            'locale' => $locale,
-            'slug'   => 'messages',
-            'user'   => session()->get('user') ?? [],
-        ];
-        return view('admin_dashboard', $data);
-    }
-
     /**
      * Fields of the profile form, grouped under the PROFILE_SECTIONS headings. Fields that are not editable are
      * disabled, so they are not submitted.
