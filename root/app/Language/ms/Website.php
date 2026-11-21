@@ -12,7 +12,6 @@ return [
         'title'           => 'Bahasa',
         'subtitle'        => 'Bahasa halaman web anda. Bahasa pertama ialah lalai, dipaparkan kepada pelawat yang bahasanya tiada dalam senarai.',
         'default'         => 'Lalai',
-        'make-default'    => 'Jadikan lalai',
         'move-up'         => 'Alih ke atas',
         'move-down'       => 'Alih ke bawah',
         'remove'          => 'Buang bahasa ini',

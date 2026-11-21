@@ -12,7 +12,6 @@ return [
         'title'           => 'Languages',
         'subtitle'        => 'The languages your web pages are in. The first one is the default, shown to visitors whose language is not on the list.',
         'default'         => 'Default',
-        'make-default'    => 'Make default',
         'move-up'         => 'Move up',
         'move-down'       => 'Move down',
         'remove'          => 'Remove this language',

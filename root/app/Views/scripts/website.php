@@ -36,7 +36,6 @@ $config = [
     'labels'        => $labels,
     'messages'      => [
         'default'          => lang('Website.languages.default'),
-        'makeDefault'      => lang('Website.languages.make-default'),
         'moveUp'           => lang('Website.languages.move-up'),
         'moveDown'         => lang('Website.languages.move-down'),
         'remove'           => lang('Website.languages.remove'),
@@ -251,15 +250,14 @@ $config = [
     state.languages.forEach(function (language, i) {
       var code = language.language_code;
       var last = i === state.languages.length - 1;
-      list.appendChild(el('li', { class: 'list-group-item d-flex align-items-center gap-2' }, [
+      list.appendChild(el('li', { class: 'list-group-item d-flex flex-column flex-sm-row align-items-sm-center gap-2' }, [
         el('span', { class: 'flex-grow-1' }, [
           el('span', { class: 'fw-semibold', text: languageNames[code] || code }),
           ' ',
           el('code', { class: 'small text-muted', text: code }),
           i === 0 ? el('span', { class: 'badge bg-primary ms-2', text: M.default }) : null,
         ]),
-        i > 0 ? el('button', { type: 'button', class: 'btn btn-sm btn-link text-decoration-none', text: M.makeDefault, onclick: function () { move(i, 0); } }) : null,
-        el('div', { class: 'btn-group btn-group-sm' }, [
+        el('div', { class: 'btn-group btn-group-sm align-self-start align-self-sm-auto' }, [
           el('button', { type: 'button', class: 'btn btn-outline-secondary', title: M.moveUp, 'aria-label': M.moveUp, disabled: i === 0, onclick: function () { move(i, i - 1); } }, [el('i', { class: 'bi bi-arrow-up' })]),
           el('button', { type: 'button', class: 'btn btn-outline-secondary', title: M.moveDown, 'aria-label': M.moveDown, disabled: last, onclick: function () { move(i, i + 1); } }, [el('i', { class: 'bi bi-arrow-down' })]),
           el('button', { type: 'button', class: 'btn btn-outline-danger', title: M.remove, 'aria-label': M.remove, disabled: state.languages.length === 1, onclick: function () { removeLanguage(i); } }, [el('i', { class: 'bi bi-x-lg' })]),

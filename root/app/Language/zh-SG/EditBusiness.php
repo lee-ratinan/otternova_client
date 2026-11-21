@@ -7,7 +7,7 @@ return [
         'failed'   => '无法保存商家。请再试一次。',
     ],
     'help'          => [
-        'business-slug' => '字母（拉丁字母须小写）、数字和连字符，例如 otter-cafe-sg 或 ร้าน-otter。您的商店网址：{0}',
+        'business-slug' => '您商家的标识名称，将作为您网店链接的一部分。可使用字母（拉丁字母须小写）、数字和连字符，例如 otter-cafe 或 水獭咖啡。 您的商店网址：{0}',
         'fixed'         => '商家创建后无法更改。',
     ],
     'slug-confirm'  => [

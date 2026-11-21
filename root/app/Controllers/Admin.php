@@ -866,6 +866,7 @@ class Admin extends BaseController
         $config['business_slug']['rules']    = 'required|max_length[128]|regex_match[' . BusinessMasterModel::SLUG_PATTERN . ']';
         $config['business_slug']['help']     = lang('CreateBusiness.help.business-slug');
         $config['business_slug']['messages'] = ['regex' => lang('CreateBusiness.error.business-slug')];
+        $config['business_description']['help']     = lang('CreateBusiness.help.business-description');
         $config['business_mood_and_tone']['help']   = lang('CreateBusiness.help.mood-and-tone');
         $this->audienceHelp($config);
         $this->chargeHelp($config);
@@ -1092,6 +1093,7 @@ class Admin extends BaseController
         $config['business_slug']['rules']    = 'required|max_length[128]|regex_match[' . BusinessMasterModel::SLUG_PATTERN . ']';
         $config['business_slug']['help']     = lang('EditBusiness.help.business-slug', [$this->storeBaseUrl() . $slug]);
         $config['business_slug']['messages'] = ['regex' => lang('CreateBusiness.error.business-slug')];
+        $config['business_description']['help']     = lang('CreateBusiness.help.business-description');
         $config['business_mood_and_tone']['help'] = lang('CreateBusiness.help.mood-and-tone');
         $this->audienceHelp($config);
         $this->chargeHelp($config);

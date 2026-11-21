@@ -18,8 +18,9 @@ return [
         'billing'      => 'Billing',
     ],
     'help'              => [
-        'business-slug'  => 'Made from the business name; you can change it. Letters (lower case for Latin), numbers and hyphens, e.g. otter-cafe-sg or ร้าน-otter. It appears in your page addresses.',
-        'mood-and-tone'  => 'How your business speaks to customers, e.g. friendly and playful.',
+        'business-slug'  => 'The identifier of your business, used in the link to your online storefront. Use lowercase letters, numbers and hyphens, e.g. otter-cafe or คาเฟ่ออทเทอร์.',
+        'business-description' => 'Optional, and you can update it later. Our AI uses it to write suitable content for your website.',
+        'mood-and-tone'  => 'Optional, and you can update it later. Our AI uses it to write suitable content for your website.',
         'subdivision'    => 'Choose the country first.',
         'fixed'          => 'Cannot be changed once the business is created.',
         'audience'       => 'Who your business welcomes. Leave it as General public if it is open to everyone.',

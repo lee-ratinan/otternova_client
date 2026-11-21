@@ -7,7 +7,7 @@ return [
         'failed'   => 'Tidak dapat menyimpan bisnis. Silakan coba lagi.',
     ],
     'help'          => [
-        'business-slug' => 'Huruf (huruf kecil untuk Latin), angka, dan tanda hubung, mis. otter-cafe-sg atau ร้าน-otter. Alamat toko Anda: {0}',
+        'business-slug' => 'Pengenal bisnis Anda, digunakan dalam tautan ke toko online Anda. Gunakan huruf kecil, angka, dan tanda hubung, mis. otter-cafe atau คาเฟ่ออทเทอร์. Alamat toko Anda: {0}',
         'fixed'         => 'Tidak dapat diubah setelah bisnis dibuat.',
     ],
     'slug-confirm'  => [

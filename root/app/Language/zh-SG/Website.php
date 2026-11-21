@@ -12,7 +12,6 @@ return [
         'title'           => '语言',
         'subtitle'        => '您网页使用的语言。第一个为默认语言，向语言不在列表中的访客显示。',
         'default'         => '默认',
-        'make-default'    => '设为默认',
         'move-up'         => '上移',
         'move-down'       => '下移',
         'remove'          => '移除此语言',

@@ -12,7 +12,6 @@ return [
         'title'           => 'Bahasa',
         'subtitle'        => 'Bahasa halaman web Anda. Bahasa pertama adalah bawaan, ditampilkan kepada pengunjung yang bahasanya tidak ada dalam daftar.',
         'default'         => 'Bawaan',
-        'make-default'    => 'Jadikan bawaan',
         'move-up'         => 'Pindah ke atas',
         'move-down'       => 'Pindah ke bawah',
         'remove'          => 'Hapus bahasa ini',

@@ -18,8 +18,9 @@ return [
         'billing'      => 'Penagihan',
     ],
     'help'              => [
-        'business-slug'  => 'Dibuat dari nama bisnis; Anda dapat mengubahnya. Huruf (huruf kecil untuk Latin), angka, dan tanda hubung, mis. otter-cafe-sg atau ร้าน-otter. Muncul di alamat halaman Anda.',
-        'mood-and-tone'  => 'Cara bisnis Anda berbicara kepada pelanggan, mis. ramah dan ceria.',
+        'business-slug'  => 'Pengenal bisnis Anda, digunakan dalam tautan ke toko online Anda. Gunakan huruf kecil, angka, dan tanda hubung, mis. otter-cafe atau คาเฟ่ออทเทอร์.',
+        'business-description' => 'Opsional, dan dapat diperbarui nanti. AI kami menggunakannya untuk membuat konten yang sesuai untuk situs web Anda.',
+        'mood-and-tone'  => 'Opsional, dan dapat diperbarui nanti. AI kami menggunakannya untuk membuat konten yang sesuai untuk situs web Anda.',
         'subdivision'    => 'Pilih negara terlebih dahulu.',
         'fixed'          => 'Tidak dapat diubah setelah bisnis dibuat.',
         'audience'       => 'Siapa yang disambut oleh bisnis Anda. Biarkan Umum jika terbuka untuk semua orang.',

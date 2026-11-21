@@ -7,7 +7,7 @@ return [
         'failed'   => 'Tidak dapat menyimpan perniagaan. Sila cuba lagi.',
     ],
     'help'          => [
-        'business-slug' => 'Huruf (huruf kecil untuk Latin), nombor dan sempang, cth. otter-cafe-sg atau ร้าน-otter. Alamat kedai anda: {0}',
+        'business-slug' => 'Pengenal perniagaan anda, digunakan dalam pautan ke kedai dalam talian anda. Gunakan huruf kecil, nombor dan sempang, cth. otter-cafe atau คาเฟ่ออทเทอร์. Alamat kedai anda: {0}',
         'fixed'         => 'Tidak boleh ditukar selepas perniagaan dicipta.',
     ],
     'slug-confirm'  => [

@@ -7,7 +7,7 @@ return [
         'failed'   => 'Could not save the business. Please try again.',
     ],
     'help'          => [
-        'business-slug' => 'Letters (lower case for Latin), numbers and hyphens, e.g. otter-cafe-sg or ร้าน-otter. Your store address: {0}',
+        'business-slug' => 'The identifier of your business, used in the link to your online storefront. Use lowercase letters, numbers and hyphens, e.g. otter-cafe or คาเฟ่ออทเทอร์. Your store address: {0}',
         'fixed'         => 'Cannot be changed once the business is created.',
     ],
     'slug-confirm'  => [

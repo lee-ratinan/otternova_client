@@ -18,8 +18,9 @@ return [
         'billing'      => 'Pengebilan',
     ],
     'help'              => [
-        'business-slug'  => 'Dibentuk daripada nama perniagaan; anda boleh menukarnya. Huruf (huruf kecil untuk Latin), nombor dan sempang, cth. otter-cafe-sg atau ร้าน-otter. Ia dipaparkan dalam alamat halaman anda.',
-        'mood-and-tone'  => 'Cara perniagaan anda bercakap dengan pelanggan, cth. mesra dan ceria.',
+        'business-slug'  => 'Pengenal perniagaan anda, digunakan dalam pautan ke kedai dalam talian anda. Gunakan huruf kecil, nombor dan sempang, cth. otter-cafe atau คาเฟ่ออทเทอร์.',
+        'business-description' => 'Pilihan, dan boleh dikemas kini kemudian. AI kami menggunakannya untuk menghasilkan kandungan yang sesuai untuk laman web anda.',
+        'mood-and-tone'  => 'Pilihan, dan boleh dikemas kini kemudian. AI kami menggunakannya untuk menghasilkan kandungan yang sesuai untuk laman web anda.',
         'subdivision'    => 'Pilih negara dahulu.',
         'fixed'          => 'Tidak boleh ditukar selepas perniagaan dicipta.',
         'audience'       => 'Siapa yang dialu-alukan oleh perniagaan anda. Biarkan sebagai Orang awam jika ia terbuka kepada semua.',
