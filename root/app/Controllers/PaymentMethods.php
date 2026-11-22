@@ -14,6 +14,9 @@ use RuntimeException;
  * What a method can be is the API's (Config\BusinessPayment there): v1/client/payment-methods sends it as
  * "options", methods (method_code values) and handlers (handler_code => {methods, settings, ...}), and the form
  * offers only those. The labels are this app's (Language/<locale>/PaymentMethods.php), the code where one is missing.
+ *
+ * allow_shipping N keeps a method off the orders shipped home or to a locker or pickup point, as cash, which the
+ * customer can only pay at a store; the mart offers it then for a store pickup only.
  */
 class PaymentMethods extends BaseController
 {
@@ -24,7 +27,7 @@ class PaymentMethods extends BaseController
     private const HANDLER_PROMPTPAY_QR = 'promptpay_qr';
 
     /** The fields of the form that go to the API as "payment_method" as they are */
-    private const METHOD_FIELDS = ['method_code', 'handler_code', 'method_name', 'instruction', 'is_active', 'sort_order'];
+    private const METHOD_FIELDS = ['method_code', 'handler_code', 'method_name', 'instruction', 'is_active', 'allow_shipping', 'sort_order'];
 
     /** The settings fields of the form, each sent as settings.<name> when its handler takes it */
     private const SETTING_FIELDS = ['promptpay_id'];
@@ -74,19 +77,21 @@ class PaymentMethods extends BaseController
         foreach ((array) ($body['data']['payment_methods'] ?? []) as $method) {
             $storeId = (string) ($method['store_public_id'] ?? '');
             $rows[]  = [
-                'public_id'    => (string) ($method['public_id'] ?? ''),
-                'method_name'  => self::methodName($method, $locale),
-                'store_name'   => '' === $storeId ? lang('PaymentMethods.all-stores') : ($storeNames[$storeId] ?? $storeId),
-                'method_code'  => self::label('method', (string) ($method['method_code'] ?? '')),
-                'handler_code' => self::label('handler', (string) ($method['handler_code'] ?? '')),
-                'is_active'    => (string) ($method['is_active'] ?? ''),
-                'sort_order'   => (int) ($method['sort_order'] ?? 0),
+                'public_id'      => (string) ($method['public_id'] ?? ''),
+                'method_name'    => self::methodName($method, $locale),
+                'store_name'     => '' === $storeId ? lang('PaymentMethods.all-stores') : ($storeNames[$storeId] ?? $storeId),
+                'method_code'    => self::label('method', (string) ($method['method_code'] ?? '')),
+                'handler_code'   => self::label('handler', (string) ($method['handler_code'] ?? '')),
+                'is_active'      => (string) ($method['is_active'] ?? ''),
+                'allow_shipping' => (string) ($method['allow_shipping'] ?? self::ACTIVE),
+                'sort_order'     => (int) ($method['sort_order'] ?? 0),
             ];
         }
         $total    = count($rows);
-        $statuses = lang('PaymentMethods.enum.is_active');
-        $rows     = $this->searchAndOrder($rows, $params, static fn (array $row, string $column) => 'is_active' === $column
-            ? (string) ($statuses[$row[$column]] ?? $row[$column])
+        // the Y/N columns are searched and ordered by their labels
+        $labels   = ['is_active' => lang('PaymentMethods.enum.is_active'), 'allow_shipping' => lang('PaymentMethods.enum.allow_shipping')];
+        $rows     = $this->searchAndOrder($rows, $params, static fn (array $row, string $column) => isset($labels[$column])
+            ? (string) ($labels[$column][$row[$column]] ?? $row[$column])
             : (string) $row[$column]);
         $filtered = count($rows);
         $rows     = lb_rows(array_slice($rows, $params['start'], $params['length']), $config);
@@ -239,7 +244,8 @@ class PaymentMethods extends BaseController
         foreach (array_keys($handlers) as $code) {
             $handlerOptions[(string) $code] = self::label('handler', (string) $code);
         }
-        $statuses = lang('PaymentMethods.enum.is_active');
+        $statuses       = lang('PaymentMethods.enum.is_active');
+        $shipping       = lang('PaymentMethods.enum.allow_shipping');
 
         $fields = [
             ['type' => 'heading', 'label' => lang('PaymentMethods.heading.method')],
@@ -259,6 +265,8 @@ class PaymentMethods extends BaseController
                 'rows' => 4, 'help' => lang('PaymentMethods.help.instruction')],
             ['name' => 'is_active', 'type' => 'select', 'label' => lang('PaymentMethods.fields.is_active'), 'options' => $statuses,
                 'default' => self::ACTIVE, 'rules' => 'required|in_list[' . self::ACTIVE . ',' . self::INACTIVE . ']', 'help' => lang('PaymentMethods.help.is-active')],
+            ['name' => 'allow_shipping', 'type' => 'select', 'label' => lang('PaymentMethods.fields.allow_shipping'), 'options' => $shipping,
+                'default' => self::ACTIVE, 'rules' => 'required|in_list[' . self::ACTIVE . ',' . self::INACTIVE . ']', 'help' => lang('PaymentMethods.help.allow-shipping')],
             ['name' => 'sort_order', 'type' => 'number', 'label' => lang('PaymentMethods.fields.sort_order'), 'default' => 0,
                 'rules' => 'required|is_natural|less_than_equal_to[255]', 'attrs' => ['min' => 0, 'max' => 255, 'step' => 1],
                 'help' => lang('PaymentMethods.help.sort-order')],
@@ -300,6 +308,10 @@ class PaymentMethods extends BaseController
                 ['data' => 'is_active', 'title' => lang('PaymentMethods.fields.is_active'), 'type' => 'badge', 'badges' => [
                     self::ACTIVE   => ['label' => lang('PaymentMethods.enum.is_active')[self::ACTIVE], 'class' => 'bg-success'],
                     self::INACTIVE => ['label' => lang('PaymentMethods.enum.is_active')[self::INACTIVE], 'class' => 'bg-secondary'],
+                ]],
+                ['data' => 'allow_shipping', 'title' => lang('PaymentMethods.fields.allow_shipping'), 'type' => 'badge', 'badges' => [
+                    self::ACTIVE   => ['label' => lang('PaymentMethods.enum.allow_shipping')[self::ACTIVE], 'class' => 'bg-info text-dark'],
+                    self::INACTIVE => ['label' => lang('PaymentMethods.enum.allow_shipping')[self::INACTIVE], 'class' => 'bg-warning text-dark'],
                 ]],
                 ['data' => 'sort_order', 'title' => lang('PaymentMethods.fields.sort_order'), 'type' => 'number', 'decimals' => 0, 'class' => 'text-end', 'searchable' => false],
             ],
