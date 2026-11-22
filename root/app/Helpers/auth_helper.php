@@ -97,7 +97,8 @@ if (!function_exists('avatarUrl')) {
     {
         $avatarPath = trim((string) $avatarPath);
         if ('' === $avatarPath) {
-            return base_url('assets/img/profile-img.svg');
+            helper('html');
+            return assets_url('img/default-avatar.webp');
         }
         if (preg_match('#^https?://#i', $avatarPath)) {
             return $avatarPath;
