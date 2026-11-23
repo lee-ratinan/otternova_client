@@ -196,6 +196,25 @@ if (! function_exists('lb_legacy')) {
     }
 }
 
+if (! function_exists('lb_lang')) {
+    /**
+     * lang() line in the current locale, or $fallback when lang() is unavailable or the line is missing (lang() then
+     * returns the key itself). The fallback's type (string or array) is enforced.
+     */
+    function lb_lang(string $key, string|array $fallback): string|array
+    {
+        if (! function_exists('lang')) {
+            return $fallback;
+        }
+        $line = lang($key);
+        if (is_array($fallback)) {
+            return is_array($line) ? $line : $fallback;
+        }
+
+        return is_string($line) && $line !== $key ? $line : $fallback;
+    }
+}
+
 if (! function_exists('lb_defaults')) {
     /** Merge a controller config with defaults. Idempotent, so every helper can safely call it. */
     function lb_defaults(array $cfg): array
@@ -223,10 +242,16 @@ if (! function_exists('lb_defaults')) {
             'urls'            => ['data' => '', 'create' => '', 'edit' => ''],
             'edit_key'        => 'edit_url',
             'add_disabled'    => '',
-            'labels'          => ['add' => 'Add New', 'edit' => 'Edit', 'reset' => 'Reset', 'all' => 'All',
-                                  'filters' => function_exists('lang') ? lang('System.filters') : 'Filters'],
+            'labels'          => ['add'     => lb_lang('System.datatables.add', 'Add New'),
+                                  'edit'    => lb_lang('System.datatables.edit', 'Edit'),
+                                  'reset'   => lb_lang('System.datatables.reset', 'Reset'),
+                                  'all'     => lb_lang('System.datatables.all', 'All'),
+                                  'yes'     => lb_lang('System.datatables.yes', 'Yes'),
+                                  'no'      => lb_lang('System.datatables.no', 'No'),
+                                  'filters' => lb_lang('System.filters', 'Filters')],
             'icons'           => ['add' => 'bi-plus-circle', 'edit' => 'bi-eye', 'reset' => 'bi-arrow-counterclockwise', 'filters' => 'bi-funnel'],
-            'messages'        => ['loadFailed' => 'Could not load data. Please try again.'],
+            'messages'        => ['loadFailed' => lb_lang('System.datatables.load-failed', 'Could not load data. Please try again.')],
+            'language'        => lb_lang('System.datatables.language', []), // DataTables "language" option, in the current locale
             'values'          => [],
             'columns'         => [],
             'filters'         => [],
@@ -512,6 +537,7 @@ if (! function_exists('lb_script')) {
             'searchDelay' => (int) $cfg['search_delay'],
             'dtOptions'   => (object) $cfg['dt_options'],
             'messages'    => $cfg['messages'],
+            'language'    => (object) $cfg['language'],
         ];
         $json = json_encode($js, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
@@ -554,8 +580,8 @@ if (! function_exists('lb_script')) {
         return function (d, type) {
           if (type !== 'display') { return d; }
           var on = d === true || d === 1 || d === '1' || d === 'true';
-          return on ? badge(labels['true'] !== undefined ? labels['true'] : 'Yes', 'bg-success')
-                    : badge(labels['false'] !== undefined ? labels['false'] : 'No', 'bg-secondary');
+          return on ? badge(labels['true'] !== undefined ? labels['true'] : cfg.labels.yes, 'bg-success')
+                    : badge(labels['false'] !== undefined ? labels['false'] : cfg.labels.no, 'bg-secondary');
         };
       case 'datetime':
         return function (d, type) {
@@ -624,9 +650,17 @@ if (! function_exists('lb_script')) {
       columns.push(col);
     });
 
+    // DataTables' own error alert is English only ("DataTables warning: ..."), so it is switched off and every
+    // error is shown as a translated toast instead. techNote 0 is the server's own json.error, which the
+    // xhr.dt handler below already shows.
+    $.fn.dataTable.ext.errMode = 'none';
+    $(tableEl).on('dt-error.dt', function (e, settings, techNote) {
+      if (techNote === 0) { return; }
+      notify('error', esc(cfg.messages.loadFailed));
+    });
+
     // Surface server / network errors as a toast and keep the CSRF token fresh. (Returning true tells
-    // DataTables the error was handled; if your DataTables version still shows its own alert,
-    // set $.fn.dataTable.ext.errMode = 'none'.)
+    // DataTables the error was handled.)
     $(tableEl).on('xhr.dt', function (e, settings, json, xhr) {
       if (cfg.csrf) {
         var fresh = (json && json.csrf_hash) || (xhr && xhr.getResponseHeader && xhr.getResponseHeader(cfg.csrf.header));
@@ -645,6 +679,7 @@ if (! function_exists('lb_script')) {
       pageLength: cfg.pageLength,
       lengthMenu: cfg.lengthMenu,
       order: cfg.order,
+      language: cfg.language,
       columns: columns,
       ajax: {
         url: cfg.urls.data,

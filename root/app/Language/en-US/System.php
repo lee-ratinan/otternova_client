@@ -75,6 +75,39 @@ return [
         'help'           => 'Help'
     ],
     'filters'    => 'Filters',
+    'datatables' => [
+        // DataTables "language" option (https://datatables.net/reference/option/language)
+        'language'    => [
+            'emptyTable'     => 'No data available in table',
+            'info'           => 'Showing _START_ to _END_ of _TOTAL_ entries',
+            'infoEmpty'      => 'Showing 0 to 0 of 0 entries',
+            'infoFiltered'   => '(filtered from _MAX_ total entries)',
+            'lengthMenu'     => '_MENU_ entries per page',
+            'lengthLabels'   => ['-1' => 'All'],
+            'loadingRecords' => 'Loading...',
+            'search'         => 'Search:',
+            'zeroRecords'    => 'No matching records found',
+            'aria'           => [
+                'orderable'        => ': Activate to sort',
+                'orderableReverse' => ': Activate to invert sorting',
+                'orderableRemove'  => ': Activate to remove sorting',
+                'paginate'         => [
+                    'first'    => 'First',
+                    'last'     => 'Last',
+                    'next'     => 'Next',
+                    'previous' => 'Previous',
+                ],
+            ],
+        ],
+        // Table Builder (app/Helpers/table_helper.php) defaults
+        'add'         => 'Add New',
+        'edit'        => 'Edit',
+        'reset'       => 'Reset',
+        'all'         => 'All',
+        'yes'         => 'Yes',
+        'no'          => 'No',
+        'load-failed' => 'Could not load data. Please try again.',
+    ],
     'print'      => [
         'export'     => 'Export',
         'print'      => 'Print',

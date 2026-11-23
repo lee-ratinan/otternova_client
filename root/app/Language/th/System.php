@@ -75,6 +75,39 @@ return [
         'help'           => 'ช่วยเหลือ'
     ],
     'filters'    => 'ตัวกรอง',
+    'datatables' => [
+        // DataTables "language" option (https://datatables.net/reference/option/language)
+        'language'    => [
+            'emptyTable'     => 'ไม่มีข้อมูลในตาราง',
+            'info'           => 'แสดง _START_ ถึง _END_ จาก _TOTAL_ รายการ',
+            'infoEmpty'      => 'แสดง 0 ถึง 0 จาก 0 รายการ',
+            'infoFiltered'   => '(กรองจากทั้งหมด _MAX_ รายการ)',
+            'lengthMenu'     => 'แสดง _MENU_ รายการต่อหน้า',
+            'lengthLabels'   => ['-1' => 'ทั้งหมด'],
+            'loadingRecords' => 'กำลังโหลด...',
+            'search'         => 'ค้นหา:',
+            'zeroRecords'    => 'ไม่พบข้อมูลที่ตรงกัน',
+            'aria'           => [
+                'orderable'        => ': คลิกเพื่อเรียงลำดับ',
+                'orderableReverse' => ': คลิกเพื่อเรียงลำดับย้อนกลับ',
+                'orderableRemove'  => ': คลิกเพื่อยกเลิกการเรียงลำดับ',
+                'paginate'         => [
+                    'first'    => 'หน้าแรก',
+                    'last'     => 'หน้าสุดท้าย',
+                    'next'     => 'ถัดไป',
+                    'previous' => 'ก่อนหน้า',
+                ],
+            ],
+        ],
+        // Table Builder (app/Helpers/table_helper.php) defaults
+        'add'         => 'เพิ่มใหม่',
+        'edit'        => 'แก้ไข',
+        'reset'       => 'รีเซ็ต',
+        'all'         => 'ทั้งหมด',
+        'yes'         => 'ใช่',
+        'no'          => 'ไม่ใช่',
+        'load-failed' => 'ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+    ],
     'print'      => [
         'export'     => 'ส่งออก',
         'print'      => 'พิมพ์',

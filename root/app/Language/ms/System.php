@@ -75,6 +75,39 @@ return [
         'help'           => 'Bantuan'
     ],
     'filters'    => 'Penapis',
+    'datatables' => [
+        // DataTables "language" option (https://datatables.net/reference/option/language)
+        'language'    => [
+            'emptyTable'     => 'Tiada data dalam jadual',
+            'info'           => 'Memaparkan _START_ hingga _END_ daripada _TOTAL_ rekod',
+            'infoEmpty'      => 'Memaparkan 0 hingga 0 daripada 0 rekod',
+            'infoFiltered'   => '(ditapis daripada jumlah _MAX_ rekod)',
+            'lengthMenu'     => '_MENU_ rekod setiap halaman',
+            'lengthLabels'   => ['-1' => 'Semua'],
+            'loadingRecords' => 'Sedang dimuatkan...',
+            'search'         => 'Cari:',
+            'zeroRecords'    => 'Tiada rekod sepadan ditemui',
+            'aria'           => [
+                'orderable'        => ': Aktifkan untuk mengisih',
+                'orderableReverse' => ': Aktifkan untuk menyongsangkan isihan',
+                'orderableRemove'  => ': Aktifkan untuk membuang isihan',
+                'paginate'         => [
+                    'first'    => 'Pertama',
+                    'last'     => 'Terakhir',
+                    'next'     => 'Seterusnya',
+                    'previous' => 'Sebelumnya',
+                ],
+            ],
+        ],
+        // Table Builder (app/Helpers/table_helper.php) defaults
+        'add'         => 'Tambah Baharu',
+        'edit'        => 'Sunting',
+        'reset'       => 'Set Semula',
+        'all'         => 'Semua',
+        'yes'         => 'Ya',
+        'no'          => 'Tidak',
+        'load-failed' => 'Gagal memuatkan data. Sila cuba lagi.',
+    ],
     'print'      => [
         'export'     => 'Eksport',
         'print'      => 'Cetak',

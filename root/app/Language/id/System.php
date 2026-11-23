@@ -75,6 +75,39 @@ return [
         'help'           => 'Bantuan'
     ],
     'filters'    => 'Filter',
+    'datatables' => [
+        // DataTables "language" option (https://datatables.net/reference/option/language)
+        'language'    => [
+            'emptyTable'     => 'Tidak ada data yang tersedia di tabel',
+            'info'           => 'Menampilkan _START_ sampai _END_ dari _TOTAL_ entri',
+            'infoEmpty'      => 'Menampilkan 0 sampai 0 dari 0 entri',
+            'infoFiltered'   => '(disaring dari total _MAX_ entri)',
+            'lengthMenu'     => '_MENU_ entri per halaman',
+            'lengthLabels'   => ['-1' => 'Semua'],
+            'loadingRecords' => 'Memuat...',
+            'search'         => 'Cari:',
+            'zeroRecords'    => 'Tidak ditemukan data yang sesuai',
+            'aria'           => [
+                'orderable'        => ': Aktifkan untuk mengurutkan',
+                'orderableReverse' => ': Aktifkan untuk membalik urutan',
+                'orderableRemove'  => ': Aktifkan untuk menghapus urutan',
+                'paginate'         => [
+                    'first'    => 'Pertama',
+                    'last'     => 'Terakhir',
+                    'next'     => 'Berikutnya',
+                    'previous' => 'Sebelumnya',
+                ],
+            ],
+        ],
+        // Table Builder (app/Helpers/table_helper.php) defaults
+        'add'         => 'Tambah Baru',
+        'edit'        => 'Ubah',
+        'reset'       => 'Atur Ulang',
+        'all'         => 'Semua',
+        'yes'         => 'Ya',
+        'no'          => 'Tidak',
+        'load-failed' => 'Gagal memuat data. Silakan coba lagi.',
+    ],
     'print'      => [
         'export'     => 'Ekspor',
         'print'      => 'Cetak',

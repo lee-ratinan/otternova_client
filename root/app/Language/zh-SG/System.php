@@ -75,6 +75,39 @@ return [
         'help'           => '帮助'
     ],
     'filters'    => '筛选',
+    'datatables' => [
+        // DataTables "language" option (https://datatables.net/reference/option/language)
+        'language'    => [
+            'emptyTable'     => '表中没有数据',
+            'info'           => '显示第 _START_ 至 _END_ 项，共 _TOTAL_ 项',
+            'infoEmpty'      => '显示第 0 至 0 项，共 0 项',
+            'infoFiltered'   => '（由 _MAX_ 项结果过滤）',
+            'lengthMenu'     => '每页 _MENU_ 项',
+            'lengthLabels'   => ['-1' => '全部'],
+            'loadingRecords' => '加载中...',
+            'search'         => '搜索：',
+            'zeroRecords'    => '没有找到匹配的记录',
+            'aria'           => [
+                'orderable'        => '：点击排序',
+                'orderableReverse' => '：点击反向排序',
+                'orderableRemove'  => '：点击取消排序',
+                'paginate'         => [
+                    'first'    => '首页',
+                    'last'     => '末页',
+                    'next'     => '下一页',
+                    'previous' => '上一页',
+                ],
+            ],
+        ],
+        // Table Builder (app/Helpers/table_helper.php) defaults
+        'add'         => '新增',
+        'edit'        => '编辑',
+        'reset'       => '重置',
+        'all'         => '全部',
+        'yes'         => '是',
+        'no'          => '否',
+        'load-failed' => '无法加载数据，请重试。',
+    ],
     'print'      => [
         'export'     => '导出',
         'print'      => '打印',

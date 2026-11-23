@@ -385,7 +385,7 @@
         <div class="page-header">
             <h1 class="page-title"><?= $page_title ?? lang('System.page.' . $slug) ?></h1>
             <nav class="breadcrumb">
-                <a href="<?= base_url('admin/dashboard') ?>" class="breadcrumb-item">Home</a>
+                <a href="<?= base_url('admin/dashboard') ?>" class="breadcrumb-item"><?= lang('System.page.dashboard') ?></a>
                 <?php if ('dashboard' != $slug): ?>
                     <!-- if there are other pages in between, add them here: -->
                     <!-- the $breadcrumbs structure must be the URL => page title -->

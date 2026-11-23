@@ -75,6 +75,39 @@ return [
         'help'           => '說明'
     ],
     'filters'    => '篩選',
+    'datatables' => [
+        // DataTables "language" option (https://datatables.net/reference/option/language)
+        'language'    => [
+            'emptyTable'     => '表格中沒有資料',
+            'info'           => '顯示第 _START_ 至 _END_ 筆，共 _TOTAL_ 筆',
+            'infoEmpty'      => '顯示第 0 至 0 筆，共 0 筆',
+            'infoFiltered'   => '（從 _MAX_ 筆資料中篩選）',
+            'lengthMenu'     => '每頁 _MENU_ 筆',
+            'lengthLabels'   => ['-1' => '全部'],
+            'loadingRecords' => '載入中...',
+            'search'         => '搜尋：',
+            'zeroRecords'    => '沒有符合的資料',
+            'aria'           => [
+                'orderable'        => '：點擊排序',
+                'orderableReverse' => '：點擊反向排序',
+                'orderableRemove'  => '：點擊取消排序',
+                'paginate'         => [
+                    'first'    => '第一頁',
+                    'last'     => '最後一頁',
+                    'next'     => '下一頁',
+                    'previous' => '上一頁',
+                ],
+            ],
+        ],
+        // Table Builder (app/Helpers/table_helper.php) defaults
+        'add'         => '新增',
+        'edit'        => '編輯',
+        'reset'       => '重設',
+        'all'         => '全部',
+        'yes'         => '是',
+        'no'          => '否',
+        'load-failed' => '無法載入資料，請再試一次。',
+    ],
     'print'      => [
         'export'     => '匯出',
         'print'      => '列印',

@@ -75,6 +75,39 @@ return [
         'help'           => 'ヘルプ'
     ],
     'filters'    => '絞り込み',
+    'datatables' => [
+        // DataTables "language" option (https://datatables.net/reference/option/language)
+        'language'    => [
+            'emptyTable'     => 'テーブルにデータがありません',
+            'info'           => '_TOTAL_ 件中 _START_ から _END_ まで表示',
+            'infoEmpty'      => '0 件中 0 から 0 まで表示',
+            'infoFiltered'   => '（全 _MAX_ 件より抽出）',
+            'lengthMenu'     => '1ページあたり _MENU_ 件',
+            'lengthLabels'   => ['-1' => 'すべて'],
+            'loadingRecords' => '読み込み中...',
+            'search'         => '検索:',
+            'zeroRecords'    => '一致するレコードがありません',
+            'aria'           => [
+                'orderable'        => ': クリックで並べ替え',
+                'orderableReverse' => ': クリックで並べ替えを反転',
+                'orderableRemove'  => ': クリックで並べ替えを解除',
+                'paginate'         => [
+                    'first'    => '最初',
+                    'last'     => '最後',
+                    'next'     => '次',
+                    'previous' => '前',
+                ],
+            ],
+        ],
+        // Table Builder (app/Helpers/table_helper.php) defaults
+        'add'         => '新規追加',
+        'edit'        => '編集',
+        'reset'       => 'リセット',
+        'all'         => 'すべて',
+        'yes'         => 'はい',
+        'no'          => 'いいえ',
+        'load-failed' => 'データを読み込めませんでした。もう一度お試しください。',
+    ],
     'print'      => [
         'export'     => 'エクスポート',
         'print'      => '印刷',
