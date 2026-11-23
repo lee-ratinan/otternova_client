@@ -7,6 +7,7 @@ return [
         'forgot-password'       => '忘記密碼',
         'reset-password'        => '重設密碼',
         'dashboard'             => '儀表板',
+        'progress'              => '設定進度',
         'profile'               => '個人資料',
         'sign-out'              => '登出',
         'notifications'         => '通知',

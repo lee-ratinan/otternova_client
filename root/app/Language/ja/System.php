@@ -7,6 +7,7 @@ return [
         'forgot-password'       => 'パスワードをお忘れの場合',
         'reset-password'        => 'パスワードの再設定',
         'dashboard'             => 'ダッシュボード',
+        'progress'              => 'セットアップの進捗',
         'profile'               => 'プロフィール',
         'sign-out'              => 'サインアウト',
         'notifications'         => '通知',

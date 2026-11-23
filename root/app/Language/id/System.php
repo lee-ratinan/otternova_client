@@ -7,6 +7,7 @@ return [
         'forgot-password'       => 'Lupa Kata Sandi',
         'reset-password'        => 'Atur Ulang Kata Sandi',
         'dashboard'             => 'Dasbor',
+        'progress'              => 'Progres Penyiapan',
         'profile'               => 'Profil',
         'sign-out'              => 'Keluar',
         'notifications'         => 'Notifikasi',

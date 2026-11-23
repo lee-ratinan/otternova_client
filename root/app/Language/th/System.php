@@ -7,6 +7,7 @@ return [
         'forgot-password'       => 'ลืมรหัสผ่าน',
         'reset-password'        => 'ตั้งรหัสผ่านใหม่',
         'dashboard'             => 'แดชบอร์ด',
+        'progress'              => 'ความคืบหน้าการตั้งค่า',
         'profile'               => 'โปรไฟล์',
         'sign-out'              => 'ออกจากระบบ',
         'notifications'         => 'การแจ้งเตือน',

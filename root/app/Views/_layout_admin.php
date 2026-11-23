@@ -226,6 +226,14 @@
                     <span class="nav-text"><?= lang('System.page.dashboard') ?></span>
                 </a>
             </li>
+            <?php if (isBusinessOwner()): ?>
+                <li class="nav-item">
+                    <a class="nav-link<?= ('progress' == $slug ? ' active' : '') ?>" href="<?= base_url('admin/progress') ?>">
+                        <span class="nav-icon"><i class="bi bi-list-check"></i></span>
+                        <span class="nav-text"><?= lang('System.page.progress') ?></span>
+                    </a>
+                </li>
+            <?php endif; ?>
             <!-- ALL STAFF CAN SEE -->
             <li class="nav-heading"><span><?= lang('System.page.sales') ?></span></li>
             <li class="nav-item">

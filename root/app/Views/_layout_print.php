@@ -19,6 +19,9 @@ $printedBy = (string) (session('user')['full_name'] ?? '');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title><?= esc($title . ' · ' . $businessName . ' · ' . $subtitle) ?></title>
+    <!-- Favicons -->
+    <link href="<?= assets_url('img/logo.webp') ?>" rel="icon">
+    <link href="<?= assets_url('img/logo.webp') ?>" rel="apple-touch-icon">
     <style>
         @page { size: A4 portrait; margin: 12mm 10mm 14mm; }
         * { box-sizing: border-box; }

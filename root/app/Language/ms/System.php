@@ -7,6 +7,7 @@ return [
         'forgot-password'       => 'Lupa Kata Laluan',
         'reset-password'        => 'Tetapkan Semula Kata Laluan',
         'dashboard'             => 'Papan Pemuka',
+        'progress'              => 'Kemajuan Persediaan',
         'profile'               => 'Profil',
         'sign-out'              => 'Log Keluar',
         'notifications'         => 'Pemberitahuan',

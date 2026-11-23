@@ -7,6 +7,7 @@ return [
         'forgot-password'       => 'Forgot Password',
         'reset-password'        => 'Reset Password',
         'dashboard'             => 'Dashboard',
+        'progress'              => 'Setup Progress',
         'profile'               => 'Profile',
         'sign-out'              => 'Sign Out',
         'notifications'         => 'Notifications',

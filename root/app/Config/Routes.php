@@ -21,6 +21,11 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->get('/', 'Dashboard::index');
     $routes->get('dashboard', 'Dashboard::index');
     $routes->post('dashboard/widget/(:segment)', 'Dashboard::widget/$1');
+    // the setup guide of the session business, each step checked on its own: its owners only; see App\Controllers\Progress
+    $routes->group('progress', ['filter' => 'manager:owner'], static function ($routes) {
+        $routes->get('/', 'Progress::index');
+        $routes->post('check/(:segment)', 'Progress::check/$1');
+    });
     $routes->get('create-business', 'Admin::createBusiness');
     $routes->post('create-business', 'Admin::createBusinessPost');
     $routes->get('profile', 'Admin::profile');
