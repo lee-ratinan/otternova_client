@@ -24,6 +24,7 @@ return [
         'state-open'    => 'Open: customers can find your shop and order',
         'state-closed'  => 'Closed: your shop is hidden',
         'help'          => 'While closed, your shop is left out of the search, its pages say it is not open yet, and no orders can be placed. Orders placed already can still be checked and paid.',
+        'paid-warning'  => 'You are on a paid plan. Closing your shop does not pause or extend your subscription: it renews on the same date, and the plan is billed as usual.',
         'view-shop'     => 'View your shop',
         'opened'        => 'Your shop is open on OtterNovaMart.',
         'closed'        => 'Your shop is closed on OtterNovaMart.',

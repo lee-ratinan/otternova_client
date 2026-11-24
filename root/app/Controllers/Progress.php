@@ -62,15 +62,12 @@ class Progress extends BaseController
     public const TODO     = 'todo';
     public const OPTIONAL = 'optional';
 
-    /** plan_code of the free plan */
-    private const FREE_PLAN = 'free';
-
     /**
      * GET admin/progress: the steps of the business's plan, by phase, each a placeholder its script fills
      */
     public function index(): string
     {
-        $paid  = $this->isPaid();
+        $paid  = $this->isPaidPlan();
         $steps = self::stepsFor($paid);
         $phases = [];
         foreach (self::PHASES as $phase => $names) {
@@ -136,21 +133,6 @@ class Progress extends BaseController
             $for = self::STEPS[$step][3];
             return null === $for || ($paid ? 'paid' : 'free') === $for;
         }));
-    }
-
-    /**
-     * Whether the session business is on a paid plan: the plan_code of v1/client/subscription/current is the free one
-     * unless its subscription is active. When it cannot be read, the session business's own plan_code decides.
-     */
-    private function isPaid(): bool
-    {
-        [$ok, $data] = $this->fetch('v1/client/subscription/current', []);
-        $plan = $ok ? ($data['plan_code'] ?? null) : null;
-        if (null === $plan) {
-            $business = session('business');
-            $plan     = is_array($business) ? ($business['business']['plan_code'] ?? $business['plan_code'] ?? null) : null;
-        }
-        return '' !== (string) $plan && self::FREE_PLAN !== (string) $plan;
     }
 
     // --- the checks: [ok, state, note] ----------------------------------------------------------------------------

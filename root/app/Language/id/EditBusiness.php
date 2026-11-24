@@ -24,6 +24,7 @@ return [
         'state-open'    => 'Buka: pelanggan dapat menemukan toko Anda dan memesan',
         'state-closed'  => 'Tutup: toko Anda disembunyikan',
         'help'          => 'Selama tutup, toko Anda tidak muncul di pencarian, halamannya menyatakan belum buka, dan tidak ada pesanan yang dapat dibuat. Pesanan yang sudah ada masih dapat diperiksa dan dibayar.',
+        'paid-warning'  => 'Anda menggunakan paket berbayar. Menutup toko tidak menjeda atau memperpanjang langganan Anda: langganan diperpanjang pada tanggal yang sama, dan paket ditagih seperti biasa.',
         'view-shop'     => 'Lihat toko Anda',
         'opened'        => 'Toko Anda kini buka di OtterNovaMart.',
         'closed'        => 'Toko Anda kini tutup di OtterNovaMart.',

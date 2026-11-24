@@ -5,6 +5,7 @@
  * open shop, and goes back if the save fails.
  *
  * @var bool   $open    is_business_open Y
+ * @var bool   $paid    on a paid plan: closing the shop does not pause the subscription
  * @var string $shopUrl the business's pages on OtterNovaMart
  * @var string $url     admin/business/open
  */
@@ -34,6 +35,9 @@ $config = [
             <label class="form-check-label fw-semibold" for="business-open-switch" id="business-open-state"><?= lang($open ? 'EditBusiness.open.state-open' : 'EditBusiness.open.state-closed') ?></label>
         </div>
         <p class="form-text mb-2" id="business-open-help"><?= lang('EditBusiness.open.help') ?></p>
+        <?php if (! empty($paid)): ?>
+        <div class="alert alert-warning small py-2 mb-2" role="alert" id="business-open-paid"><i class="bi bi-exclamation-triangle"></i> <?= lang('EditBusiness.open.paid-warning') ?></div>
+        <?php endif ?>
         <a href="<?= esc($shopUrl, 'attr') ?>" target="_blank" rel="noopener" class="small"><i class="bi bi-box-arrow-up-right"></i> <?= lang('EditBusiness.open.view-shop') ?></a>
     </div>
 </div>

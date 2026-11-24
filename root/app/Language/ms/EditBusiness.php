@@ -24,6 +24,7 @@ return [
         'state-open'    => 'Buka: pelanggan boleh mencari kedai anda dan membuat pesanan',
         'state-closed'  => 'Tutup: kedai anda disembunyikan',
         'help'          => 'Semasa ditutup, kedai anda tidak muncul dalam carian, halamannya menyatakan ia belum dibuka, dan tiada pesanan boleh dibuat. Pesanan sedia ada masih boleh disemak dan dibayar.',
+        'paid-warning'  => 'Anda menggunakan pelan berbayar. Menutup kedai anda tidak menjeda atau melanjutkan langganan anda: ia diperbaharui pada tarikh yang sama, dan pelan dibilkan seperti biasa.',
         'view-shop'     => 'Lihat kedai anda',
         'opened'        => 'Kedai anda kini dibuka di OtterNovaMart.',
         'closed'        => 'Kedai anda kini ditutup di OtterNovaMart.',

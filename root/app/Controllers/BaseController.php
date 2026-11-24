@@ -50,6 +50,24 @@ abstract class BaseController extends Controller
         $this->applyPreferredLanguage();
     }
 
+    /** plan_code of the free plan */
+    protected const FREE_PLAN = 'free';
+
+    /**
+     * Whether the session business is on a paid plan: the plan_code of v1/client/subscription/current is the free one
+     * unless its subscription is active. When it cannot be read, the session business's own plan_code decides.
+     */
+    protected function isPaidPlan(): bool
+    {
+        [$code, $body] = $this->callApi('v1/client/subscription/current', ['business_slug' => (string) currentBusinessSlug()]);
+        $plan = 200 === $code && 'success' === ($body['status'] ?? '') ? ($body['data']['plan_code'] ?? null) : null;
+        if (null === $plan) {
+            $business = session('business');
+            $plan     = is_array($business) ? ($business['business']['plan_code'] ?? $business['plan_code'] ?? null) : null;
+        }
+        return '' !== (string) $plan && self::FREE_PLAN !== (string) $plan;
+    }
+
     /**
      * POST to LINK_INTERNAL_API with the signed-in client's JWT and return [http status, decoded body]
      * @param bool $multipart true: sent as multipart/form-data (files as CURLFile), otherwise as JSON

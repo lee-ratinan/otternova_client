@@ -601,6 +601,7 @@ class Admin extends BaseController
         if (isBusinessOwner()) {
             $data['extraHtml'] = view('partials/business_open', [
                 'open'    => 'Y' === (string) ($values['is_business_open'] ?? 'N'),
+                'paid'    => $this->isPaidPlan(),
                 'shopUrl' => $this->storeBaseUrl() . rawurlencode($slug),
                 'url'     => base_url('admin/business/open'),
             ]);
