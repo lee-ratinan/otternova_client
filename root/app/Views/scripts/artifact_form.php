@@ -413,7 +413,7 @@ $config = [
     function render() {
       grid.innerHTML = images.map(function (img, i) {
         var variant = img.variant_public_id ? (ed.labels[img.variant_public_id] || '') : '';
-        return '<div class="col-6 col-sm-4 col-md-3 col-xl-2"><div class="border rounded-2 p-2 h-100 d-flex flex-column">'
+        return '<div class="col-6 col-sm-4 col-md-3"><div class="border rounded-2 p-2 h-100 d-flex flex-column">'
           + '<div class="ratio ratio-1x1 mb-2"><img src="' + esc(img.url) + '" alt="" class="rounded-2" style="object-fit: cover;" loading="lazy"></div>'
           + (i === 0 ? '<span class="badge bg-primary align-self-start mb-1">' + esc(L.cover) + '</span>' : '')
           + (variant ? '<div class="small text-muted text-truncate mb-1" title="' + esc(variant) + '">' + esc(variant) + '</div>' : '')
