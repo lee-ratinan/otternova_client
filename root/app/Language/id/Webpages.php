@@ -192,4 +192,18 @@ return [
         'testimonials_01' => 'Slider testimoni',
         'why_us_01'       => 'Nilai dan langkah',
     ],
+    'refinement'      => [
+        'title'          => 'Sempurnakan dengan AI',
+        'help'           => 'AI menulis ulang setiap teks di halaman ini agar lebih baik dan sesuai suasana bisnis Anda, dalam setiap bahasa situs web Anda. Periksa setiap bagian, lalu simpan.',
+        'button'         => 'Sempurnakan Halaman',
+        'working'        => 'Menyempurnakan…',
+        'incomplete'     => 'Isi setiap teks di setiap bagian dalam {0} (★), termasuk yang opsional, untuk menyempurnakan halaman. Masih kosong:',
+        'more'           => '…dan {0} lainnya',
+        'no-sections'    => 'Tambahkan dan simpan bagian halaman terlebih dahulu, lalu sempurnakan teksnya di sini.',
+        'count'          => '{0} dari {1} penyempurnaan AI terpakai dalam {3} hari terakhir pada paket {2}.',
+        'limit-reached'  => 'Paket {1} mengizinkan {0} penyempurnaan AI per halaman setiap {2} hari. Tingkatkan paket Anda untuk lebih banyak.',
+        'not-included'   => 'Paket {0} tidak mencakup penulisan AI. Tingkatkan paket Anda untuk menggunakannya.',
+        'failed'         => 'Tidak dapat menyempurnakan teks halaman. Silakan coba lagi.',
+        'done'           => 'Teks telah disempurnakan. Silakan periksa setiap bagian, lalu simpan.',
+    ],
 ];

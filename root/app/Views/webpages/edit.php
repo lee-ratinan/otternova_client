@@ -3,7 +3,8 @@
  * The editor of one page the session business designs itself (Webpages::edit()): its names and address (not the
  * home page's), its sections, each a design of the API's options.designs with its texts per language and its
  * pictures per slot, and its status. Drawn and kept by scripts/webpage_editor. The designs are previewed on the
- * storefront (/{business}/design-preview/{design_code}) in a modal; the page itself through a preview link.
+ * storefront (/{business}/design-preview/{design_code}) in a modal; the page itself through a preview link. The AI
+ * refinement card rewrites every text of the page once they are all filled in (page.text_refinement, the allowance).
  *
  * @var array $page    v1/client/webpage: the page with its sections
  * @var array $options v1/client/webpages options
@@ -58,6 +59,14 @@ $this->extend('_layout_admin');
                             <a class="btn btn-link" href="<?= esc($urls['list'], 'attr') ?>"><i class="bi bi-arrow-left"></i> <?= lang('Webpages.editor.back') ?></a>
                         </div>
                         <p class="small text-muted mt-3 mb-0"><?= lang('Webpages.editor.live-note') ?></p>
+                    </div>
+                </div>
+                <?php // ---- the AI refinement of every text of the page, drawn by the script ---- ?>
+                <div class="card mb-3" id="refine-card">
+                    <div class="card-body">
+                        <div class="fw-semibold mb-1"><i class="bi bi-stars"></i> <?= lang('Webpages.refinement.title') ?></div>
+                        <p class="small text-muted"><?= lang('Webpages.refinement.help') ?></p>
+                        <div id="refine-body"></div>
                     </div>
                 </div>
             </div>

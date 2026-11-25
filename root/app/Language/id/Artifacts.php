@@ -141,4 +141,17 @@ return [
         'deleted'        => 'Gambar dihapus.',
         'reordered'      => 'Urutan gambar diubah.',
     ],
+    'refinement'              => [
+        'source'           => 'Sempurnakan Dari',
+        'button'           => 'Sempurnakan dengan AI',
+        'help'             => 'AI menulis ulang deskripsi yang Anda pilih agar lebih baik dan sesuai suasana bisnis Anda, ke setiap bahasa di bawah. Periksa deskripsi baru, lalu simpan.',
+        'count'            => '{0} dari {1} penyempurnaan AI terpakai dalam {3} hari terakhir pada paket {2}.',
+        'limit-reached'    => 'Paket {1} mengizinkan {0} penyempurnaan AI per produk atau layanan setiap {2} hari. Tingkatkan paket Anda untuk lebih banyak.',
+        'not-included'     => 'Paket {0} tidak mencakup penulisan AI. Tingkatkan paket Anda untuk menggunakannya.',
+        'no-source'        => 'Silakan tulis deskripsi terlebih dahulu untuk disempurnakan AI.',
+        'no-source-option'  => 'Belum ada deskripsi',
+        'no-languages'     => 'Situs web Anda belum memiliki bahasa lain untuk menulis deskripsi.',
+        'failed'           => 'Tidak dapat menyempurnakan deskripsi. Silakan coba lagi.',
+        'done'             => 'Deskripsi telah disempurnakan. Silakan periksa, lalu simpan.',
+    ],
 ];

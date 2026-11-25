@@ -192,4 +192,18 @@ return [
         'testimonials_01' => 'Testimonial slider',
         'why_us_01'       => 'Values and steps',
     ],
+    'refinement'      => [
+        'title'          => 'Refine with AI',
+        'help'           => 'The AI rewrites every text of this page, better and in the mood and feel of your business, in each language of your website. Review each section, then save it.',
+        'button'         => 'Refine the Page',
+        'working'        => 'Refining…',
+        'incomplete'     => 'Fill in every text of every section in {0} (★), the optional ones too, to refine the page. Still empty:',
+        'more'           => '…and {0} more',
+        'no-sections'    => 'Add and save the page\'s sections first, then refine their texts here.',
+        'count'          => '{0} of {1} AI refinements used in the last {3} days on the {2} plan.',
+        'limit-reached'  => 'The {1} plan allows {0} AI refinements per page every {2} days. Upgrade your plan for more.',
+        'not-included'   => 'The {0} plan does not include AI writing. Upgrade your plan to use it.',
+        'failed'         => 'Could not refine the texts of the page. Please try again.',
+        'done'           => 'Texts refined. Please review each section, then save it.',
+    ],
 ];

@@ -8,6 +8,10 @@
  *   not saved yet, the chosen files are uploaded right after it is added)
  * - below them, a chooser of the next section type: the page starts empty and the user adds one section at a time
  * - the status and preview buttons
+ * - the AI refinement card: once every text slot of every saved section is filled in, in the default language (as
+ *   the editor has them, unsaved ones too), a button asks the API to rewrite them all in each language; the answers
+ *   go into the sections' cards, for the user to review and save. Until then it tells what is still empty. The
+ *   allowance (page.text_refinement) is kept here, as the page the API sends back after a save does not have it.
  * Changing a section's design keeps the texts of the slots both designs have; the API deletes the pictures that do
  * not fit the new design, which the page asks about first. Errors come back by the API's field names.
  *
@@ -15,7 +19,7 @@
  * @var array $options
  * @var array $urls
  */
-helper('list');
+helper(['list', 'html']);
 // the section types of the API's designs (Config\WebpageDesigns::SECTION_TYPES), named in Webpages.sections
 $sectionTypes = ['hero', 'about', 'services', 'portfolio', 'testimonials', 'why_us'];
 $config       = [
@@ -23,6 +27,7 @@ $config       = [
     'options'       => $options,
     'urls'          => $urls,
     'languageNames' => listLanguages(),
+    'planName'      => planName((string) ($options['plan'] ?? '')),
     'csrf'          => ['header' => csrf_header(), 'hash' => csrf_hash()],
     'messages'      => [
         'homeTitle'        => lang('Webpages.editor.home-title'),
@@ -90,6 +95,7 @@ $config       = [
         'saving'           => lang('Webpages.saving'),
         'unsavedLeave'     => lang('Webpages.unsaved-leave'),
         'imageFailed'      => lang('Webpages.images.failed'),
+        'refine'           => lang('Webpages.refinement'),
     ],
 ];
 ?>
@@ -111,6 +117,9 @@ $config       = [
   // the section type the user picked to add and has not saved yet
   var adding = null;
   var dirty = false;
+  // the page's AI refinements of its texts against the plan's allowance, and whether one is running
+  var refineCap = page.text_refinement || { max: 0, count: 0, can_add: false, window_days: 60 };
+  var refining = false;
 
   // ---------------------------------------------------------------- helpers
 
@@ -194,7 +203,7 @@ $config       = [
     else { button.disabled = false; if (button.dataset.label) { button.innerHTML = button.dataset.label; } }
   }
 
-  function markDirty() { dirty = true; }
+  function markDirty() { dirty = true; drawRefine(); }
   window.addEventListener('beforeunload', function (event) {
     if (dirty) { event.preventDefault(); event.returnValue = M.unsavedLeave; }
   });
@@ -673,6 +682,80 @@ $config       = [
     (page.sections || []).forEach(function (section) { holder.appendChild(sectionCard(section.section_type)); });
     if (adding && !sectionOf(adding)) { holder.appendChild(sectionCard(adding)); } else { adding = null; }
     holder.appendChild(typeChooser(!(page.sections || []).length && !adding));
+    drawRefine();
+  }
+
+  // ---------------------------------------------------------------- the AI refinement of the page's texts
+
+  /** The texts of the saved sections as the editor has them, in the default language, and the slots still empty */
+  function refineSources() {
+    var sections = [];
+    var missing = [];
+    (page.sections || []).forEach(function (section) {
+      var draft = draftOf(section.section_type);
+      var design = designs[draft.design];
+      if (!design) { return; }
+      var texts = {};
+      Object.keys(design.texts).forEach(function (slot) {
+        var text = ((draft.texts[defaultLanguage] || {})[slot]) || '';
+        if (text.trim() === '') { missing.push((M.sectionTypes[section.section_type] || humanize(section.section_type)) + ' · ' + slotName(slot)); }
+        texts[slot] = text;
+      });
+      sections.push({ section_public_id: section.public_id, design_code: draft.design, texts: texts });
+    });
+    return { sections: sections, missing: missing };
+  }
+
+  function drawRefine() {
+    var R = M.refine;
+    var body = document.getElementById('refine-body');
+    if (!body) { return; }
+    body.textContent = '';
+    var sources = refineSources();
+    var left = refineCap.count < refineCap.max;
+    var countText = refineCap.max === 0 ? fill(R['not-included'], [cfg.planName])
+      : (left ? fill(R.count, [refineCap.count, refineCap.max, cfg.planName, refineCap.window_days])
+        : fill(R['limit-reached'], [refineCap.max, cfg.planName, refineCap.window_days]));
+    if (!sources.sections.length) {
+      body.appendChild(el('p', { class: 'small mb-0' }, [el('i', { class: 'bi bi-info-circle' }), ' ' + R['no-sections']]));
+    } else if (sources.missing.length) {
+      // the instruction, with the texts still empty
+      var shown = sources.missing.slice(0, 6);
+      body.appendChild(el('p', { class: 'small mb-1' }, [el('i', { class: 'bi bi-info-circle' }), ' ' + fill(R.incomplete, [languageName(defaultLanguage)])]));
+      body.appendChild(el('ul', { class: 'small text-muted mb-0 ps-3', 'data-refine-missing': true },
+        shown.map(function (item) { return el('li', { text: item }); })
+          .concat(sources.missing.length > shown.length ? [el('li', { text: fill(R.more, [sources.missing.length - shown.length]) })] : [])));
+    } else {
+      var button = el('button', { type: 'button', class: 'btn btn-outline-primary w-100', disabled: refining || !left }, refining
+        ? [el('span', { class: 'spinner-border spinner-border-sm me-1', role: 'status', 'aria-hidden': 'true' }), R.working]
+        : [el('i', { class: 'bi bi-stars' }), ' ' + R.button]);
+      button.addEventListener('click', function () { refineTexts(sources.sections); });
+      body.appendChild(el('div', { class: 'd-grid' }, [button]));
+    }
+    body.appendChild(el('div', { class: 'form-text' + (left ? '' : ' text-warning'), text: countText }));
+  }
+
+  function refineTexts(sections) {
+    if (refining || refineCap.count >= refineCap.max) { return; }
+    refining = true;
+    drawRefine();
+    post(cfg.urls.refine, { page_public_id: page.public_id, sections: sections }).then(function (r) {
+      refining = false;
+      if (!r.ok) { notify('error', r.json.message || M.refine.failed); drawRefine(); return; }
+      var refined = (r.json.data || {}).sections || {};
+      (page.sections || []).forEach(function (section) {
+        var texts = refined[section.public_id];
+        if (!texts) { return; }
+        var draft = draftOf(section.section_type);
+        Object.keys(texts).forEach(function (code) {
+          draft.texts[code] = Object.assign({}, draft.texts[code] || {}, texts[code]);
+        });
+      });
+      if ((r.json.data || {}).text_refinement) { refineCap = r.json.data.text_refinement; } else { refineCap.count++; }
+      dirty = true;
+      notify('success', r.json.message || M.refine.done);
+      drawSections();
+    });
   }
 
   // ---------------------------------------------------------------- status and preview

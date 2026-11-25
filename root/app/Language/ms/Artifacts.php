@@ -141,4 +141,17 @@ return [
         'deleted'        => 'Imej dipadam.',
         'reordered'      => 'Susunan imej ditukar.',
     ],
+    'refinement'              => [
+        'source'           => 'Perhalusi Daripada',
+        'button'           => 'Perhalusi dengan AI',
+        'help'             => 'AI menulis semula penerangan yang anda pilih supaya lebih baik dan mengikut suasana perniagaan anda, ke dalam setiap bahasa di bawah. Semak penerangan baharu, kemudian simpan.',
+        'count'            => '{0} daripada {1} penghalusan AI digunakan dalam {3} hari lepas pada pelan {2}.',
+        'limit-reached'    => 'Pelan {1} membenarkan {0} penghalusan AI bagi setiap produk atau perkhidmatan setiap {2} hari. Naik taraf pelan anda untuk lebih banyak.',
+        'not-included'     => 'Pelan {0} tidak termasuk penulisan AI. Naik taraf pelan anda untuk menggunakannya.',
+        'no-source'        => 'Sila tulis penerangan dahulu untuk diperhalusi oleh AI.',
+        'no-source-option'  => 'Belum ada penerangan',
+        'no-languages'     => 'Laman web anda belum mempunyai bahasa lain untuk menulis penerangan.',
+        'failed'           => 'Tidak dapat memperhalusi penerangan. Sila cuba lagi.',
+        'done'             => 'Penerangan telah diperhalusi. Sila semak, kemudian simpan.',
+    ],
 ];

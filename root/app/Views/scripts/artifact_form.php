@@ -10,12 +10,17 @@
  *   plan's cap of variants per artifact.
  * - the images card (artifacts/images): upload, delete and reorder, each posted at once; Upload stops at the plan's
  *   cap of images per artifact
+ * - the AI refinement of the description (artifacts/description_refinement): the owner picks one of the descriptions
+ *   that has text, and the AI's rewrites replace the descriptions in other languages, for review before saving; the
+ *   button stays off with no description to start from, and once the refinements of the last 60 days (the API's window) are used up
  *
  * @var string     $formId        the artifact form's DOM id
  * @var string     $variantsField the hidden field of the variants
  * @var array      $editor        type, variants, attributes, stores, labels, window, windowRule, max, planName (see Artifacts::form())
  * @var string     $taxNone       tax_calculation of no tax
  * @var array|null $images        artifact, images, max, planName, urls; null for a new artifact
+ * @var array|null $refinement    artifact, max, count, days, planName, descriptionField, descriptionPrefix, languages, url;
+ *                                null for a new artifact
  */
 $config = [
     'formId'        => $formId,
@@ -23,6 +28,7 @@ $config = [
     'editor'        => $editor,
     'taxNone'       => $taxNone,
     'images'        => $images,
+    'refinement'    => $refinement ?? null,
     'csrf'          => ['header' => csrf_header()],
     'labels'        => [
         'help'          => lang('Artifacts.variants.help'),
@@ -66,6 +72,9 @@ $config = [
         'imagesCount'   => lang('Artifacts.images.count'),
         'imagesLimit'   => lang('Artifacts.images.limit-reached'),
         'failed'        => lang('Artifacts.images.failed'),
+        'refine'        => lang('Artifacts.refinement'),
+        'fieldLabel'    => lang('Artifacts.fields.artifact_description'),
+        'inLanguage'    => lang('Artifacts.translation-description'),
     ],
 ];
 ?>
@@ -502,6 +511,87 @@ $config = [
         } finally {
           setBusy(false);
         }
+      }
+    });
+
+    render();
+  }
+  // ---- the AI refinement of the description ----------------------------------------------
+  var rf = cfg.refinement;
+  var refineBox = document.getElementById('artifact-description-refinement');
+  if (rf && refineBox) { initRefinement(); }
+
+  function initRefinement() {
+    var R = L.refine;
+    var pane = form.querySelector('[data-fb-pane="edit"]') || form;
+    var select = refineBox.querySelector('[data-refine-source]');
+    var button = refineBox.querySelector('[data-refine-button]');
+    var spinner = refineBox.querySelector('[data-refine-spinner]');
+    var icon = refineBox.querySelector('[data-refine-icon]');
+    var count = refineBox.querySelector('[data-refine-count]');
+    var used = rf.count;
+    var busy = false;
+
+    // the descriptions the owner may start from: the main one, then one per language of the website
+    var sources = [{ name: rf.descriptionField, label: L.fieldLabel }].concat(Object.keys(rf.languages || {}).map(function (code) {
+      return { name: rf.descriptionPrefix + code, label: fmt(L.inLanguage, [rf.languages[code]]) };
+    }));
+    function field(name) { return pane.querySelector('[name="' + name + '"]'); }
+    function filled() {
+      return sources.filter(function (s) { var el = field(s.name); return el && el.value.trim() !== ''; });
+    }
+    function left() { return used < rf.max; }
+
+    function render() {
+      var list = filled();
+      var picked = select.value;
+      select.innerHTML = list.length
+        ? list.map(function (s) { return '<option value="' + esc(s.name) + '">' + esc(s.label) + '</option>'; }).join('')
+        : '<option value="">' + esc(R['no-source-option']) + '</option>';
+      if (list.some(function (s) { return s.name === picked; })) { select.value = picked; }
+      select.disabled = busy || !list.length;
+      button.disabled = busy || !list.length || !left();
+      spinner.classList.toggle('d-none', !busy);
+      icon.classList.toggle('d-none', busy);
+      count.textContent = rf.max === 0 ? fmt(R['not-included'], [rf.planName])
+        : (left() ? fmt(R.count, [used, rf.max, rf.planName, rf.days]) : fmt(R['limit-reached'], [rf.max, rf.planName, rf.days]));
+      count.classList.toggle('text-warning', !left());
+    }
+
+    // the choice follows what is typed into the descriptions
+    pane.addEventListener('input', function (e) {
+      if (e.target && sources.some(function (s) { return s.name === e.target.name; })) { render(); }
+    });
+    form.addEventListener('reset', function () { setTimeout(render, 0); });
+
+    button.addEventListener('click', async function () {
+      var source = field(select.value);
+      if (busy || !left()) { return; }
+      if (!source || source.value.trim() === '') { notify('error', R['no-source']); return; }
+      var name = field('artifact_name');
+      busy = true;
+      render();
+      try {
+        var r = await post(rf.url, {
+          public_id: rf.artifact,
+          artifact_name: name ? name.value : '',
+          source_description: source.value
+        }, true);
+        if (!r.ok) { notify('error', r.data.message || R.failed); return; }
+        Object.keys(r.data.descriptions || {}).forEach(function (code) {
+          var el = field(rf.descriptionPrefix + code);
+          if (!el) { return; }
+          el.value = r.data.descriptions[code];
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        if (r.data.refinement && typeof r.data.refinement.count === 'number') { used = r.data.refinement.count; } else { used++; }
+        notify('success', r.data.message || R.done);
+      } catch (err) {
+        notify('error', R.failed);
+      } finally {
+        busy = false;
+        render();
       }
     });
 

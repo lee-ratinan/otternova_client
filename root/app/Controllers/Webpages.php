@@ -117,6 +117,19 @@ class Webpages extends BaseController
         return $this->relay('v1/client/webpage/section/delete', ['page_public_id', 'section_public_id'], 'Webpages.delete-failed');
     }
 
+    /**
+     * POST { page_public_id, sections: [{ section_public_id, design_code, texts: { slot_code: text } }] } →
+     * v1/client/webpage/refine-texts: the AI rewrites every text of the page, given in the default language as the
+     * editor has them (all filled in), in each language of the website. Nothing is saved; the API logs every call
+     * (ai_usage_log, feature webpage_text_refinement) and refuses one over the plan's allowance.
+     * @return ResponseInterface data { sections: { section_public_id: { language_code: { slot_code: text } } },
+     *                           text_refinement: { max, count, can_add, window_days } }
+     */
+    public function refineTexts(): ResponseInterface
+    {
+        return $this->relay('v1/client/webpage/refine-texts', ['page_public_id', 'sections'], 'Webpages.refinement.failed');
+    }
+
     /** POST multipart { page_public_id, section_public_id, slot_code, image } → v1/client/webpage/image-upload */
     public function imageUpload(): ResponseInterface
     {
@@ -217,6 +230,7 @@ class Webpages extends BaseController
             'preview'       => base_url('admin/business/webpages/preview'),
             'sectionSave'   => base_url('admin/business/webpages/section-save'),
             'sectionDelete' => base_url('admin/business/webpages/section-delete'),
+            'refine'        => base_url('admin/business/webpages/refine-texts'),
             'imageUpload'   => base_url('admin/business/webpages/image-upload'),
             'imageDelete'   => base_url('admin/business/webpages/image-delete'),
             'website'       => base_url('admin/business/website'),

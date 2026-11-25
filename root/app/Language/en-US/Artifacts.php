@@ -141,4 +141,17 @@ return [
         'deleted'        => 'Image deleted.',
         'reordered'      => 'Images reordered.',
     ],
+    'refinement'              => [
+        'source'           => 'Refine From',
+        'button'           => 'Refine with AI',
+        'help'             => 'The AI rewrites the description you pick, better and in the mood and feel of your business, into each language below. Review the new descriptions, then save.',
+        'count'            => '{0} of {1} AI refinements used in the last {3} days on the {2} plan.',
+        'limit-reached'    => 'The {1} plan allows {0} AI refinements per product or service every {2} days. Upgrade your plan for more.',
+        'not-included'     => 'The {0} plan does not include AI writing. Upgrade your plan to use it.',
+        'no-source'        => 'Please write a description first, for the AI to refine.',
+        'no-source-option'  => 'No description yet',
+        'no-languages'     => 'Your website has no other languages to write the description in.',
+        'failed'           => 'Could not refine the description. Please try again.',
+        'done'             => 'Description refined. Please review it, then save.',
+    ],
 ];

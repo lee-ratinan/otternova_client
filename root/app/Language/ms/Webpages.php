@@ -192,4 +192,18 @@ return [
         'testimonials_01' => 'Peluncur testimoni',
         'why_us_01'       => 'Nilai dan langkah',
     ],
+    'refinement'      => [
+        'title'          => 'Perhalusi dengan AI',
+        'help'           => 'AI menulis semula setiap teks pada halaman ini supaya lebih baik dan mengikut suasana perniagaan anda, dalam setiap bahasa laman web anda. Semak setiap bahagian, kemudian simpan.',
+        'button'         => 'Perhalusi Halaman',
+        'working'        => 'Memperhalusi…',
+        'incomplete'     => 'Isi setiap teks dalam setiap bahagian dalam {0} (★), termasuk yang pilihan, untuk memperhalusi halaman. Masih kosong:',
+        'more'           => '…dan {0} lagi',
+        'no-sections'    => 'Tambah dan simpan bahagian halaman dahulu, kemudian perhalusi teksnya di sini.',
+        'count'          => '{0} daripada {1} penghalusan AI digunakan dalam {3} hari lepas pada pelan {2}.',
+        'limit-reached'  => 'Pelan {1} membenarkan {0} penghalusan AI bagi setiap halaman setiap {2} hari. Naik taraf pelan anda untuk lebih banyak.',
+        'not-included'   => 'Pelan {0} tidak termasuk penulisan AI. Naik taraf pelan anda untuk menggunakannya.',
+        'failed'         => 'Tidak dapat memperhalusi teks halaman. Sila cuba lagi.',
+        'done'           => 'Teks telah diperhalusi. Sila semak setiap bahagian, kemudian simpan.',
+    ],
 ];

@@ -99,6 +99,8 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('webpages/preview', 'Webpages::preview');
         $routes->post('webpages/section-save', 'Webpages::sectionSave');
         $routes->post('webpages/section-delete', 'Webpages::sectionDelete');
+        // the AI rewrites every text of the page; see App\Controllers\Webpages::refineTexts
+        $routes->post('webpages/refine-texts', 'Webpages::refineTexts');
         $routes->post('webpages/image-upload', 'Webpages::imageUpload');
         $routes->post('webpages/image-delete', 'Webpages::imageDelete');
         // how the business pays commission; see App\Controllers\Staff
@@ -189,6 +191,8 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
         $routes->post('image-upload', 'Artifacts::imageUpload');
         $routes->post('image-delete', 'Artifacts::imageDelete');
         $routes->post('image-reorder', 'Artifacts::imageReorder');
+        // the AI rewrites the description in the website's languages; see App\Controllers\Artifacts::refineDescription
+        $routes->post('refine-description', 'Artifacts::refineDescription');
         // the resources a service needs; see App\Controllers\Resources
         $routes->post('resources/save', 'Resources::saveNeeds');
         // what the products and services are grouped by, and what their variants differ by

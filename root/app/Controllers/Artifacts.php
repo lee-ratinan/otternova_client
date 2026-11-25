@@ -220,7 +220,8 @@ class Artifacts extends BaseController
                 'messages' => ['saved' => lang(null === $publicId ? 'Artifacts.form.created' : 'Artifacts.form.saved'), 'saveFailed' => lang('Artifacts.form.failed')],
                 'values'   => $values,
                 'fields'   => $this->fields($type, $typeCaps, $plan, (string) ($values['artifact_status'] ?? ''), $editor,
-                    array_intersect_key((array) ($detail['artifact'] ?? []), array_flip(['rating_count', 'rating_average', 'rating_breakdown']))),
+                    array_intersect_key((array) ($detail['artifact'] ?? []), array_flip(['rating_count', 'rating_average', 'rating_breakdown'])),
+                    null === $detail ? null : (array) ($detail['caps']['description_refinement'] ?? ['max' => 0, 'count' => 0, 'can_add' => false])),
             ],
             // a saved service: the resources it needs besides a person (see App\Controllers\Resources)
             'extraForms'   => $needsForm === null ? [] : [$needsForm],
@@ -235,6 +236,17 @@ class Artifacts extends BaseController
                 'variantsField' => self::VARIANTS_FIELD,
                 'editor'        => $editor,
                 'taxNone'       => self::TAX_NONE,
+                'refinement'    => null === $publicId ? null : [
+                    'artifact'           => $publicId,
+                    'max'                => (int) ($detail['caps']['description_refinement']['max'] ?? 0),
+                    'count'              => (int) ($detail['caps']['description_refinement']['count'] ?? 0),
+                    'days'               => (int) ($detail['caps']['description_refinement']['window_days'] ?? 60),
+                    'planName'           => planName($plan),
+                    'descriptionField'   => 'artifact_description',
+                    'descriptionPrefix'  => self::DESCRIPTION_PREFIX,
+                    'languages'          => $this->websiteLanguages(),
+                    'url'                => base_url('admin/artifacts/refine-description'),
+                ],
                 'images'        => null === $publicId ? null : [
                     'artifact' => $publicId,
                     'images'   => (array) ($detail['images'] ?? []),
@@ -302,6 +314,46 @@ class Artifacts extends BaseController
             'message'   => lang('' === $publicId ? 'Artifacts.form.created' : 'Artifacts.form.saved'),
             'redirect'  => '' === $savedId ? base_url('admin/artifacts') : base_url('admin/artifacts/edit/' . rawurlencode($savedId)),
             'csrf_hash' => csrf_hash(),
+        ]);
+    }
+
+    /**
+     * Rewrite the description of a product or service in the languages of the business's website with the AI, through
+     * LINK_INTERNAL_API v1/client/artifact/refine-description { public_id, artifact_name, source_description, languages }.
+     * source_description is the one the owner picked on the form, as it is there now; nothing is saved, the form gets
+     * the new descriptions to review. The API logs every call (ai_usage_log, feature artifact_description_refinement)
+     * and refuses one over the plan's allowance (Config\PlanLimits::AI_CREDIT_TEXT_ATTEMPTS in the last
+     * Config\PlanLimits::$aiCreditWindowDays days, rolling).
+     * @return ResponseInterface { success, message, descriptions: { language_code: text }, refinement: { max, count, can_add, window_days } }
+     */
+    public function refineDescription(): ResponseInterface
+    {
+        $source = trim((string) $this->request->getJsonVar('source_description'));
+        if ('' === $source) {
+            return $this->actionFailed(422, ['message' => lang('Artifacts.refinement.no-source')]);
+        }
+        $languages = array_keys($this->websiteLanguages());
+        if ([] === $languages) {
+            return $this->actionFailed(422, ['message' => lang('Artifacts.refinement.no-languages')]);
+        }
+        [$code, $body] = $this->callApi('v1/client/artifact/refine-description', [
+            'public_id'          => (string) $this->request->getJsonVar('public_id'),
+            'artifact_name'      => trim((string) $this->request->getJsonVar('artifact_name')),
+            'source_description' => $source,
+            'languages'          => $languages,
+        ]);
+        if ($code !== 200 || ($body['status'] ?? '') !== 'success') {
+            // the field the API names is not one of the form's: tell its error as the message
+            $errors = (array) ($body['errors'] ?? []);
+            $first  = reset($errors);
+            return $this->actionFailed($code, ['message' => is_string($first) ? $first : ($body['message'] ?? lang('Artifacts.refinement.failed'))]);
+        }
+        return $this->response->setJSON([
+            'success'      => true,
+            'message'      => $body['message'] ?? lang('Artifacts.refinement.done'),
+            'descriptions' => (array) ($body['data']['descriptions'] ?? []),
+            'refinement'   => (array) ($body['data']['description_refinement'] ?? []),
+            'csrf_hash'    => csrf_hash(),
         ]);
     }
 
@@ -457,8 +509,9 @@ class Artifacts extends BaseController
      * @param string $status   artifact_status of the artifact being edited
      * @param array  $editor   what the variants editor and view are built from
      * @param array  $rating   the artifact's rating_count, rating_average and rating_breakdown, for the view pane
+     * @param array|null $refinement a saved one: caps.description_refinement of v1/client/artifact { max, count, can_add }
      */
-    private function fields(string $type, array $typeCaps, string $plan, string $status, array $editor, array $rating = []): array
+    private function fields(string $type, array $typeCaps, string $plan, string $status, array $editor, array $rating = [], ?array $refinement = null): array
     {
         $enums = lang('Artifacts.enum');
         $label = static fn (string $field) => lang('Artifacts.fields.' . $field);
@@ -512,6 +565,13 @@ class Artifacts extends BaseController
         $languages = $this->websiteLanguages();
         if ([] !== $languages) {
             $fields[] = ['type' => 'heading', 'label' => lang('Artifacts.heading.translations')];
+            // a saved one: the AI rewrites the descriptions below from one of them
+            if (null !== $refinement) {
+                $fields[] = ['type' => 'html', 'show_in' => ['edit'], 'html' => view('artifacts/description_refinement', [
+                    'cap'      => $refinement,
+                    'planName' => planName($plan),
+                ])];
+            }
         }
         foreach ($languages as $language => $name) {
             $fields[] = ['name' => self::NAME_PREFIX . $language, 'type' => 'text', 'label' => lang('Artifacts.translation-name', [$name]),
