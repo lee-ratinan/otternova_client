@@ -186,6 +186,12 @@ class Home extends BaseController
                 $data['invitationError'] = $body['message'] ?? lang('Login.create-account.invitation-invalid');
             }
         }
+        // the Terms of Service and Privacy Policy versions in effect: the form sends their public_id back, so the API
+        // records the acceptance of exactly what was shown (and refuses it when a newer one took effect meanwhile)
+        [$code, $body] = $this->callPublicApi('v1/legal/current', []);
+        $data['legalVersions'] = $code === 200 && ($body['status'] ?? '') === 'success'
+            ? array_values(array_filter(array_column((array) ($body['data']['documents'] ?? []), 'public_id'), 'is_string'))
+            : [];
         return view('public_createAccount', $data);
     }
 
@@ -216,7 +222,13 @@ class Home extends BaseController
             return $this->fail(lang('Login.create-account.invalid-input'), 422, $errors);
         }
 
-        $payload = ['full_name' => $fullName, 'email_address' => $email, 'password' => $password];
+        $legalVersions = $this->request->getPost('legal_versions');
+        $payload       = [
+            'full_name'      => $fullName,
+            'email_address'  => $email,
+            'password'       => $password,
+            'legal_versions' => is_array($legalVersions) ? array_values(array_filter($legalVersions, 'is_string')) : [],
+        ];
         $invitation = trim((string) $this->request->getPost('invitation'));
         if ('' !== $invitation) {
             $payload['invitation'] = $invitation; // the API checks the address is the invited one
@@ -390,8 +402,9 @@ class Home extends BaseController
     }
 
     /**
-     * Store the JWT, the user profile and the sign-in business returned by LINK_INTERNAL_API in the session.
-     * A client active in no business (business: null) goes on to create one; any other to the dashboard.
+     * Store the JWT, the user profile, the sign-in business and the legal documents still to accept returned by
+     * LINK_INTERNAL_API in the session. A client with documents to accept goes to admin/legal/accept first; then one
+     * active in no business (business: null) goes on to create one; any other to the dashboard.
      */
     private function createSession(array $data): ResponseInterface
     {
@@ -409,11 +422,12 @@ class Home extends BaseController
             'expires_at'   => min($expiresAt, $maxExpiry),
             'user'         => $data['user'],
             'business'     => is_array($data['business'] ?? null) ? $data['business'] : null,
+            'legal_pending' => is_array($data['legal_pending'] ?? null) ? array_values($data['legal_pending']) : [],
         ]);
 
         return $this->response->setJSON([
             'status'   => 'success',
-            'redirect' => base_url(needsBusiness() ? 'admin/create-business' : 'admin/dashboard'),
+            'redirect' => base_url(legalPending() !== [] ? 'admin/legal/accept' : (needsBusiness() ? 'admin/create-business' : 'admin/dashboard')),
         ]);
     }
 

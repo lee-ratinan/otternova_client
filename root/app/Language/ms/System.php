@@ -4,6 +4,7 @@ return [
     'page'       => [
         'login'                 => 'Log Masuk',
         'create-account'        => 'Cipta Akaun',
+        'legal-accept'          => 'Terma Dikemas Kini',
         'forgot-password'       => 'Lupa Kata Laluan',
         'reset-password'        => 'Tetapkan Semula Kata Laluan',
         'dashboard'             => 'Papan Pemuka',

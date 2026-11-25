@@ -4,6 +4,7 @@ return [
     'page'       => [
         'login'                 => 'Masuk',
         'create-account'        => 'Buat Akun',
+        'legal-accept'          => 'Ketentuan Terbaru',
         'forgot-password'       => 'Lupa Kata Sandi',
         'reset-password'        => 'Atur Ulang Kata Sandi',
         'dashboard'             => 'Dasbor',

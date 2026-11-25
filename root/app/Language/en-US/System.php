@@ -4,6 +4,7 @@ return [
     'page'       => [
         'login'                 => 'Sign In',
         'create-account'        => 'Create Account',
+        'legal-accept'          => 'Updated Terms',
         'forgot-password'       => 'Forgot Password',
         'reset-password'        => 'Reset Password',
         'dashboard'             => 'Dashboard',

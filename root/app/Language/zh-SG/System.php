@@ -4,6 +4,7 @@ return [
     'page'       => [
         'login'                 => '登录',
         'create-account'        => '创建账户',
+        'legal-accept'          => '条款更新',
         'forgot-password'       => '忘记密码',
         'reset-password'        => '重设密码',
         'dashboard'             => '仪表板',

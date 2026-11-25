@@ -4,6 +4,7 @@ return [
     'page'       => [
         'login'                 => '登入',
         'create-account'        => '建立帳號',
+        'legal-accept'          => '條款更新',
         'forgot-password'       => '忘記密碼',
         'reset-password'        => '重設密碼',
         'dashboard'             => '儀表板',

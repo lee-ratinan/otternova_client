@@ -4,6 +4,7 @@ return [
     'page'       => [
         'login'                 => 'サインイン',
         'create-account'        => 'アカウントを作成',
+        'legal-accept'          => '規約の更新',
         'forgot-password'       => 'パスワードをお忘れの場合',
         'reset-password'        => 'パスワードの再設定',
         'dashboard'             => 'ダッシュボード',

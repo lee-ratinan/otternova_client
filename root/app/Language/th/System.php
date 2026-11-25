@@ -4,6 +4,7 @@ return [
     'page'       => [
         'login'                 => 'เข้าสู่ระบบ',
         'create-account'        => 'สร้างบัญชี',
+        'legal-accept'          => 'ข้อกำหนดฉบับปรับปรุง',
         'forgot-password'       => 'ลืมรหัสผ่าน',
         'reset-password'        => 'ตั้งรหัสผ่านใหม่',
         'dashboard'             => 'แดชบอร์ด',

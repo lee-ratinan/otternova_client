@@ -21,6 +21,10 @@ $routes->group('admin', ['filter' => 'auth'], static function($routes) {
     $routes->get('/', 'Dashboard::index');
     $routes->get('dashboard', 'Dashboard::index');
     $routes->post('dashboard/widget/(:segment)', 'Dashboard::widget/$1');
+    // the Terms of Service and Privacy Policy versions still to accept; the auth filter holds the client here until
+    // they are; see App\Controllers\Legal
+    $routes->get('legal/accept', 'Legal::index');
+    $routes->post('legal/accept', 'Legal::accept');
     // the setup guide of the session business, each step checked on its own: its owners only; see App\Controllers\Progress
     $routes->group('progress', ['filter' => 'manager:owner'], static function ($routes) {
         $routes->get('/', 'Progress::index');

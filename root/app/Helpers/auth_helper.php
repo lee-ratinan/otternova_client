@@ -33,6 +33,19 @@ if (!function_exists('needsBusiness')) {
     }
 }
 
+if (!function_exists('legalPending')) {
+    /**
+     * The Terms of Service and Privacy Policy versions the signed-in client has still to accept, kept in the session
+     * from sign-in (the API's legal_pending); until they are accepted at admin/legal/accept nothing else opens.
+     * @return list<array> each with public_id, document_type, version_label, effective_from, change_summary
+     */
+    function legalPending(): array
+    {
+        $pending = session('legal_pending');
+        return is_array($pending) ? array_values(array_filter($pending, 'is_array')) : [];
+    }
+}
+
 if (!function_exists('currentBusinessName')) {
     /**
      * business_master.business_name of the business the signed-in client is viewing: the sign-in business kept

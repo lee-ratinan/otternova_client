@@ -58,6 +58,9 @@
             </div>
 
             <div class="form-check">
+                <?php foreach ($legalVersions ?? [] as $legalVersion): ?>
+                    <input type="hidden" name="legal_versions[]" value="<?= esc($legalVersion, 'attr') ?>">
+                <?php endforeach ?>
                 <input class="form-check-input" type="checkbox" id="terms" name="terms" value="1" required>
                 <label class="form-check-label" for="terms">
                     <?= lang('Login.create-account.terms', [
